@@ -331,7 +331,7 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 
 	//读入模型数据
 	AppendMsg(L"读入构件数据 ...\r\n");
-	bSuccess&=theData.m_cFrame.Read();
+	bSuccess&=theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara);
 
 	if(bSuccess)
 	{
@@ -776,7 +776,7 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 
 	//读入模型数据
 	AppendMsg(L"读入构件数据 ...\r\n");
-	bSuccess &= theData.m_cFrame.Read();
+	bSuccess &= theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara);
 
 	if (bSuccess)
 	{
@@ -1149,7 +1149,7 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 
 	//读入模型数据
 	AppendMsg(L"读入构件数据 ...\r\n");
-	bSuccess &= theData.m_cFrame.Read();
+	bSuccess &= theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara);
 
 	if (bSuccess)
 	{
