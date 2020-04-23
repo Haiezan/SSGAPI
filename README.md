@@ -4,6 +4,10 @@
 
 <img src="https://pic.downk.cc/item/5ea000eec2a9a83be56c67c3.png" width="400" height="400">
 
+## 日志
+
+20200423 发布2020版本
+
 ## 环境搭建
 
 安装visual studio 2010版，若采用高版本软件也必须要安装visual studio 2010工具集。
@@ -15,3 +19,8 @@
 ## 帮助
 
 工程中包含API应用实例，用户可参照修改。更多信息请联系SAUSG研发人员。
+
+## 版本
+
+* branch master 用于SAUSG2020版本
+* branch SSGAPI2019 用于SAUSG2019版本
