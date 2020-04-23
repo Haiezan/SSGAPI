@@ -200,6 +200,8 @@ void ToExcelM(int nRows,int nCols,const CString **psArray,const CString *pSheetN
 
 void ToExcelCSV(int nRows, int nCols, string *sArray, CString sPathFile, int nTotalCols=0);
 
+void ToExcelM(int *pRows,int *pCols,const CString **psArray,const CString *pSheetName,int nSheet);
+
 //Excel接口类
 class CExcel
 {
@@ -357,7 +359,7 @@ public:
 	void Move(WORD_MOVE_UNIT unit,int nCount);
 
 	/*插入图片*/
-	void InsertPic(const wchar_t *sFilePath);
+	void InsertPic(const wchar_t *sFilePath, int width=-1, int height=-1);
 	void InsertPic(const char *sFilePath);
 	/*插入新页*/
 	void NewPage();
@@ -410,7 +412,8 @@ public:
 	BOOL InsertAt(const wchar_t *text,bool bForwardFind);
 	//合并表格中相同内容单元格
 	void MergeTable(int irow1,int icol1,int irow2,int icol2);
-
+	//表头斜线格式
+	void TableDiagonal();
 protected:
 	int Init(void);
 

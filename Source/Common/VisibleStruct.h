@@ -56,6 +56,8 @@ public:
 	BOOL SetCollectionVisible(int nNewVex,int nNewLine,int nNewBeam,int nNewPlate,int nSel,const int *pSel,int nFlagVisible);
 	//复制选择集  邱海 2016年7月6日
 	BOOL CopyCollection(int nOrign,int nCopy);
+	//清空某显示集数据
+	void ClearCollection(int iIndex);
 
 	BOOL IsVexVisible(int idm) const
 	{

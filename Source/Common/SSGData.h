@@ -8,6 +8,13 @@
 #include "Mesh.h"
 //#include "..\StructGraph\SSGAppInterface.h"
 
+enum LOADCASETYPE
+{
+	STATIC=-1,
+	EARTHQUAKE=0,//大震验算，SSG默认，SSG可以打开 m_cLoad
+	DIRECTANALY=1,//设计工况 钢结构、减震、隔震 m_cLoadDesign
+	NLSTATIC=2,//静力非线性 m_cLoadStatic
+};
 
 class _SSG_DLLIMPEXP  CSSGData 
 {
@@ -69,7 +76,7 @@ public:
 	
 	CString GetPrjPath(void); //得到项目根目录，例："d:\exam_path\"
 	CString GetPrjName(void); //得到项目名，例："exam"
-	CString GetPrjTempPath(void); //得到项目临时目录，例："d:\exam_path\temp\"
+	CString GetPrjBucklingPath(void); //得到项目临时目录，例："d:\exam_path\Buckling\"
 	CString GetUserDataPath(void); //得到用户数据目录，例："d:\exam_path\UserData\"
 	CString GetStaticPath(void); //得到静力工况根目录，例："d:\exam_path\StaticResult\"
 	CString GetEarthQuakeRoot(void); //得到地震工况根目录，例："d:\exam_path\EarthQuakeResult\"
@@ -78,14 +85,43 @@ public:
 	CString GetFilePath(const CString &sExt,const CString &sLoadCase=L"",const CString &sGroupName=L"");  //得到任意工况文件全路径，根据扩展名不同辨认不同的子目录,sGroupName为选择集名称
 
 	int GetStoryByZ(float z);		//根据标高得到实际楼层号，采用楼层面包络计算
-//	void InitialApp(ISSGApp* theExeApp);
+	//void InitialApp(ISSGApp* theExeApp);
 	void ReadMatFile();//读取用户自定义材料文件
 
 	int GetMatID(CString &mat);
 	CString GetMatName(int id);
 
+	BOOL GetBeamStoryMat(CBeamStruc &beam);
+	BOOL GetPlateStoryMat(CPlateStruc &plate);
+
+	CString GetCaseStaticPath(const CString &sLoadCase); //得到静力工况根目录，例："d:\exam_path\StaticResult\"
+	//
+	BOOL HasTimeHis(int iCmb);
+	//
+	float GetLoadCoef(CLoadCase *lc,CASE_TYPE nType,BOOL bConLoad=TRUE);
+	//得到当前工况列表
+	CLoadCollection *GetLoadCollecton();
+
+	//设置当前工况类型，用于读取结果文件
+	void SetLoadCollection(int iType=0){m_iLoadCaseType=(LOADCASETYPE)iType;};
+	LOADCASETYPE GetLoadCollectionType(){return m_iLoadCaseType;};
+	// 
+	int CreateOverallDefect(float* &coord);
+	int CreateMemberDefect(float* &coord);
+	BOOL WriteBinStatcNodeFieldOneStep(const CString &fname,const int nNode,float *&coord,const CString &sCmpName);
+	//
+	int CreateOverallDefectFile();
+	int CreateMemberDefectFile();
+	int CreateSuperPosDefectFile();
+private:
+	LOADCASETYPE m_iLoadCaseType;
 };
 
 extern "C" _SSG_DLLIMPEXP CSSGData  theData;
 
+//extern "C" __declspec(dllexport) CSSGData theData;
+
+// extern "C" _SSG_DLLIMPEXP int GetText();
+// 
+// extern "C" _SSG_DLLIMPEXP int kkk;
 

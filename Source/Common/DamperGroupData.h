@@ -15,25 +15,8 @@
 #include <vector>
 //#include <algorithm>
 //#include <functional>
-#include "Data.h"
+#include "Data.h"				  
 
-
-//组类型定义
-enum GROUP_STYLE
-{
-	STYLE_BEAM=0,			 //梁式
-	STYLE_COUPLING=1,	//连梁式
-	STYLE_BRACING=2,	    //撑式
-	STYLE_WALL=3,				//墙板式:点击
-	STYLE_WALL2=4,			//墙板式:自建墙
-	STYLE_5TH=5,					//类型5
-	STYLE_6TH=6,					//类型6
-	STYLE_7TH=7,					//类型7
-	STYLE_8TH=8,					//类型8
-	STYLE_9TH=9,					//类型9
-	STYLE_10TH=10,			//类型10
-	STYLE_USER1=11,			//自定义串联
-};
 
 struct GROUP_DATA
 {
@@ -143,13 +126,13 @@ public:
 };
 
 
-class  _SSG_DLLIMPEXP CDamperGroup
+class  _SSG_DLLIMPEXP CDamperGroupSec
 {
 public:
 	//构造与析构函数
-	CDamperGroup(void) {Clear();}
-	CDamperGroup(const CDamperGroup &Grp)	{nUsedCount=0; *this=Grp; }
-	~CDamperGroup(void) { Clear();}
+	CDamperGroupSec(void) {Clear();}
+	CDamperGroupSec(const CDamperGroupSec &Grp)	{nUsedCount=0; *this=Grp; }
+	~CDamperGroupSec(void) { Clear();}
 
 	//基本数据
 	int id;  //组ID
@@ -159,9 +142,11 @@ public:
 	int nUsedCount;  //被构件使用的次数，一定要先计算再使用,临时数据
 
 	//运算符
-	CDamperGroup & operator=(const CDamperGroup &Grp);
+	CDamperGroupSec & operator=(const CDamperGroupSec &Grp);
 	//自动获得名称
 	CString &AutoName(void);
+	//获得样式名称
+	CString GetStyleName(void);
 	//显示组图像
 	void ShowDamperGroupPic(CDC *pDC,const CRect &re);
     //清除数据
@@ -175,34 +160,34 @@ public:
 	BOOL CheckGroupData();
 };
 
-class  _SSG_DLLIMPEXP CDamperGroupCollection
+class  _SSG_DLLIMPEXP CDamperGroupSecCollection
 {
 public:
-	CDamperGroupCollection(void){Clear();}
-	~CDamperGroupCollection(void){Clear();}
+	CDamperGroupSecCollection(void){Clear();}
+	~CDamperGroupSecCollection(void){Clear();}
 
-	CDamperGroupCollection(const CDamperGroupCollection &Grp)
+	CDamperGroupSecCollection(const CDamperGroupSecCollection &Grp)
 	{
 		*this=Grp;
 	}
 
-	CArray<CDamperGroup*,CDamperGroup*> aDamperGroupPtr;  //消能器指针
+	CArray<CDamperGroupSec*,CDamperGroupSec*> aDamperGroupPtr;  //消能器指针
 	int iMaxID;  //当前用到的最大ID
 
 	int GetID(int iStyle,const CString &sName);  //根据结构类型和截面名称获得截面ID,找不到返回-1
 	int GetIndex(int id) const;  //根据给定的梁截面id返回索引,找不到返回-1
-	CDamperGroup *GetDamperGroup(int id) const;  //根据给定的梁截面id返回截面指针
+	CDamperGroupSec *GetDamperGroupSec(int id) const;  //根据给定的梁截面id返回截面指针
 	int *CreateIndex(void);  //创建ID-->序号的索引数组，调用程序需要删除它，数组长度为iMaxID+1
-	void AppendDamperGroup(CDamperGroup *pGrp);  //增加新截面，自动获取ID
+	void AppendDamperGroupSec(CDamperGroupSec *pGrp);  //增加新截面，自动获取ID
 
-	CDamperGroupCollection & operator=(const CDamperGroupCollection &Grp)
+	CDamperGroupSecCollection & operator=(const CDamperGroupSecCollection &Grp)
 	{
 		if(this==&Grp) return *this; //自身赋值时直接返回
 
 		Clear();
 		for(int i=0;i<Grp.aDamperGroupPtr.GetCount();i++) 
 		{
-			CDamperGroup *s1=new CDamperGroup(*(Grp.aDamperGroupPtr[i]));
+			CDamperGroupSec *s1=new CDamperGroupSec(*(Grp.aDamperGroupPtr[i]));
 			aDamperGroupPtr.Add(s1);  //这里不调用AppendSection，不改变ID
 			iMaxID=max(iMaxID,s1->id);  //记录最大ID
 		}

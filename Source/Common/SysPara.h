@@ -9,7 +9,7 @@
 	_HASP£ºÈô¶¨ÒåÔòÎª¼ÓÃÜ¹·°æ
 */
 
-const float Sys_FileVersion=2018.0f; //IOÎÄ¼þ°æ±¾ºÅ£¬µÝÔö¾«¶È>0.001£¬Ê¹ÓÃ¸ÃÊý¾ÝÊ±Ó¦×¢ÒâfloatµÄ¾«¶ÈÎÊÌâ£¬Ó¦ÁôÓÐÓàÁ¿ÀýÈçÉèÖÃÎó²î0.05f¡£
+const float Sys_FileVersion=2020.2f; //IOÎÄ¼þ°æ±¾ºÅ£¬µÝÔö¾«¶È>0.001£¬Ê¹ÓÃ¸ÃÊý¾ÝÊ±Ó¦×¢ÒâfloatµÄ¾«¶ÈÎÊÌâ£¬Ó¦ÁôÓÐÓàÁ¿ÀýÈçÉèÖÃÎó²î0.05f¡£
 
 //ÏµÍ³ÎÄ¼þ
 const wchar_t FILE_DEFAULT_MATERIAL_LIB[]=L"DATA\\MATERIAL.MLB";  //ÏµÍ³È±Ê¡²ÄÁÏ¿â£¬ÎÄ±¾ÎÄ¼þ
@@ -27,13 +27,14 @@ const wchar_t FILE_BATCH_CMD[]=L".MCD";  //Åú´¦ÀíÎÄ¼þ£¬¶ÀÁ¢ÎÄ¼þ
 const wchar_t FILE_MODIFY_HIST[]=L"MCM";  //ÐÞ¸ÄÄ£ÐÍÊôÐÔÓÃµÄÖ¸ÁîÀúÊ·¼ÇÂ¼£¬ÎÄ±¾ÎÄ¼þ£¬¶ÀÁ¢ÎÄ¼þ
 const wchar_t FILE_MESSAGE[]=L"MSG";  //³ÌÐòÔËÐÐµÄÁÙÊ±ÐÅÏ¢£¬ÎÄ±¾ÎÄ¼þ£¬¶ÀÁ¢ÎÄ¼þ
 const wchar_t FILE_MATERIAL[]=L"MLB";  //ÏîÄ¿²ÄÁÏ¿â£¬ÎÄ±¾ÎÄ¼þ£¬¶ÀÁ¢ÎÄ¼þ£¬ÔÝÊ±²»ÓÃ
-const wchar_t FILE_PRJ_TEMP[]=L"S~~"    ;  //ÁÙÊ±±¸·ÝµÄÏîÄ¿ÎÄ¼þ£¬´æ·ÅÏîÄ¿Ïà¹ØÐÅÏ¢£¬ÎÄ±¾ÎÄ¼þ£¬ÔÝÊ±²»ÓÃ
+const wchar_t FILE_PRJ_TEMP[]=L"s~~"    ;  //ÁÙÊ±±¸·ÝµÄÏîÄ¿ÎÄ¼þ£¬´æ·ÅÏîÄ¿Ïà¹ØÐÅÏ¢£¬ÎÄ±¾ÎÄ¼þ£¬ÔÝÊ±²»ÓÃ
 const wchar_t FILE_OUT_PROFILE[]=L"IDX";  //Êä³öÊý¾ÝµÄË÷ÒýÐÅÏ¢ÎÄ¼þ£¬ÎÄ±¾ÎÄ¼þ£¬ÒÀÀµÓÚÍø¸ñ£¬ÔÝÊ±²»ÓÃ
 
 const wchar_t FILE_FRAME[]=L"SSG"  ;  //¿ò¼ÜÊý¾Ý£¬ÎÄ±¾ÎÄ¼þ£¬ÒÀÀµÓÚMLB
 
 const wchar_t FILE_CHECK_MODEL[]=L"WRN";  //¼ì²éÄ£ÐÍÊý¾Ý½»»»£¬ÎÄ±¾ÎÄ¼þ,ÒÀÀµÓÚSSG
 const wchar_t FILE_COOR_BIN[]=L"BCR";  //½áµã×ø±ê£¬¶þ½øÖÆÎÄ¼þ£¬ÒÀÀµÓÚSSG
+const wchar_t FILE_COORL_BIN[]=L"BLR";  //½áµãºÉÔØ£¬¶þ½øÖÆÎÄ¼þ£¬ÒÀÀµÓÚSSG
 const wchar_t FILE_ELEM_BIN[]=L"BEM";  //µ¥Ôª±àÂë£¬¶þ½øÖÆÎÄ¼þ£¬ÒÀÀµÓÚSSG
 const wchar_t FILE_COOR[]=L"COR";  //½áµã×ø±ê£¬ÎÄ±¾ÎÄ¼þ£¬ÓÃÓÚÊä³ö½Ó¿Ú£¬ÒÀÀµÓÚSSG
 const wchar_t FILE_ELEM[]=L"ELM";  //µ¥Ôª±àÂë£¬ÎÄ±¾ÎÄ¼þ£¬ÓÃÓÚÊä³ö½Ó¿Ú£¬ÒÀÀµÓÚSSG
@@ -64,7 +65,10 @@ const wchar_t FILE_STATIC_SUPPORT_FORCE[]=L"NSF";  //¾²Á¦·ÖÎöÖ§×ù·´Á¦£¬ÎÄ±¾ÎÄ¼þ
 const wchar_t FILE_BUILDING_WEIGHT[]=L"STW";  //È«Â¥×ÜÖØ£¬ÎÄ±¾ÎÄ¼þ
 const wchar_t FILE_MODAL_BIN[]=L"MOD";  //ÕñÐÍÎÄ¼þ£¬¶þ½øÖÆÎÄ¼þ
 const wchar_t FILE_FREQ[]=L"FRQ";  //ÆµÂÊÎÄ¼þ£¬ÎÄ±¾ÎÄ¼þ
+const wchar_t FILE_BUCKLING[]=L"FRB";  //ÆµÂÊÎÄ¼þ£¬ÎÄ±¾ÎÄ¼þ
 const wchar_t FILE_STATIC_DISP_BIN[]=L"NSD";  //ÊúÏòºÉÔØ¼ÓÔØµÄÎ»ÒÆÎÄ¼þ£¬¶þ½øÖÆÎÄ¼þ
+const wchar_t FILE_BUCKLING_BIN[]=L"MOB";  //ÇüÇúÕñÐÍÎÄ¼þ£¬¶þ½øÖÆÎÄ¼þ
+const wchar_t FILE_DEFECT_BIN[]=L"IMP";  //È±ÏÝÎÄ¼þ£¬¶þ½øÖÆÎÄ¼þ
 
 //EarthQuakeResult\case_n\×ÓÄ¿Â¼ÏÂµÄÎÄ¼þ
 const wchar_t FILE_DISP_BIN[]=L"BDS";  //¶¯Á¦·ÖÎö½áµãÎ»ÒÆ£¬¶þ½øÖÆÎÄ¼þ
@@ -89,12 +93,13 @@ const wchar_t FILE_STRU_STIFF_BIN[]=L"BSR";				//¹¹¼þ¸Õ¶ÈÕÛ¼õÏµÊý£¬½ö×îÖÕÊ±¿Ì£¬¹
 const wchar_t FILE_ELEM_HINGE_BIN[]=L"BEH";				//¶¯Á¦·ÖÎöµ¥ÔªËÜÐÔ½Â£¬¹Ì¶¨Ñ¡Ôñ¼¯£¬¶þ½øÖÆÎÄ¼þ
 const wchar_t FILE_STORY_DRIFT_BIN[]=L"SDR";			//²ã¼äÎ»ÒÆ½Ç¡¢²ã¼äÎ»ÒÆ¡¢²ãÎ»ÒÆ£¬·Ö×é£¬¶þ½øÖÆÎÄ¼þ
 const wchar_t FILE_STORY_ENERGY_BIN[]=L"SENG";			//²ã¼äÎ»ÒÆ½Ç¡¢²ã¼äÎ»ÒÆ¡¢²ãÎ»ÒÆ£¬·Ö×é£¬¶þ½øÖÆÎÄ¼þ
-const wchar_t FILE_TOTALENERGY_BIN[]=L"ENG";					//È«Â¥ÄÜÁ¿£¬¶þ½øÖÆÎÄ¼þ
+const wchar_t FILE_TOTALENERGY_BIN[]=L"ENG";			//È«Â¥ÄÜÁ¿£¬¶þ½øÖÆÎÄ¼þ
 const wchar_t FILE_STORY_SHEAR_BIN[]=L"SSH";			//²ã¼ä¼ôÁ¦£¬¶þ½øÖÆÎÄ¼þ
 //const wchar_t FILE_ELM_BLOCK_INDEX[]=L"EBI";  //Ã¿¸öµ¥ÔªµÄ·Ö¿éË÷Òý£¬ÓÃÓÚÓëF-5ÎÄ¼þÅäºÏÊ¹ÓÃ£¬¶þ½øÖÆÎÄ¼þ,ÎÞÑ¡Ôñ¼¯
 //const wchar_t FILE_TEMP_BIN[]=L"TMP";  //¶¯Á¦·ÖÎö½áµãÎÂ¶È£¬¶þ½øÖÆÎÄ¼þ
 const wchar_t FILE_OUTPUT_DEF[]=L"DEF";  //°´Â¥²ãÊä³ö³¤Öù×Ó½áµã£¬ÎÄ±¾ÎÄ¼þ£¬·Ö×é£¬ÓÃÓÚÊä³ö½Ó¿Ú£¬ÒÀÀµÓÚÍø¸ñ
 const wchar_t FILE_OUTPUT_DED[]=L"DED";  //°´Â¥²ãÊä³ö³¤Öù×Ó¶ÔÓ¦µÄ²ã¼äÎ»ÒÆ½Ç£¬ÎÄ±¾ÎÄ¼þ£¬·Ö×é£¬ÒÀÀµÓÚÍø¸ñ
+const wchar_t FILE_STRU_STRESSRATIO_BIN[]=L"BSS";				//¶¯Á¦·ÖÎö¹¹¼þÅä½îÃæ»ý£¬¹Ì¶¨Ñ¡Ôñ¼¯£¬¶þ½øÖÆÎÄ¼þ
 
 
 const wchar_t Sys_Group_All[]=L"All";  //ÄÚÖÃÈ«¼¯Ãû³Æ
@@ -145,33 +150,38 @@ const int Sys_MaxPSize=5000;  //mesh2dÖÐÓÃµ½µÄ×î´ó½áµãÊý
 const int Sys_MaxESize=5000;  //mesh2dÖÐÓÃµ½µÄ×î´óµ¥ÔªÊý
 const int Sys_SUFFERED=100; //Íø¸ñÓÅ»¯ÖÐÓÃµ½µÄÊý×é,²åÈëÒ»¸öµãºóÊÜÓ°ÏìµÄÈý½ÇÐÎ×î´ó¸öÊý
 const int Sys_IncAlloc=10000; //ÄÚ´æ²»¹»Ê±reallocÔö¼ÓµÄ¹æÄ£
-const int Sys_SubSectionParaNum=12; //×Ó½ØÃæ¼¸ºÎ²ÎÊý¸öÊý£¬ÒªÓëÊµ¼ÊÇé¿ö¾«È·Ïà·û
+const int Sys_SubSectionParaNum=100;  //×Ó½ØÃæ¼¸ºÎ²ÎÊý¸öÊý£¬ÒªÓëÊµ¼ÊÇé¿ö¾«È·Ïà·û;  2020°æ±¾½«×î´óµãÊý¸ÄÎª 49£¬ Ô­À´12Îª6¸öµã
 const int Sys_MaxPoly=5; //Ò»¸ö½ØÃæÖÐ¶à±ßÐÎ±ß½çµÄ×î´óÊýÁ¿£¬°üÀ¨Íâ±ß½çºÍÄÚ±ß½ç¡£Ò»¸ö¶ÀÁ¢ÇøÓòÊÇÒ»¸ö½ØÃæ£¬¿ÉÒÔÊÇ¸´Á¬Í¨Óò£¬Ò»¸ö½ØÃæ±ØÐëÊÇµ¥Ò»²ÄÁÏ
 const int Sys_MaxLabel =10; //Ò»¸ö½ØÃæ×î´ó±ê×¢Êý
 const int Sys_Max_Stories  =300; //×î´óÂ¥²ã
+const int Sys_Max_Towers  =30; //×î´óËþÊý
 const int Sys_DOF=6; //½áµã×î´ó×ÔÓÉ¶È
 const int Sys_Max_ComponentLength =16; //·ÖÁ¿Ãû×î´ó³¤¶È£¬×Ö·ûÊý
 const int Sys_Max_Connect_Wall =4;  //Ã¿¸öµã×î¶à¹ØÁªµÄÇ½ÌåÊýÁ¿
 const int Sys_MaxConcNum =8;  //FEA¼ÆËã×î´ó»ìÄýÍÁÊý
-const int Sys_MaxSteelNum =8;  //FEA¼ÆËã×î´ó¸Ö²ÄÊý
-const int Sys_Conc_Para_Inter_Num =7; //¼ÆËã½Ó¿ÚÖÐ»ìÄýÍÁ²ÎÊý¸öÊý£¬ÅÅÔÚSys_Conc_Para_NumÇ°Ãæ
+const int Sys_MaxSteelNum =7;  //FEA¼ÆËã×î´ó¸Ö²ÄÊý
+const int Sys_ConcParaInterNum =8; //¼ÆËã½Ó¿ÚÖÐ»ìÄýÍÁ²ÎÊý¸öÊý£¬ÅÅÔÚSys_Conc_Para_NumÇ°Ãæ
+const int Sys_SteelParaInterNum =3; //¼ÆËã½Ó¿ÚÖÐ¸Ö½î/¸Ö²Ä²ÎÊý¸öÊý
 const int Sys_MAX_NEIGHBOR =100 ;  //Ò»¸ö½áµãÖÜÎ§×î¶àÈý½ÇÐÎÊý
 const int SYS_MAX_NEIGHBOR_IN_PLANE =30 ;  //Æ½ÃæÄÚÒ»¸ö½áµãÖÜÎ§×î¶àÈý½ÇÐÎÊý
 const int Sys_StructTypeNum =6 ;  //ÏµÍ³Ö§³ÖµÄ¹¹¼þÀàÐÍÊý	//ÇÇ±£¾ê 2015.5.25 //»ìÄýÍÁ¡¢¸Ö½îÐÅÏ¢£¬²»°üÀ¨×èÄá¸ôÕð¹¹¼þ
 const int Sys_MaxDriftNum =100 ;  //×î´ó²ã¼äÎ»ÒÆ½ÇÎ»ÖÃ¸öÊý
 const int Sys_EQ_Class_Num =6;  //µØÕð¼¶±ðÊý
 const int Sys_MinModeNum =3 ;	//Ê¹ÓÃÕñÐÍ×èÄáÊ±µÄ×îÐ¡ÕñÐÍÊý
-const int Sys_MaxModeNum =100 ; //Ê¹ÓÃÕñÐÍ×èÄáÊ±µÄ×î´óÕñÐÍÊý
+const int Sys_MaxModeNum =300 ; //Ê¹ÓÃÕñÐÍ×èÄáÊ±µÄ×î´óÕñÐÍÊý
 const int Sys_MinMRParaNum =2 ;	//Ê¹ÓÃ×Ô¶¨Òå×èÄáÆ÷Ê±µÄ×îÐ¡Êý¾ÝµãÊý
 const int Sys_MaxMRParaNum =13 ;	//Ê¹ÓÃ×Ô¶¨ÒåËÙ¶ÈÐÍ×èÄáÆ÷Ê±µÄ×î´óÊý¾ÝµãÊý
 const int Sys_MaxMRParaNumDis =8 ;	//Ê¹ÓÃ×Ô¶¨ÒåÎ»ÒÆÐÍ×èÄáÆ÷Ê±µÄ×î´óÊý¾ÝµãÊý
 const int Sys_Material_Number =25 ;  //ÄÚÖÃ²ÄÁÏ¸öÊý
-const int Sys_CheckErrors =16; //¼ì²éÄ£ÐÍµÄÏîÊý
+const int Sys_CheckErrors =24; //¼ì²éÄ£ÐÍµÄÏîÊý
 const int MAX_POLYGONPOINT =500;
 const int Sys_MinPerformGrade=3;	//×îÉÙÐÔÄÜµÈ¼¶//2015.12.9
 const int Sys_MaxPerformGrade=6;	//×î¶àÐÔÄÜµÈ¼¶
 const int Sys_MinHingeGrade=3;	//×î¶àËÜÐÔ½ÂµÈ¼¶
 const int Sys_MaxHingeGrade=6;	//×î¶àËÜÐÔ½ÂµÈ¼¶
+const int Sys_MaxLoadcase=20;	//×î¶àºÉÔØ¹¤¿ö
+const int Sys_MaxLoadcaseComb=200;	//×î¶àºÉÔØ×éºÏ
+const int Sys_MaxLoad=50;//×î¶àºÉÔØÊý
 
 
 //×´Ì¬À¸ÉèÖÃ
@@ -204,17 +214,15 @@ const int Sys_CFT_SteelFibre=24;			//ÆÕÍ¨CFT½ØÃæÐÍ¸ÖÏËÎ¬ÆÊ·ÖÊý
 const int Sys_SRC_SteelFibre=16;			//ÆÕÍ¨SRC½ØÃæÐÍ¸ÖÏËÎ¬ÆÊ·ÖÊý
 const int Sys_Rebar=8;						//¸Ö½îÊý
 const int Sys_PlateConcLayer=1;	            //Â¥°åµÄ»ìÄýÍÁ·Ö²ãÊý
+const int Sys_WallConcLayer=6;	            //Ç½µÄ»ìÄýÍÁ·Ö²ãÊý
 const int Sys_CrtTensPara=3;				//»ìÄýÍÁ²ÄÁÏÀ­Éì²ÎÊý¸öÊý
 const int Sys_CrtCompPara=4;				//»ìÄýÍÁ²ÄÁÏÑ¹Ëõ²ÎÊý¸öÊý
 
+const int Sys_Arbitrary_ConcFibre=36;			//ÈÎÒâ»ìÄýÍÁÏËÎ¬½ØÃæÊý
+const int Sys_Arbitrary_SteelFibre=64;			//ÈÎÒâ¸ÖÏËÎ¬½ØÃæÊý
 
 
-const int Sys_ConcFibreLen=3328;  //×î´ó»ìÄýÍÁÏËÎ¬³¤¶È
-const int Sys_EdgeSec =256;        //×î´óÔ¼Êø±ßÔµ¹¹ÔìÖù½ØÃæÐÅÏ¢³¤¶È
-const int Sys_LinkSec =900;        //×î´ó×èÄáÆ÷½ØÃæÐÅÏ¢³¤¶È	//ÇÇ±£¾ê 2015.5.20		=30*num	×î¶à30¸ö½ØÃæ
-const int Sys_Geo =1500 ;           //×î´ó½ØÃæ¼¸ºÎÐÅÏ¢³¤¶È,½ØÃæÊý=1500/6=250	//ÇÇ±£¾ê 2015.9.10
 const int Sys_Geo_Num =6;          //²ÄÁÏ²ÎÊý¸öÊý
-const int Sys_Max_BC =8192  ;      //×î´óÔ¼Êø½áµãÊý
 const int Sys_Max_ModalDamage =100  ;      //Ò»´Î×î´óÊµÊ±Ä£Ì¬·ÖÎö¸öÊý
 
 
@@ -222,6 +230,16 @@ const int Sys_Max_ModalDamage =100  ;      //Ò»´Î×î´óÊµÊ±Ä£Ì¬·ÖÎö¸öÊý
 
 
 //ÒÔÏÂÃ¶¾ÙÖµÈç¹û±»Ã÷È·¶¨ÒåÊýÖµÁË£¬ÔòÓÐÌØÊâº¬Òå£¬²»ÒªËæÒâ¸ü¸Ä
+
+//²ÄÁÏÀàÐÍ£¬Ã¶¾ÙÖµ²»µÃËæÒâ¸ü¸Ä
+enum MATERIAL_TYPE
+{
+	MAT_UNKNOWN=0, //Î´¶¨Òå
+	MAT_CONC=1, //»ìÄýÍÁ
+	MAT_REBAR=2, //¸Ö½î
+	MAT_STEEL=4, //ÐÍ¸ÖºÍ¸Ö°å
+};
+
 
 //½á¹¹ÀàÐÍ,Êµ¼ÊÉÏ´ú±í¼¸ºÎÊý¾ÝÀàÐÍ
 enum STRUCT_TYPE
@@ -284,6 +302,8 @@ enum LINK_SUBTYPE
 	LINK_USERDAMPERDIS		=0x400,//×Ô¶¨ÒåÎ»ÒÆÐÍ×èÄáÆ÷
 	LINK_WEN				=0x800,//WenÄ£ÐÍ
 	LINK_ISOLATOR3D				=0x1000,//ÈýÏòñîºÏ¸ôÕðÖ§×ù
+	LINK_TMD				=0x2000,//TMD
+	LINK_PRESTRJOIN				=0x4000,//Ô¤Ó¦Á¦Á¬½Ó¼ü
 };
 struct LinkName
 { 
@@ -305,7 +325,9 @@ const struct LinkName LinkNamesArray[]=
 	L"¼äÏ¶",LINK_GAP,
 	L"Ä¦²Á°ÚÖ§×ù",LINK_FRICPND,
 	L"×Ô¶¨Òå×èÄáÆ÷",LINK_USERDAMPERVEL,
-	L"×Ô¶¨ÒåÎ»ÒÆÐÍ×èÄáÆ÷",LINK_USERDAMPERDIS
+	L"×Ô¶¨ÒåÎ»ÒÆÐÍ×èÄáÆ÷",LINK_USERDAMPERDIS,
+	L"µ÷ÆµÖÊÁ¿×èÄáÆ÷",LINK_TMD,
+	//L"Ô¤Ó¦Á¦Á¬½Ó¼ü",LINK_PRESTRJOIN,
 #else
 	L"Isolators",LINK_ISOLATOR,
 	L"3D Isolators",LINK_ISOLATOR3D,
@@ -319,9 +341,92 @@ const struct LinkName LinkNamesArray[]=
 	L"Gap",LINK_GAP,
 	L"Friction Pendulum",LINK_FRICPND,
 	L"Dampers-Velo User defined",LINK_USERDAMPERVEL,
-	L"Dampers-Disp User defined",LINK_USERDAMPERDIS
+	L"Dampers-Disp User defined",LINK_USERDAMPERDIS,
+	L"TMD",LINK_TMD,
+	//L"Prestressed Join-key",LINK_PRESTRJOIN
 #endif
 };
+
+//×éÀàÐÍ¶¨Òå
+enum GROUP_STYLE
+{
+	STYLE_BEAM=0,		//ÁºÊ½
+	STYLE_COUPLING,	//Á¬ÁºÊ½
+	STYLE_BRACING,	    //³ÅÊ½
+	STYLE_WALL,				//Ç½°åÊ½:µã»÷
+	STYLE_WALL2,			//Ç½°åÊ½:×Ô½¨Ç½
+	STYLE_WALL3,			//Ç½°åÊ½:×Ô½¨Ç½
+	STYLE_INVY1,				//ÕýÈË×Ö1ÐÍ
+	STYLE_Y1,					//µ¹ÈË×Ö1ÐÍ
+	STYLE_INVY2,				//ÕýÈË×Ö2ÐÍ
+	STYLE_Y2,					//µ¹ÈË×Ö2ÐÍ
+	STYLE_INVY3,				//ÕýÈË×Ö3ÐÍ
+	STYLE_Y3,					//µ¹ÈË×Ö3ÐÍ
+	STYLE_INVY4,				//ÕýÈË×Ö4ÐÍ
+	STYLE_Y4,					//µ¹ÈË×Ö4ÐÍ
+	STYLE_V,						//ÕýV×ÖÐÍ ",L
+	STYLE_INVV,				//µ¹V×ÖÐÍ ",L
+	STYLE_DISAMP1,		//Î»ÒÆ·Å´óÆ÷1
+	STYLE_DISAMP2,		//Î»ÒÆ·Å´óÆ÷2
+	STYLE_DISAMP3,		//Î»ÒÆ·Å´óÆ÷3
+	STYLE_DISAMP4,		//Î»ÒÆ·Å´óÆ÷4
+	STYLE_USER1,			//×Ô¶¨Òå´®Áª
+};	
+
+struct LinkGroupStyle
+{ 
+	const wchar_t *sName;
+	GROUP_STYLE iType;
+};
+
+//ÑùÊ½ÁÐ±í
+const struct LinkGroupStyle sGroup_Style[]={
+#ifdef _SIMPLIFIED_CHINESE
+	L"ÁºÊ½",						STYLE_BEAM,	
+	L"Á¬ÁºÊ½",             		STYLE_COUPLING,
+	L"³ÅÊ½ ", 					STYLE_BRACING,	
+	L"Ç½°åÊ½1 ", 				STYLE_WALL,			
+	L"Ç½°åÊ½2 ", 				STYLE_WALL2,		
+	L"Ç½°åÊ½3 ", 				STYLE_WALL3,		
+	L"ÕýÈË×Ö1ÐÍ ",			STYLE_INVY1,			
+	L"µ¹ÈË×Ö1ÐÍ ",			STYLE_Y1,				
+	L"ÕýÈË×Ö2ÐÍ ",			STYLE_INVY2,			
+	L"µ¹ÈË×Ö2ÐÍ ",			STYLE_Y2,				
+	L"ÕýÈË×Ö3ÐÍ ",			STYLE_INVY3,			
+	L"µ¹ÈË×Ö3ÐÍ ",			STYLE_Y3,				
+	L"ÕýÈË×Ö4ÐÍ",			STYLE_INVY4,			
+	L"µ¹ÈË×Ö4ÐÍ ",			STYLE_Y4,				
+	L"ÕýV×ÖÐÍ ",				STYLE_V,					
+	L"µ¹V×ÖÐÍ ",				STYLE_INVV,			
+	L"Î»ÒÆ·Å´óÆ÷1 ",		STYLE_DISAMP1,	
+	L"Î»ÒÆ·Å´óÆ÷2",		STYLE_DISAMP2,	
+	L"Î»ÒÆ·Å´óÆ÷3 ",		STYLE_DISAMP3,	
+	L"Î»ÒÆ·Å´óÆ÷4 ",		STYLE_DISAMP4,	
+	L"×Ô¶¨Òå´®Áª ",		STYLE_USER1
+#else
+	L"Beam",                                        STYLE_BEAM,	
+	L"Coupling Beam",					  STYLE_COUPLING,
+	L"Bracing",									 STYLE_BRACING,	
+	L"Wall1",								 STYLE_WALL,			
+	L"Wall2",								 STYLE_WALL2,		
+	L"Wall3",								 STYLE_WALL3,		
+	L"Inverted Y-shape1",		  STYLE_INVY1,			
+	L"Y-shape1",					   STYLE_Y1,				
+	L"Inverted Y-shape2",		  STYLE_INVY2,			
+	L"Y-shape2",					   STYLE_Y2,				
+	L"Inverted Y-shape3",		  STYLE_INVY3,			
+	L"Y-shape3",					   STYLE_Y3,				
+	L"Inverted Y-shape4",		 STYLE_INVY4,			
+	L"Y-shape4",					   STYLE_Y4,				
+	L"V-shape",							   STYLE_V,					
+	L"Inverted V-shape",			 STYLE_INVV,			
+	L"Disp Amp1",				  STYLE_DISAMP1,	
+	L"Disp Amp2",				  STYLE_DISAMP2,	
+	L"Disp Amp3",				  STYLE_DISAMP3,	
+	L"Disp Amp4",				  STYLE_DISAMP4,	
+	L"User Define",				   STYLE_USER1
+#endif
+}; 
 
 //ÎïÀí³¡ÀàÐÍ
 enum FIELD_TYPE
@@ -337,6 +442,8 @@ enum FIELD_TYPE
 	FIELD_SPEED		=0x0020,  //½áµãËÙ¶È
 	FIELD_MODAL_DAMAGE	=0x0012,  //ÊµÊ±Ä£Ì¬ÕñÐÍ
 	FIELD_ENERGY		=0x0040,  //½áµãÄÜÁ¿
+	FIELD_BUCKLING		=0x0080,  //ÇüÇúÄ£Ì¬
+	FIELD_DEFECT	  =0x0100,  //È±ÏÝ
 
 	//ÒÔÏÂÎªµ¥Ôª³¡£¬µÚ16Î»Îª0
 	FIELD_STRESS=0x10001,  //µ¥ÔªÓ¦Á¦
@@ -352,6 +459,14 @@ enum FIELD_TYPE
 	FIELD_PERFORM_STRU		=0x100800,  //¹¹¼þÐÔÄÜ
 	FIELD_HINGE				=0x101000,  //ËÜÐÔ½Â
 
+	//·ÇÏßÐÔÇüÇú·ÖÎö
+// 	FIELD_DISP					=0x10000004,  //½áµãÎ»ÒÆ 
+// 	FIELD_DAMAGE				=0x10010008,  //µ¥ÔªËðÉË
+// 	FIELD_REBAR_PLASTIC_STRAIN	=0x10010010,  //µ¥ÔªËÜÐÔÓ¦±ä
+// 	FIELD_STEEL_PLASTIC_STRAIN	=0x10010020,  //µ¥ÔªËÜÐÔÓ¦±ä
+// 	FIELD_PERFORM				=0x10100400,  //µ¥ÔªÐÔÄÜ
+// 	FIELD_PERFORM_STRU			=0x10100800,  //¹¹¼þÐÔÄÜ
+
 };
 
 enum PERFORM_FIELD
@@ -359,6 +474,7 @@ enum PERFORM_FIELD
 	PERFORM_NONE	=0,		//Î´Öª
 	PERFORM_DC		=0x1,		//Î´Öª
 	PERFORM_DT		=0x2,		//Î´Öª
+
 	PERFORM_SIGMAP	=0x4,		//Î´Öª
 	PERFORM_HINGE1	=0x8,		//Î´Öª
 	PERFORM_HINGE2	=0x10,		//Î´Öª
@@ -380,6 +496,7 @@ enum DEFORM_TYPE
 	DEFORM_MODAL, //Ä£Ì¬ÕñÐÍ
 	DEFORM_STATIC, //¾²Á¦¼ÓÔØÎ»ÒÆ
 	DEFORM_DYNA,   //¶¯Á¦¼ÓÔØÎ»ÒÆ
+	DEFORM_DEFECT, //È±ÏÝ
 };
 
 //½¨Ä£·¶Î§
@@ -451,7 +568,10 @@ enum TOOLSTATUS
 	TOOL_ZOOMIN,  //´°¿Ú·Å´ó
 	TOOL_GETNODE, //Ê°È¡½Úµã Çñº£2016Äê3ÔÂ3ÈÕ
 
+	TOOL_ALIGNBEAM,//ÁºÆ½Ãæ¶ÔÆë
+
 	TOOL_LAST, //½áÎ²±êÊ¶Ôö¼ÓÃüÁî¶¼·ÅÔÚÕâÇ°Ãæ£¡£¡£¡Õâ¸öÔÚÊä³ö²Ù×÷ÌáÊ¾ÖÐÓÐÓÃSetOutputHistory
+	TOOL_PICKMERGEORIGIN,	//Æ´½ÓÄ£ÐÍÔ­µãÑ¡Ôñ
 };
 
 //Ñ¡È¡ÇøÓò£¬ÐÞ¸Ä²ÎÊýÀà±ð
@@ -462,27 +582,35 @@ enum MODIFY_PROPERTY
 	MODIFY_BEAM_MATERIAL,   //ÐÞ¸Ä²ÄÁÏ
 	MODIFY_BEAM_LOAD,       //ÐÞ¸ÄºÉÔØ
 	MODIFY_BEAM_ANGLE,       //ÐÞ¸ÄÁºµÄ½Ç¶È
+	MODIFY_BEAM_DEFCET,     //ÐÞ¸ÄÁº³õÊ¼¼¸ºÎÈ±ÏÝ
+	MODIFY_BEAM_STIRRUP_AREA,     //ÐÞ¸ÄÁº¹¿½îÃæ»ý
 
 	MODIFY_BRACE_SECTION,    //ÐÞ¸Ä½ØÃæ
 	MODIFY_BRACE_REBAR_RATIO, //ÐÞ¸ÄÅä½îÂÊ
 	MODIFY_BRACE_MATERIAL,   //ÐÞ¸Ä²ÄÁÏ
 	MODIFY_BRACE_LOAD,       //ÐÞ¸ÄºÉÔØ
-	MODIFY_BRACE_ANGLE,       //ÐÞ¸ÄÁºµÄ½Ç¶È
+	MODIFY_BRACE_ANGLE,       //ÐÞ¸Ä½Ç¶È
+	MODIFY_BRACE_DEFCET,     //ÐÞ¸Ä³õÊ¼¼¸ºÎÈ±ÏÝ
+	MODIFY_BRACE_STIRRUP_AREA,     //ÐÞ¸Ä¹¿½îÃæ»ý
 
 	MODIFY_PILLAR_SECTION,    //ÐÞ¸Ä½ØÃæ
 	MODIFY_PILLAR_REBAR_RATIO, //ÐÞ¸ÄÅä½îÂÊ
 	MODIFY_PILLAR_MATERIAL,   //ÐÞ¸Ä²ÄÁÏ
 	MODIFY_PILLAR_LOAD,       //ÐÞ¸ÄºÉÔØ
 	MODIFY_PILLAR_ANGLE,       //ÐÞ¸Ä½Ç¶È
+	MODIFY_PILLAR_DEFCET,     //ÐÞ¸ÄÁº³õÊ¼¼¸ºÎÈ±ÏÝ
+	MODIFY_PILLAR_STIRRUP_AREA,     //ÐÞ¸Ä¹¿½îÃæ»ý
 
 	MODIFY_LINK_ANGLE,       //ÐÞ¸Ä½Ç¶È
 
 	MODIFY_PLATE_THICKNESS,  //ÐÞ¸Äºñ¶È
+	MODIFY_PLATE_SECTION,
 	MODIFY_PLATE_REBAR_RATIO, //ÐÞ¸ÄÅä½îÂÊ
 	MODIFY_PLATE_MATERIAL,   //ÐÞ¸Ä²ÄÁÏ
 	MODIFY_PLATE_LOAD,       //ÐÞ¸ÄºÉÔØ
 
 	MODIFY_WALL_THICKNESS,  //ÐÞ¸Äºñ¶È
+	MODIFY_WALL_SECTION,
 	MODIFY_WALL_REBAR_RATIO, //ÐÞ¸ÄÅä½îÂÊ
 	MODIFY_WALL_STEEL_THICK, //ÐÞ¸ÄÇ½¸Ö°å
 	MODIFY_WALL_MATERIAL,   //ÐÞ¸Ä²ÄÁÏ
@@ -502,6 +630,9 @@ enum MODIFY_PROPERTY
 	MODIFY_MESH_RATIO,		 //ÐÞ¸ÄÍø¸ñ¼ÓÃÜÏµÊý
 	MODIFY_MEMBER_CONSTITUTIVE, //ÐÞ¸Ä¹¹¼þ±¾¹¹¹ØÏµÀàÐÍ
 	MODIFY_MEMBER_SEISMICGRADE, //ÐÞ¸Ä¹¹¼þ±¾¹¹¿¹ÕðµÈ¼¶
+
+	MODIFY_MEMBER_VIPTYPE, //ÐÞ¸Ä¹¹¼þ±¾¹¹¿¹ÕðµÈ¼¶
+	MODIFY_MEMBER_TOWER, //ÐÞ¸Ä¹¹¼þ±¾¹¹¿¹ÕðµÈ¼¶
 };
 
 //Ä£ÐÍÊý¾ÝÀ´Ô´
@@ -622,15 +753,16 @@ enum DEVICE_TYPE
 
 enum RUN_CASE
 {
-	RUN_IMPSTATIC			=0x04,						//ÒþÊ½ÊúÏòºÉÔØ¼ÓÔØ
-	RUN_MAXFREQ			=0x08,						//×î´óÆµÂÊ·ÖÎö
-	RUN_MODAL			=0x10,						//Ä£Ì¬·ÖÎö
-	RUN_IMP				=0x20,						//Ò»¼üÒþÊ½·ÖÎö
+	RUN_IMPSTATIC		=0x04,							//ÒþÊ½ÊúÏòºÉÔØ¼ÓÔØ
+	RUN_MAXFREQ			=0x08,							//×î´óÆµÂÊ·ÖÎö
+	RUN_MODAL			=0x10,							//Ä£Ì¬·ÖÎö
+	RUN_IMP				=RUN_IMPSTATIC|RUN_MAXFREQ|RUN_MODAL,			//Ò»¼üÒþÊ½·ÖÎö
+	RUN_BUCKLING		=0x40,							//ÏßÐÔÇüÇú·ÖÎö
 
-	RUN_EXPSTATIC			=0x1000,					//ÏÔÊ½ÊúÏòºÉÔØ¼ÓÔØ
 	RUN_EXPDYNA			=0x2000,					//ÏÔÊ½¶¯Á¦Ê±³Ì·ÖÎö
-	RUN_CHECKMODEL		=0x10000,					//½ö¼ì²éÄ£ÐÍ
-	RUN_EXPSTATIC_EXPDYNA	=RUN_EXPSTATIC|RUN_EXPDYNA,	//ÏÔÊ½ÊúÏòºÉÔØ¼ÓÔØ+ÏÔÊ½¶¯Á¦Ê±³Ì·ÖÎö
+	RUN_NONSTATIC		=0x4000|RUN_EXPDYNA,		//·ÇÏßÐÔ¾²Á¦·ÖÎö
+	RUN_EXPDYNA_DESIGN	=0x8000|RUN_EXPDYNA,		//Éè¼Æ¹¤¿ö·ÖÎö
+
 	RUN_MODAL_DAMAGE		=0x20000,					//ÊµÊ±Ä£Ì¬·ÖÎö
 };
 
@@ -642,8 +774,50 @@ enum BUILD_TYPE
 	BUILD_BRACING	=2,						//²¼ÖÃ³Å
 	BUILD_SLAB           =3,                      //²¼ÖÃ°å
 	BUILD_WALL          =4,                      //²¼ÖÃÇ½
-	BUILD_PLATE			=5,                      //²¼ÖÃÐ±°åÇ½
-	BUILD_HOLE			=6,                      //²¼ÖÃ¶´¿Ú
-	BUILD_LINK			=7,                      //²¼ÖÃÒ»°ãÁ¬½Ó
-	BUILD_LINE			=8,                      //²¼ÖÃÏß
+	BUILD_HOLE			=5,                      //²¼ÖÃ¶´¿Ú
+	BUILD_LINK			=6,                      //²¼ÖÃÒ»°ãÁ¬½Ó
+	BUILD_LINE			=7,                      //²¼ÖÃÏß
 };
+
+//¾²Á¦¹¤¿öÀàÐÍ
+enum CASE_TYPE
+{
+	CASE_DL			=0,		//ÕûÌåºã					
+	CASE_LL			=1,		//ÕûÌå»î				
+	CASE_WL			=2,		//È«Â¥·ç
+	CASE_EL			=3,       //Ê±³ÌµØÕð
+	CASE_USER		=4,		//×Ô¶¨Òå
+	CASE_DL_USER=5,		//×Ô¶¨Òåºã
+	CASE_LL_USER=6,		//×Ô¶¨Òå»î
+	CASE_TMP			=7,		//ÎÂ¶È
+	CASE_PRESTS	=8,		//Ô¤Ó¦Á¦
+};
+
+struct CaseTypeName
+{ 
+	const wchar_t *sName;
+	CASE_TYPE iType;
+};
+const struct CaseTypeName CaseTypeNameArray[]=
+{
+#ifdef _SIMPLIFIED_CHINESE
+	L"ºãºÉÔØ",			CASE_DL,
+	L"»îºÉÔØ",			CASE_LL,
+	L"·çºÉÔØ",			CASE_WL,
+	L"µØÕð×÷ÓÃ",		CASE_EL,
+	L"ÓÃ»§×Ô¶¨Òå",		CASE_USER,
+	L"ºãºÉÔØ",		CASE_DL_USER,
+	L"»îºÉÔØ",		CASE_LL_USER,
+#else
+	L"Dead",				CASE_DL,
+	L"Live",				CASE_LL,
+	L"Wind",				CASE_WL,
+	L"Earthquake",			CASE_EL,
+	L"User",					CASE_USER,
+	L"Dead",				CASE_DL_USER,
+	L"Live",				CASE_LL_USER,
+#endif
+};
+
+const float Sys_CoeffDeadMass=1.0f;
+

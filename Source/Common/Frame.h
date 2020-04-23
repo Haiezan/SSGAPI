@@ -5,12 +5,14 @@
 #include "PublicFunc.h"
 #include "ASCFile.h"
 #include "Data.h"
-#include "DamperData.h"
+#include "LoadCase.h"
 #include "DamperGroupData.h"
 #include "VisibleStruct.h"
 #include "CombineFrame.h"
 #include "PlateSection.h"
-
+#include "GeneralLoad.h"
+#include "Load.h"
+#include "WindLoad.h"
 
 //延长线交点类型
 enum EXT_TYPE
@@ -55,8 +57,8 @@ public:
 	
 	CSectionCollection m_cSection; //截面信息
 	CDamperSectionCollection m_cDamperSection; //一般连接截面信息	//乔保娟 2015.5.19
-	CDamperGroupCollection  m_cDamperGroup;//减震构件组  邱海 2016年10月27日
-	CArray<CPlateSection,CPlateSection&> m_aPlateSection; //面构件截面信息
+	CDamperGroupSecCollection  m_cDamperGroupSec;//减震构件组  邱海 2016年10月27日
+	CPlateSectionCollection m_cPlateSection; //面构件截面信息
 	CMaterialCollection m_cMaterial; //材料信息
 	CEdgeStrucCollection m_cEdgeCollection; //边缘构件信息,为了显示边缘构件的墙构成关系用
 	CBoundaryCollection m_cBoundary;  //边界条件信息
@@ -64,6 +66,7 @@ public:
 	//分组信息
 	CStageCollection m_cStage;   //分步模型信息，将模型按照建设过程分成若干部分，逐次提交计算
 	CGroupCollection m_cGroup;
+	CGroupCollection m_cDamperGroup;
 
 	//网格控制参数
 	float m_fElmSize;			//网格特征尺寸
@@ -79,13 +82,13 @@ public:
 	CString m_sCurCase;  //当前工况(组合)名称
 
 	//竖向载荷工况信息
-	int m_nStaticLoadCase;	//工况数量
-	struct LOAD_CASE
-	{
-		int id;				//编号
-		CString name;		//工况关键字
-		BOOL bSelfWeight;	//是否计入自重
-	}m_cStaticLoadCase[2];
+	//int m_nStaticLoadCase;	//工况数量
+	//struct LOAD_CASE
+	//{
+	//	int id;				//编号
+	//	CString name;		//工况关键字
+	//	BOOL bSelfWeight;	//是否计入自重
+	//}m_cGenLoadCase[2];
 
 	//刚性隔板信息
 	int m_nRigidBody;	//隔板数
@@ -126,11 +129,19 @@ public:
 	BOOL			m_bZ;		//地震作用方向
 	int				m_nLancSteps;		////lanczos过程的迭代步数;500
 	BOOL	  		m_bEvalVec;     //是否计算特征向量;false
+	BOOL			m_bFilterLocal;		//地震作用方向
+
+	//整体缺陷
+	float m_fOverallImperfect;	//缺陷最大值
+	float m_fImperfectAngle;//缺陷角度
+	int m_iOverallImperfectMode;
 
 	//显式动力分析
 	CLoadCollection m_cLoad; //荷载工况组合集合
 	CLoadCollection m_cLoadDesign; //荷载工况组合集合,用于设计
+	CLoadCollection m_cLoadStatic; //非线性静力分析
 	CWaveCollection m_cWave; //荷已选地震波集合
+	//CLoadSet m_cLoadSet;//荷载集合
 
 	int   nModalDamage;       //进行实时模态分析的次数 //乔保娟2015.12.25
 	CString sModalCaseName[Sys_Max_ModalDamage];	//实时模态分析工况名称	
@@ -138,6 +149,20 @@ public:
 	//关联表，单独读取，不包含在本类Read中
 	CArray<COutput,COutput&> aOutput; //输出的分量表
 	float fDisStep,fForceStep,fGroupStep;
+
+
+	CGeneralCollection m_cGenLoad; //荷载工况集合:1恒1活1风1地震n*自定义
+	int m_nComb;
+	//float m_fLoadCaseComb[Sys_MaxLoadcaseComb][Sys_MaxLoadcase]; //荷载组合
+
+	CWindCollection m_cWindLoad; //风荷载工况集合
+
+	//屈曲分析
+	UINT m_nBucklingModes;		//振型数
+	BOOL m_bBucklingOverallDefect;
+	BOOL m_bBucklingMemberDefect;	
+	//float m_fBucklingLoad[Sys_MaxLoadcase]; //荷载组合
+
 
 	//其它控制参数
 
@@ -149,17 +174,20 @@ public:
 	//bit4-附加外荷载转为质量0x10,如果为1，将外荷载加到mass中,否则只计入fext
 	//bit6~bit8,求解器类型：7--SSG求解器,0--PARDISO求解器,1--MUMPS求解器
 	DWORD m_dwControl; 
-	BOOL IsExtentBeam() const {return m_dwControl&0x01?TRUE:FALSE;}
-	BOOL IsBeamWallDoubleLayer() const {return m_dwControl&0x02?TRUE:FALSE;}
-	BOOL IsBottomBnd() const {return m_dwControl&0x04?TRUE:FALSE;}
-	BOOL IsSelfWeight() const {return m_dwControl&0x08?TRUE:FALSE;}
-	BOOL IsExLoad2Mass() const {return m_dwControl&0x10?TRUE:FALSE;}
-	//void ClearCtrlFlag() {m_dwControl=0;}
-	void SetExtentBeamFlag(BOOL bFlag) {if(bFlag) m_dwControl |=0x01;else m_dwControl &=~0x01;}
-	void SetBeamWallDoubleLayerFlag(BOOL bFlag) {if(bFlag) m_dwControl |=0x02;else m_dwControl &=~0x02;}
-	void SetBottomBndFlag(BOOL bFlag) {if(bFlag) m_dwControl |=0x04;else m_dwControl &=~0x04;}
-	void SetSelfWeightFlag(BOOL bFlag) {if(bFlag) m_dwControl |=0x08;else m_dwControl &=~0x08;}
-	void SetExLoad2MassFlag(BOOL bFlag) {if(bFlag) m_dwControl |=0x10;else m_dwControl &=~0x10;}
+
+	BOOL IsExtentBeam()				const {return m_dwControl&0x01?TRUE:FALSE;}
+	BOOL IsBeamWallDoubleLayer()	const {return m_dwControl&0x02?TRUE:FALSE;}
+	BOOL IsBottomBnd()				const {return m_dwControl&0x04?TRUE:FALSE;}
+	BOOL IsSelfWeight()				const {return m_dwControl&0x08?TRUE:FALSE;}
+	BOOL IsExLoad2Mass()			const {return m_dwControl&0x10?TRUE:FALSE;}
+	BOOL IsOffsetFlag()				const {return m_dwControl&0x20?TRUE:FALSE;}
+
+	void SetExtentBeamFlag(BOOL bFlag)			{if(bFlag) m_dwControl |=0x01;else m_dwControl &=~0x01;}
+	void SetBeamWallDoubleLayerFlag(BOOL bFlag)	{if(bFlag) m_dwControl |=0x02;else m_dwControl &=~0x02;}
+	void SetBottomBndFlag(BOOL bFlag)			{if(bFlag) m_dwControl |=0x04;else m_dwControl &=~0x04;}
+	void SetSelfWeightFlag(BOOL bFlag)			{if(bFlag) m_dwControl |=0x08;else m_dwControl &=~0x08;}
+	void SetExLoad2MassFlag(BOOL bFlag)			{if(bFlag) m_dwControl |=0x10;else m_dwControl &=~0x10;}
+	void SetOffsetFlag(BOOL bFlag)				{if(bFlag) m_dwControl |=0x20;else m_dwControl &=~0x20;}
 
 
 	void SetDeviceType(DEVICE_TYPE device)
@@ -212,15 +240,19 @@ public:
 	BOOL IsVersionBigEqual2017() {return (m_fVer>2017.0f-0.01f);}
 	BOOL IsVersionSmallThan2018() {return (m_fVer<2018.0f-0.01f);}
 	BOOL IsVersionBigEqual2018() {return (m_fVer>2018.0f-0.01f);}
+	BOOL IsVersionBigEqual2019() {return (m_fVer>2019.0f-0.01f);}
+	BOOL IsVersion2019() {return (m_fVer>2019.0f-0.01f&&m_fVer<2019.0f+0.01f);}
+	BOOL IsVersionBigEqual2020() {return (m_fVer>2020.0f-0.01f);} 
+	BOOL IsVersionBigEqual20202() {return (m_fVer>2020.2f-0.01f);} 
 	////////////////建模函数////////////////
 
 	//增加线段,计算与交叉点和分割线
 	//输入：newline--新线段, pStory--楼层数据
 	//输出：nNewSegment--新线被分成的线段数,指针,pNewSegmentID为NULL时不输出该数据
 	//      pNewSegmentID--新线段的ID数组,由外部程序维护,必须足够大,pNewSegmentID为NULL时不输出该数据
-	void AddStructLines  (CLine &newline,const CStory *pStory,int *nNewSegment,int *pNewSegmentID); //增加结构线
-	BOOL AddStructLinesInStory(const CVertex &v1,const CVertex &v2,const int iStory,int *nNewSegment=NULL,int *pNewSegmentID=NULL); //根据两个点坐标增加结构线,2个点可能不在同一楼层，比如柱的端点
-	void AddGuides(CLine &newline,const CStory *pStory); //增加辅助线
+	void AddStructLines  (CLine &newline,const CStory *pStory,int *nNewSegment,int *pNewSegmentID,BOOL bBreakByStory=TRUE); //增加结构线
+	BOOL AddStructLinesInStory(const CVertex &v1,const CVertex &v2,const int iStory,int *nNewSegment=NULL,int *pNewSegmentID=NULL);  //根据两个点坐标增加结构线,2个点可能不在同一楼层，比如柱的端点
+	void AddGuides(CLine &newline,const CStory *pStory,BOOL bBreakByStory=TRUE); //增加辅助线
 	void AddGuidesInStory(const CVertex &v1,const CVertex &v2,const int iStory); ///根据两个点坐标增加辅助线,v1,v2必须处于同一楼层,需要判断端点是否存在,若v1,v2不能存在则增加
 	void AddGuidesInStory(CLine &line); //增加辅助线,line的端点必须处于同一楼层,不用判断端点是否存在
 
@@ -387,15 +419,17 @@ public:
 
 	////////////////输入输出函数////////////////
 
-	BOOL Read();
+	BOOL Read(CString fname,CProjectPara cPrjPara,BOOL bOnlyModel=FALSE);
 	BOOL Write(void);
+
+	BOOL MergeSSG(CString fname, float dx, float dy, float dz, float angle);
 
 	//按照约定规则改变线段方向，水平线向右为正，竖向线向上为正，返回：TRUE-修改，FALSE-未修改
 	BOOL CheckLine( int iLine,float fTanAng );	
 	BOOL CheckLine( CLine &line,float fTanAng );
 
 	//iLineType=1,增加到m_aGuides，iLineType=2增加到m_aLine，newline可以跨楼层
-	void AddLinesMulStory(int iLineType,const CLine &newline,const CStory *pStory,int *nNewSegment=NULL,int *pNewSegmentID=NULL); 
+	void AddLinesMulStory(int iLineType,const CLine &newline,const CStory *pStory,int *nNewSegment=NULL,int *pNewSegmentID=NULL,BOOL bBreakByStory=TRUE); 
 
 	//被AddLinesMulStory调用，不考虑按楼层断开，//iLineType=1,增加到m_aGuides，iLineType=2增加到m_aLine
 	void AddLinesInStory(int iLineType,const CLine &newline,int *nNewSegment=NULL,int *pNewSegmentID=NULL); 
@@ -423,7 +457,7 @@ public:
 	//给定首末点以及目标线段，返回延长线交点与末点的距离（负值表示交点在延长线的相反方向），交点坐标放在ext_point中
 	float GetExtendCrossPoint(const CVertex &start_point,const CVertex &end_point,const CLine &line,CVertex &ext_point,EXT_TYPE &iType);
 
-	void SetRunPara(RUN_CASE iRunCase);  //计算之前要设置计算控制信息
+
 	//根据构件信息计算点和线的阶段、塔号、楼层
 	void UpdateGeoInfo(void);
 

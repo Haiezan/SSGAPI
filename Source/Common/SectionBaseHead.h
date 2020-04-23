@@ -15,11 +15,11 @@ enum SECTION_MAT_TYPE
 {
 	//按位组合：bit0—混凝土，bit1-钢筋，bit2-钢材；
 	//名称				                         混凝土	   钢筋	   钢材
-	SECTION_MAT_TYPE_RC=3,		//钢筋混凝土，      √		√
-	SECTION_MAT_TYPE_ST=4,		//型钢，							√
-	SECTION_MAT_TYPE_SRC=7,		//钢骨混凝土，      √		√		√
-	SECTION_MAT_TYPE_CFT=5,		//钢管混凝土，      √				√
-	SECTION_MAT_TYPE_REBAR=2,	//用于辅助构件截面，		√
+	SECTION_MAT_TYPE_RC=3,		//钢筋混凝土，      √			√
+	SECTION_MAT_TYPE_ST=4,		//型钢，								√
+	SECTION_MAT_TYPE_SRC=7,		//钢骨混凝土，      √			√		√
+	SECTION_MAT_TYPE_CFT=5,		//钢管混凝土，      √					√
+	SECTION_MAT_TYPE_REBAR=2,	//用于辅助构件截面，			√
 	//必须从0开始连续编号,各项值不宜修改
 };
 
@@ -70,15 +70,15 @@ enum SECTION_SHAPE
 	
 	BEAM_ST_CROSS			=29,
 	BEAM_ST_CRISS	    	=30,
-	BEAM_ST_REGPOLY   	=31,
-	BEAM_ST_CHANNEL		=32,
-	BEAM_ST_DBLCHANNEL	=33,
+	BEAM_ST_REGPOLY   		=31,
+	BEAM_ST_CHANNEL			=32,
+	BEAM_ST_DBLCHANNEL		=33,
 	BEAM_ST_TRAP	    	=34,
-	BEAM_ST_L	    	=35,
-	BEAM_ST_T	    	=36,
+	BEAM_ST_L	    		=35,
+	BEAM_ST_T	    		=36,
 
 	//柱、斜撑截面,100-199
-	//PILLAR_ARBITRARY	=100,		//任意组合截面柱
+	PILLAR_ARBITRARY		=100,		//任意组合截面柱
 
 	PILLAR_RC_RECT			=101,      //混凝土方柱
 	PILLAR_RC_CIRC			=102,      //混凝土圆柱
@@ -112,17 +112,17 @@ enum SECTION_SHAPE
 	PILLAR_RC_L				=124,   //L型混凝土柱
 	PILLAR_RC_PIPE			=125,	//圆管形混凝土柱
 	PILLAR_SRC_RECT_PIPE	=126,	//圆钢管-钢骨混凝土方柱
-	PILLAR_RC_T			=127,	//T形混凝土柱		//乔保娟 2015.5.5
+	PILLAR_RC_T				=127,	//T形混凝土柱		//乔保娟 2015.5.5
 	PILLAR_ST_RECT			=128,	//矩形钢柱		//乔保娟 2015.5.5
 	PILLAR_ST_CIRC			=129,	//实心圆形钢柱		//乔保娟 2015.5.5
 
-	PILLAR_ST_CRISS	    =130,
+	PILLAR_ST_CRISS			=130,
 	PILLAR_ST_REGPOLY   	=131,
 	PILLAR_ST_CHANNEL		=132,
 	PILLAR_ST_DBLCHANNEL	=133,
-	PILLAR_ST_TRAP	    =134,
-	PILLAR_ST_L	    	=135,
-	PILLAR_ST_T	    	=136,
+	PILLAR_ST_TRAP			=134,
+	PILLAR_ST_L	    		=135,
+	PILLAR_ST_T	    		=136,
 
 	//边缘构件、虚梁、连梁纵筋截面,200-299
 	AUX_REBAR_BOX	=200,		//辅助构件，包括边缘构件,虚梁，连梁纵筋，截面类型为SECTION_MAT_TYPE_REBAR，子截面类型为SUBSECTION_MAT_TYPE_REBAR，但材料只有钢筋
@@ -133,7 +133,7 @@ enum SECTION_SHAPE
 //子截面形状定义
 enum SUBSECTION_SHAPE 
 {
-	SUBSHAPE_UNKNOWN		=-1,	//无效
+	SUBSHAPE_UNKNOWN	=-1,	//无效
 	SUBSHAPE_ARBITRARY  =0,		//任意绘制
 	SUBSHAPE_RECT       =1,		//实心矩形
 	SUBSHAPE_BOX		=2,		//矩形管
@@ -164,6 +164,7 @@ struct SECTION_POINT
 //纤维几何数据结构
 struct BEAM_FIBRE_GEO 
 {
+	BEAM_FIBRE_GEO() { FibreH2 = 0; FibreH3 = 0; FibreArea = 0;}
 	float FibreH2,FibreH3,FibreArea; //纤维中心坐标和面积，相对整个截面坐标原点（而不是子截面），已经加上子截面偏心距
 };
 
@@ -267,5 +268,15 @@ struct GEO_CONC	//混凝土纤维点
 struct GEO_STEEL	//钢纤维点
 {
 	float y,z,area;  //局部坐标，y坐标， z坐标，面积（m^2）
+};
+
+//截面材料类型代码,1-混凝土；2-单层钢板混凝土；3-双层钢板混凝土；4-纯钢板
+enum PALTESECTION_MAT_TYPE 
+{
+	PALTESECTION_MAT_TYPE_NONE=0,	//无材料
+	PALTESECTION_MAT_TYPE_CONC=1,	//混凝土
+	PALTESECTION_MAT_TYPE_SRC=2,		//单层钢板混凝土
+	PALTESECTION_MAT_TYPE_CFT=3,		//双层钢板混凝土
+	PALTESECTION_MAT_TYPE_ST=4,			//纯钢板
 };
 

@@ -51,13 +51,14 @@ public:
 	~CSectionBase(void);
 
 public:
-	static float DrawRect(CDC *pdc,float t2=0.5f,float t3=0.8f,float p2=0,float p3=0,float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); //宽,高
-	static float DrawBox(CDC *pdc,float t2=0.5f,float t3=0.8f,float tf1=0.1f,float tw1=0.1f,float tf2=0.1f,float tw2=0.1f,float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); 
+	static float DrawRect(CDC *pdc,float t2=0.5f,float t3=0.8f,float p2=0,float p3=0,float theta=0, float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,BOOL bShowLabel=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); //宽,高
+	static float DrawBox(CDC *pdc,float t2=0.5f,float t3=0.8f,float tf1=0.1f,float tw1=0.1f,float tf2=0.1f,float tw2=0.1f,float p2=0,float p3=0,float theta=0,float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); 
 	static float DrawCirc(CDC *pdc,float t2=0.8f,float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); //直径
-	static float DrawPipe(CDC *pdc,float t2=0.8f,float tw=0.1f,float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC);  //外径,厚度
-	static float DrawI(CDC *pdc,float H1=0.8f,float tw=0.1f,float B1=0.6f,float tf1=0.1f,float B2=0.7f,float tf2=0.1f,float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); 
+	static float DrawPipe(CDC *pdc,float t2=0.8f,float tw=0.1f,float p2=0,float p3=0,float theta=0,float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC);  //外径,厚度
+	static float DrawI(CDC *pdc,float H1=0.8f,float tw=0.1f,float B1=0.6f,float tf1=0.1f,float B2=0.7f,float tf2=0.1f,float p2=0,float p3=0,float theta=0,float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); 
 	static float DrawCross(CDC *pdc,float H1=0.8f,float tw1=0.1f,float B1=0.6f,float tf1=0.1f,float B2=0.7f,float tf2=0.1f,
 		float H2=0.8f,float tw2=0.1f,float B3=0.6f,float tf3=0.1f,float B4=0.7f,float tf4=0.1f,
+		float p2=0,float p3=0,float theta=0,
 		float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); 
 
 	static float DrawCriss(CDC *pDC,float B=0.05f,float H=0.45f,float U=0.2f,float T=0.05f,float D=0.2f,float F=0.2f,
@@ -70,6 +71,7 @@ public:
 	static float DrawT(CDC *pdc,float B=0.1f,float H=0.4f,float D=0.4f,float F=0.1f,float maxsize=0.6f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); 
 	static float DrawL(CDC *pdc,float B=0.1f,float H=0.4f,float D=0.2f,float F=0.1f,float maxsize=0.6f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); 
 	static float DrawTrapezoid(CDC *pdc,float B=0.4f,float H=0.8f,float T=0.1f,float F=0.1f,float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); 
+	static float DrawArbitrary(CDC *pDC, float *fValue, int num, float p2,float p3, float fWidth, float fHeight, float maxsize=1.0f, BOOL bShowCoorAxis=TRUE, SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC);
 
 	//绘制标注线和标注符号,x1,y1,x2,y2--首末点逻辑坐标,str-字符串,为空时只画线
 	//Pos=文字位置，0-线间，1-右端，2-左端
@@ -85,6 +87,8 @@ public:
     //绘制圆形钢筋,xc,yc,r--中心和半径
     static void DrawRebar(CDC *pDC,const float ratio,float xc,float yc,float r);
 
+	//绘制墙板截面
+	static float DrawThick(CDC *pdc,float t2=0.5f,float t3=0.8f,float p2=0,float p3=0,float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); //宽,高
 };
 
 
@@ -97,3 +101,5 @@ public:
 	void ChangeColor(COLORREF color); //改变颜色
 	virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);//重载的函数
 };
+
+void RotateCoord(float &x1, float &y1, float x, float y, float theta);

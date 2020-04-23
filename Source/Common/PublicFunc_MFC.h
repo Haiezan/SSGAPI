@@ -48,4 +48,15 @@ extern "C" _SSG_DLLIMPEXP void ParseInt(CString str,vector<int> &data);
 
 extern "C" _SSG_DLLIMPEXP int ErrMsg(UINT id);  //输出信息
 
+//文件信息
+struct FILEDATA
+{
+	CString sFileName;				//文件名称
+	COleDateTime cFileTime;	//文件时间
+};
+extern "C" _SSG_DLLIMPEXP BOOL GetFiles(LPCTSTR lpFileName,vector<FILEDATA> &filename);  //得到文件夹中所有文件
+extern "C" _SSG_DLLIMPEXP bool SortByFileTime(const FILEDATA &v1, const FILEDATA &v2);  //将文件按时间排序，新在前，旧在后
+extern "C" _SSG_DLLIMPEXP BOOL CompareFile(string file1, string file2);  //比较两个文件是否相同
 
+
+extern "C" _SSG_DLLIMPEXP void GetDirectory(const CString &sDirName,vector<CString> &vDirectory);  //得到文件夹中所有文件夹

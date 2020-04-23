@@ -1,19 +1,11 @@
 #pragma once
+#include "..\Common\SysPara.h"
 
 const int Sys_Conc_Para_Num=14; //材料库中混凝土参数个数
 const int g_iMax_Material=100;
 const int g_iMax_Conc=80;
 const int g_iMax_Steel=80;
 
-
-//材料类型，枚举值不得随意更改
-enum MATERIAL_TYPE
-{
-	MAT_UNKNOWN=0, //未定义
-	MAT_CONC=1, //混凝土
-	MAT_REBAR=2, //钢筋
-	MAT_STEEL=4, //型钢和钢板
-};
 
 //材料通用参数，包括混凝土和钢材、钢筋
 struct MAT_PROP
@@ -31,7 +23,7 @@ struct MAT_PROP
 struct MAT_CONCETE_PROP
 {
 	int id;
-	double Para[Sys_Conc_Para_Num];  //具体含义和单位未知
+	double Para[Sys_Conc_Para_Num];  
 };
 
 //金属材料附加参数，不包括E,V

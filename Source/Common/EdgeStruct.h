@@ -1,8 +1,9 @@
 #pragma once
 #include "HeadDefine.h"
-#include "..\Common\SysPara.h"
+#include "SysPara.h"
 #include "ASCFile.h"
 #include "PublicFunc.h"
+#include "BeamSection.h"
 
 #include <list>
 using namespace std;
@@ -17,6 +18,8 @@ enum EDGE_REBAR_AREA_TYPE
 
 
 class CVertex;
+class CBeamStruc;
+class CLine;
 
 //边缘构件点属性，每个点可能有多个边缘构件，初始时按顶层结点创建，假设每个顶层结点都有可能创建边缘构件
 //保存文件时可以清除无效的点,	所以此点和结构点不一定对应
@@ -186,7 +189,19 @@ public:
 	//所以此点数和结构总点数可以不相等
 	int m_nPoint;  //创建m_pPointConnect后如果进行了编辑，有新的点生成，访问m_pPointConnect时需要判断越界问题
 	CPointEdgeProp *m_pPointConnect;  //关联点属性,按现有点索引
-
+	//提高阴影区配筋率
+	int m_iGenType;
+	struct sWallLc
+	{
+		int idWall;
+		float fRatio1;
+		float X1min;float X1max;float Y1min;float Y1max;float Z1min;float Z1max;
+		float fRatio2;
+		float X2min;float X2max;float Y2min;float Y2max;float Z2min;float Z2max;
+		sWallLc(){memset(this,0,sizeof(sWallLc));};
+	} *m_pWallc;
+	 void GetWallRebarLayer(int Wallid,int iElmType,int Elmid,double *pThick,int iMaxLayers);
+	 void GetWallRebarLayer(int Wallid,int iElmType,int Elmid,float *pThick,int iMaxLayers);
 public:
 	//创建边缘构件，iRebarType--配筋计算方式,fThickPrec--厚度级差，单位：米
 	BOOL CreateConstraint(EDGE_REBAR_AREA_TYPE iRebarType,float fThickPrec,char chMothed=0,float fMinLen=1.0f);  
@@ -249,11 +264,12 @@ public:
 		m_nPoint=nPoint;
 	}
 
-	BOOL Read(CASCFile &fin,int idfPoint);
+	BOOL Read(CASCFile &fin,int idfPoint,CSectionCollection &cSection,CArray<CBeamStruc,CBeamStruc&> &aBeam,
+		CArray<CLine,CLine&> &aLine,CArray<CVertex,CVertex&>&aVex);
 	BOOL Write(CASCFile &fout,int idfPoint);
 
 	//设计信息读写
-	BOOL ReadDesignInfo(CASCFile &fin,int idfPoint);
+	BOOL ReadDesignInfo(CASCFile &fin,int idfPoint,CArray<CBeamStruc,CBeamStruc&> &aBeam);
 	BOOL WriteDesignInfo(CASCFile &fout,int idfPoint);
 
 private:
@@ -268,6 +284,7 @@ private:
 	void AddConstraint(EDGE_REBAR_AREA_TYPE iRebarType,int idProp,list<int> &vLines,float width,float Ac,float angle,float fThickPrec); 
 
 	void AddConstraints(EDGE_REBAR_AREA_TYPE iRebarType,int idProp,float fLcMin,float width,float Ac,float fThickPrec); 
+	void AddConstraintsWithNoBox(EDGE_REBAR_AREA_TYPE iRebarType,int idProp,float Ac,int iType=1); 
 	void AddEdge(int idProp,int idPoint,float area,float width,float fThickPrec,int iStory,float angle,int iWall);
 	//计算约束区长度，监测区域是否重叠，若重叠则各取距离的一半
 	//idVex1-点id

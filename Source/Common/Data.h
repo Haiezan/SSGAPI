@@ -6,16 +6,17 @@
 #include "PublicFunc.h"
 #include "PublicFunc_MFC.h"
 
-
 #include "ASCFile.h"
 #include "UserDefine.h"
 #include "BeamSection.h"
 #include "Material.h"
 #include "EdgeStruct.h"
-
+#include "PlateSection.h"
+#include "Loadmap.h"
 
 #include <afxtempl.h>
 #include <vector>
+#include <map>
 //#include <algorithm>
 //#include <functional>
 
@@ -27,6 +28,7 @@ using namespace std;
 class CLine;
 class CFrame;
 class CMesh;
+
 
 //线与多边形相交结果
 struct LINE_CROSS_POLY
@@ -287,12 +289,14 @@ public:
 	//复制构造函数
 	CStrucProp(const CStrucProp &prop) 
 	{
+		aload.clear();
 		*this=prop;
 	}
 
 	~CStrucProp()
 	{
 		aElms.RemoveAll();
+		aload.clear();
 	};
 	int PmID;
 	STRUCT_TYPE iStrucType;
@@ -305,12 +309,13 @@ public:
 	float fDeadLoad; //恒荷载，单位面积或单位长度,板KN/m2，梁KN/m,向下为正，斜板按实际面积计算，斜梁按实际长度计算
 	float fLiveLoad; //活荷载，单位面积或单位长度,板KN/m2，梁KN/m,向下为正，斜板按实际面积计算，斜梁按实际长度计算
 
-	int iMidSeismContstiType;//中震性能目标
-	int iRareSeismContstiType;//大震性能目标
-	//int iKill;//单元生死
+	int iMidSeismContstiType;//中震性能目标 0弹塑性1弹性
+	int iRareSeismContstiType;//大震性能目标 0弹塑性1弹性
+	int iVipType;//构件类型：0-未分类，1-关键构件，2-普通竖向构件，3-耗能构件
 	int iSeismicGrade;//抗震等级
 	int iDatailsGrade;//抗震构造等级
 	CString sMemberName;//构件名称
+	LOADASSIGN aload;//对应荷载工况的荷载
 
 	//临时数据
 	CArray<int,int> aElms;  //单元集合,梁单元和三角形单元编号为原始序号，四边形单元编号=m_nTriangle+i,生成全部网格以及读入网格后形成
@@ -334,17 +339,19 @@ public:
 
 		iMidSeismContstiType=prop.iMidSeismContstiType;
 		iRareSeismContstiType=prop.iRareSeismContstiType;
+		iVipType=prop.iVipType;
 
 		iSeismicGrade=prop.iSeismicGrade;
 		iDatailsGrade=prop.iDatailsGrade;
 		sMemberName=prop.sMemberName;
+
+		aload=prop.aload;
 
 		//由于框架复制时不存在单元数据，因此不需要复制
 		aElms.RemoveAll();
 
 		return *this;
 	}
-
 	//virtual BOOL Read(CASCFile &fin);   
 	//virtual BOOL Write(CASCFile &fout);
 
@@ -390,6 +397,25 @@ public:
 		*this=v;
 	}
 
+	CVertex & operator=(const CVertex &v)
+	{
+		if(this==&v && idmStory==v.idmBoundary) return *this;
+
+		*(CPrimitiveProp *)this=(CPrimitiveProp &)v;
+
+		x=v.x;y=v.y;z=v.z;
+		idRigidBody=v.idRigidBody;
+		idmBoundary=v.idmBoundary;
+		iGeoType=v.iGeoType;
+		aload=v.aload;
+		for (int i=0;i<6;i++)
+		{
+			fDeadLoad[i]=v.fDeadLoad[i];
+			fLiveLoad[i]=v.fLiveLoad[i];
+		}
+		return *this;
+	}
+
 	union
 	{
 		struct
@@ -405,6 +431,8 @@ public:
 
 	int idmBoundary;	//边界条件ID。框架数据在*BOUNDARY中读写，不参与类读写；网格数据在类中读取ReadBin/WriteBin，并借此生成mesh.m_pBoundary
 	int iGeoType;		//类型,按位定义，0x01--跨层。框架数据在*POINTPROP段中读取，不参与类读写；网格数据在类中读取ReadBin/WriteBin
+	//LOADMAP mapload;//对应荷载工况的荷载
+	LOADASSIGN aload;//对应荷载工况的荷载
 
 	CVertex & operator=(const Vector4 &v)
 	{
@@ -412,9 +440,10 @@ public:
 		return *this;
 	}
 
-
 	BOOL IsCrossStory(void) const {return iGeoType & 0x01;}
 	void SetCrossStory(BOOL bCrossStory=TRUE) {if(bCrossStory) iGeoType |= 0x01;else iGeoType &= ~0x01;}
+
+	BOOL IsOnFloor(void);//在楼面
 
 	BOOL IsCrossTower(void) const {return iGeoType & 0x02;}
 	void SetCrossTower(BOOL bCrossTower=TRUE) {if(bCrossTower) iGeoType |= 0x02;else iGeoType &= ~0x02;}
@@ -495,6 +524,7 @@ public:
 		idRigidBody=-1;
 		idmBoundary=-1;
 		iGeoType=0;
+		aload.clear();
 	}
 
 	//重新创建内存，复制原来数据，释放原来的内存。若新旧指针不是同一个变量时，调用程序应设置旧指针为NULL
@@ -515,13 +545,16 @@ public:
 		return newp;
 	}
 
-	
 
 	virtual BOOL Read(CASCFile &fin);
 	virtual BOOL Write(CASCFile &fout,int idf); 
 	virtual void ReadBin(CFile &fin);   
 	virtual BOOL WriteBin(CFile &fout);
 	virtual BOOL IsVisible(const CVertex &vMin,const CVertex &vMax) const;
+
+	void GenLoadId(bool bReWrtie=true);//由	float fDeadLoad 和float fLiveLoad生成Load加入mapload 供2020之后版本读取
+	void GenLoadVal();//由mapload生成fDeadLoad和fLiveLoad 供2020之前版本读取
+	void ClearLoad();//清空荷载
 };
 
 //相加,其它属性与v1相同
@@ -745,10 +778,21 @@ class _SSG_DLLIMPEXP CLine:public CPrimitiveProp
 public:
 	CLine(void);
 	CLine(int i1,int i2,int istory);
+	~CLine()
+	{
+		if(pNodes)
+		{
+			delete []pNodes;
+			pNodes=NULL;
+		}
+	};
 
 	int VexIDM1,VexIDM2;  //端点IDM
 	float fDeadLoad,fLiveLoad; //线载荷,本类中不读取，在应用时读写赋值，KN/m
-	int idmBoundary;  //边界条件ID，不参与类读写，单独处理
+	int idmBoundary;  //边界条件ID，不参与类读写，单独处理2
+	LOADASSIGN aload;  //对应荷载工况的荷载 
+	int *pNodes;//临时数据  //节点集合,生成全部网格以及读入网格后形成
+	int nNodes;
 
 	//判断编码相同
 	BOOL operator==(const CLine &line) const
@@ -758,8 +802,47 @@ public:
 		return FALSE;
 	}
 
+	//复制构造函数
+	CLine(const CLine &line) 
+	{
+		pNodes=NULL;
+		*this=line;
+	}
+
+	//判断编码相同: pNodes
+	CLine & operator=(const CLine &line) 
+	{
+		if(this==&line) return *this;
+
+		if(pNodes)
+		{
+			delete []pNodes;
+			pNodes=NULL;
+			nNodes=0;
+		}
+		*(CPrimitiveProp *)this=(CPrimitiveProp &)line;
+
+		VexIDM1=line.VexIDM1;
+		VexIDM2=line.VexIDM2;
+		fDeadLoad=line.fDeadLoad;
+		fLiveLoad=line.fLiveLoad;
+		idmBoundary=line.idmBoundary;
+		aload=line.aload;
+		//nNodes=line.nNodes;
+		//if(line.pNodes)
+		//{
+		//	pNodes=new int[nNodes];
+		//	for (int i=0;i<nNodes;i++)
+		//		pNodes[i]=line.pNodes[i];
+		//}
+
+		return *this;
+	}
+
 	BOOL IsCrossStory(void) const;
 	//void SetCrossStory(BOOL bCrossStory=TRUE);  //实际上是设置线的端点，线数据被有跨层属性，应避免使用点属性带入
+
+	BOOL IsOnFloor(void);//在楼面
 
 	BOOL IsCrossTower(void) const;
 	//void SetCrossTower(BOOL bCrossTower=TRUE);  //实际上是设置线的端点，线数据被有跨塔属性，应避免使用点属性带入
@@ -797,6 +880,9 @@ public:
 	void Clear(void);
 	virtual BOOL Read(CASCFile &fin);
 	virtual BOOL Write(CASCFile &fout,int idf);
+
+	void GenLoadId(bool bRewrite=true);
+	void GenLoadVal();//由mapload生成fDeadLoad和fLiveLoad 供2020之前版本读取
 };
 
 //构件的构造面，用于显示绘制
@@ -843,6 +929,92 @@ public:
 	float fColor1,fColor2,fColor3; //a1-a2光照系数，a1-b1光照系数，a1-d1光照系数
 };
 
+//一般连接构件截面类
+class _SSG_DLLIMPEXP CDamperSection
+{
+public:
+	//构造与析构函数
+	CDamperSection(void) { Clear();}
+	CDamperSection(const CDamperSection &sec)	{ nUsedCount=0; *this=sec; }
+	~CDamperSection(void) { Clear(); }
+
+	//基本数据
+	int id;  //截面ID
+	CString sName;  //截面名称,梁构件采用截面名称属性，一旦截面名称被改动，则根据改动前后的对应关系替换新名称
+	LINK_SUBTYPE iSectionType;	//
+	int iSubType; //备用
+	COLORREF dwColor; //显示颜色, 便于快速寻找
+	//截面特征值参数,持久数据，保存到文件，用户可以自行输入和修改，修改截面时调用GetFeatures进行计算
+	enum {DAMPERSECTION_PARA=48};	//截面特征参数个数修改 邱海 2016年3月29日
+	float fDamperSecPara[DAMPERSECTION_PARA];
+	float fMass;
+	enum {DAMPERDESIGN_PARA=28};	//设计参数
+	float fDamperDesPara[DAMPERDESIGN_PARA];
+
+
+	//临时数据,不保存到文件,读取截面、修改截面时、修改纤维控制参数时调用GetFibres计算
+	int nUsedCount;  //被构件使用的次数，一定要先计算再使用,临时数据
+	//根据截面命名规则自动获得名称
+	
+	CDamperSection & operator=(const CDamperSection &sec);
+	void Clear(void);
+	BOOL Read(CASCFile &fin);
+	void Write(CASCFile &fout);
+	CString sTypeName(); //得到截面类型名称 邱海 2016年6月15日
+	void CheckParameter();//保护截面非线性参数 邱海 2017年1月12日
+	//设计信息读写
+	BOOL ReadDesignInfo(CASCFile &fin);
+	void WriteDesignInfo(CASCFile &fout);
+};
+
+
+//截面类集合
+class _SSG_DLLIMPEXP CDamperSectionCollection
+{
+public:
+	CDamperSectionCollection(void){;}
+	~CDamperSectionCollection(void){Clear();}
+
+	CDamperSectionCollection(const CDamperSectionCollection &sec)
+	{
+		*this=sec;
+	}
+
+	CArray<CDamperSection*,CDamperSection*> aDamperSectionPtr;  //梁截面类指针
+	int iMaxID;  //当前用到的最大ID
+
+	CDamperSection *GetDamperSection(int id) const;  //根据给定的梁截面id返回截面指针
+	int GetIndex(int id) const;  //根据给定的梁截面id返回索引,找不到返回-1
+	int *CreateIndex(void);  //创建ID-->序号的索引数组，调用程序需要删除它，数组长度为iMaxID+1
+	void AppendSection(CDamperSection *psec);  //增加新截面，自动获取ID
+	int GetSecNumByType(LINK_SUBTYPE iStrucType);// 得到同类型截面的数量 邱海 2016年3月24日
+
+
+	CDamperSectionCollection & operator=(const CDamperSectionCollection &sec)
+	{
+		if(this==&sec) return *this; //自身赋值时直接返回
+
+		Clear();
+		for(int i=0;i<sec.aDamperSectionPtr.GetCount();i++) 
+		{
+			CDamperSection *s1=new CDamperSection(*(sec.aDamperSectionPtr[i]));
+			//*s1=*sec.aBeamSectionPtr[i];
+			aDamperSectionPtr.Add(s1);  //这里不调用AppendSection，不改变ID
+			iMaxID=max(iMaxID,s1->id);  //记录最大ID
+		}
+
+		return *this;
+	}
+	int GetID(const CString &sName);
+	void Clear();
+	void Read(CASCFile &fin);
+	void Write(CASCFile &fout);
+	void LoadDefaultLib(void);  //加载系统库
+	BOOL ExportSecProperty(int iType,CArray<int,int>&SecArr,CString *&pContents,int &nRows,int &nCols);
+};
+
+
+
 //线状构件，由一个线段组成
 class _SSG_DLLIMPEXP CBeamStruc : public CStrucProp
 {
@@ -851,7 +1023,6 @@ public:
 	//复制构造函数
 	CBeamStruc(const CBeamStruc &beam) 
 	{
-		Clear();
 		*this=beam;
 	};
 
@@ -888,6 +1059,8 @@ public:
 	float fRatio1,fRatio2;  //配筋率，梁：面筋、底筋。柱和斜撑：B、H方向的单边配筋率（包含角筋）,单位：百分数
 	float fCornerArea;  //一根角筋的面积(m^2)，柱和斜撑有效
 	float f_StirArea_D,f_StirArea_UD;  //加密区箍筋面积, 非加密区箍筋面积，梁、柱、斜撑有效
+	float fDefectY;// 局部坐标y轴对应初始缺陷倒数
+	float fDefectZ;// 局部坐标z轴对应初始缺陷倒数
 
 	//临时数据，不保存文件,u.x>1不合法，初始化u.x=10.0f表示未计算，读入、增加、移动端点和修改转角时需要调用LocalCoorVector重新计算
 	Vector4 u,v,w;  //局部坐标系基矢量及坐标原点，w为法线方向,
@@ -910,8 +1083,8 @@ public:
 		return (iStrucType==STRUCT_BEAM && (iSubType&0x10)) || iStrucType==STRUCT_HIDEBEAM;
 	} 
 
-	float GetWidth(const CSectionCollection *pSecCollection) const; //截面宽度
-	float GetHeight(const CSectionCollection *pSecCollection) const; //高度范围
+	float GetWidth(const CSectionCollection *pSecCollection,const CDamperSectionCollection *pDamperSecCollection) const; //截面宽度
+	float GetHeight(const CSectionCollection *pSecCollection,const CDamperSectionCollection *pDamperSecCollection) const; //高度范围
 
 	//得到坐标范围
 	void GetRange(Vector4 &rMin,Vector4 &rMax);
@@ -923,7 +1096,6 @@ public:
 	{
 		if(this==&beam) return *this;
 
-		Clear();
 		*(CStrucProp *)this=(CStrucProp &)beam;
 
 		LineIDM=beam.LineIDM;
@@ -948,6 +1120,9 @@ public:
 		u=beam.u;
 		v=beam.v;
 		w=beam.w;
+
+		fDefectY=beam.fDefectY;// 局部坐标y轴对应初始缺陷倒数
+		fDefectZ=beam.fDefectZ;// 局部坐标z轴对应初始缺陷倒数
 		return *this;
 	}
 	
@@ -960,7 +1135,7 @@ public:
 	//计算线构件局部坐标单位基矢量，考虑了转角
 	//水平构件：e1为轴线方向，e2、e3为截面局部坐标方向
 	//竖向构件：e1=eZ为轴线方向，e2、e3为截面局部坐标方向
-	void LocalCoorVector(Vector4 &u,Vector4 &v,Vector4 &w);
+	void LocalCoorVector(CArray<CVertex,CVertex&>&aVex,CArray<CLine,CLine&> &aLine,Vector4 &u,Vector4 &v,Vector4 &w);
 
 	//根据首尾点坐标计算参考点，垂直构件和非垂直构件定义方式不同，ang为方向角，单位：度
 	CVertex CalRefPoint(const CVertex &v1,const CVertex &v2,float ang); 
@@ -976,12 +1151,19 @@ public:
 	float Length(const CLine *pLine,const CVertex *pVex) const;  //计算构件长度， pLine为结构线数组，pVex为顶点坐标数组
 	BOOL Weight(float fConcArea, float fSteelArea, float fRebarArea, float &wConc, float &wSt, float &wRebar); //计算重力，单位kN
 
+
 	//要求事先读入截面和材料数据
-	virtual BOOL Read(CASCFile &fin,STRUCT_TYPE iType);
+	virtual BOOL Read(CASCFile &fin,STRUCT_TYPE iType,CDamperSectionCollection &cDamperSection,
+		CSectionCollection &cSection,CProjectPara &cPrjPara,CArray<CLine,CLine&> &aLine,CArray<CVertex,CVertex&>&aVex);
 	virtual BOOL Write(CASCFile &fout,int idf);
 	//设计信息读写
 	virtual BOOL ReadDesignInfo(CASCFile &fin,STRUCT_TYPE iType,int idf);
 	virtual BOOL WriteDesignInfo(CASCFile &fout,int idf);
+
+	void GenLoadId(bool bRewrite=true);//由	float fDeadLoad 和float fLiveLoad生成Load加入mapload 供2020之后版本读取
+	void GenLoadVal();//由mapload生成fDeadLoad和fLiveLoad 供2020之前版本读取
+
+	void GetInitialImperfection(bool bRewrite=false);
 };
 
 
@@ -999,13 +1181,20 @@ public:
 
 	CPlateStruc(STRUCT_TYPE istructype,int istory,DWORD color);
 
-	~CPlateStruc(void){Clear();}
+	~CPlateStruc(void){
+		if(pLineIDM)
+		{
+			delete[] pLineIDM; 
+			pLineIDM=NULL;
+		}
+	}
 
 	//int id; //本构件的id，从1开始编号，各类面构件独立编号
 	//边界线段数
 	int nLine; 
 	//边界线段数组
 	int *pLineIDM;
+	int iSectionID;  //截面ID
 
 	float fThickness;  //板的总厚度，包括混凝土和钢材
 	int iSubType;  //子类型 0-墙柱，1-墙梁
@@ -1084,12 +1273,21 @@ public:
 	//计算板或墙钢筋重量，单位：kN
 	float GetRebarWeight();
 
-	virtual BOOL Read(CASCFile &fin,STRUCT_TYPE iType,int &idf);   //自动释放原有pLineIDM内存，并创建新内存,iType支持墙梁
-	virtual BOOL Write(CASCFile &fout,int idf,int secid,STRUCT_TYPE iType);
+	virtual BOOL Read(CASCFile &fin,STRUCT_TYPE iType,int &idf,CPlateSectionCollection &cPlateSection,CProjectPara &cPrjPara);   //自动释放原有pLineIDM内存，并创建新内存,iType支持墙梁
+	virtual BOOL Write(CASCFile &fout,int idf);
 	
 	//设计信息读写
 	virtual BOOL ReadDesignInfo(CASCFile &fin,int idf);   //自动释放原有pLineIDM内存，并创建新内存,iType支持墙梁
 	virtual BOOL WriteDesignInfo(CASCFile &fout,int idf);
+
+	//根据截面信息刷新构件信息
+	void RenewPlate();
+
+	void GenLoadId(bool bRewrite=true);//由	float fDeadLoad 和float fLiveLoad生成Load加入mapload 供2020之后版本读取
+	void GenLoadVal();//由mapload生成fDeadLoad和fLiveLoad 供2020之前版本读取
+
+	//按边界顺序返回四个角点ID，左下、右下、右上、左上
+	BOOL GetCornerPoint(int &left_bottom,int &right_bottom,int &right_top,int &left_top)const;
 };
 
 #define NUM_STORY_PROP 13  //楼层属性参数个数
@@ -1126,7 +1324,7 @@ public:
 
 	//楼层构件参数,作为附属数据读写,共9种构件
 	float fPara[16][Sys_StructTypeNum];  //16个分量与STRUCT_PROPERTY1顺序保持一致(从3开始),0-12有用，数据单位与界面一致
-	CString sRebar[Sys_StructTypeNum],/*sStirrup[Sys_StructTypeNum],*/sConc[Sys_StructTypeNum],sSteel[Sys_StructTypeNum]; //分量与g_StructKeyword一致
+	CString sRebar[Sys_StructTypeNum],sStirrup[Sys_StructTypeNum],sConc[Sys_StructTypeNum],sSteel[Sys_StructTypeNum]; //分量与g_StructKeyword一致
 	float zBottom(void) const {return zTop-fHeight;} //层底标高
 
 	int GetEarthQuakeClass(void)
@@ -1225,7 +1423,7 @@ public:
 				fPara[i][j]=story.fPara[i][j];
 			}
 			sRebar[j]=story.sRebar[j];
-			//	sStirrup[j]=story.sStirrup[j];
+			sStirrup[j]=story.sStirrup[j];
 			sConc[j] =story.sConc[j] ;
 			sSteel[j]=story.sSteel[j];
 		}
@@ -1341,9 +1539,7 @@ public:
 	}
 
 	//计算线构件局部坐标单位基矢量，考虑了转角
-	//水平构件：e1为轴线方向，e2、e3为截面局部坐标方向
-	//竖向构件：e1=eZ为轴线方向，e2、e3为截面局部坐标方向
-	void LocalCoorVector(Vector4 &u,Vector4 &v,Vector4 &w) const;
+	void EleLocalCoorVector(Vector4 &u,Vector4 &v,Vector4 &w) const;
 
 
 	virtual BOOL Read(CASCFile &fin);
@@ -1504,113 +1700,6 @@ public:
 	virtual BOOL WriteBin(CFile &fout);
 };
 
-struct DATA_SEQUENCE2
-{
-	float t,v;
-};
-//数据系列类，2个分量
-class _SSG_DLLIMPEXP CDataSequence2
-{
-public:
-	CDataSequence2(void){fname=L"";iWaveLibIndex=-1; iWaveLib=0; pData=NULL; nPoints=0; 
-	fMinValue=fMaxValue=0;fMinValueTime=fMaxValueTime=0;fMaxFileTime=0;}
-
-	CDataSequence2(const CDataSequence2 &ds)
-	{
-		*this=ds;
-	}
-
-	~CDataSequence2()
-	{
-		Clear();
-	}
-
-	CString fname; //文件名
-	int iWaveLibIndex; //乔保娟 2015.6.11
-	int iWaveLib;	//0----SSG地震波库， 1-----用户自定义波
-	int nPoints;  //数据点数
-
-	//以下为临时数据
-	float fMinValue,fMaxValue;  //最大最小值，读入文件时统计得到
-	float fMinValueTime,fMaxValueTime;  //最大最小值时刻，读入文件时统计得到 //2016.3.16
-	float fMaxFileTime;  //数据文件中的最大时间
-
-	DATA_SEQUENCE2	*pData;
-
-	void Clear(void) 
-	{
-		if (pData){delete[] pData;	pData=NULL;}
-
-		nPoints=0;
-		//fMinValue=fMaxValue=0;
-		//fname=L"";
-	}
-	BOOL IsValid(){return nPoints>0 && pData;}
-
-	//赋值运算符重载
-	CDataSequence2 & operator=(const CDataSequence2& data)
-	{
-		if(this==&data) return *this;
-		Clear();
-		fname=data.fname;
-		iWaveLibIndex = data.iWaveLibIndex;
-		iWaveLib =data.iWaveLib;
-		nPoints=data.nPoints;
-		pData=new DATA_SEQUENCE2[nPoints];
-		ASSERT(pData);
-		for(int i=0;i<nPoints;i++)
-		{
-			pData[i]=data.pData[i]; 
-		}
-		fMinValue=data.fMinValue;
-		fMaxValue=data.fMaxValue;
-		fMinValueTime=data.fMinValueTime;
-		fMaxValueTime=data.fMaxValueTime;
-		fMaxFileTime=data.fMaxFileTime;
-		return *this;
-	}
-
-	//2017版本功能
-	void ReadAcc2017(void); //只读取数据nPoints，pData
-
-};
-
-//地震荷载的一个工况数据
-class _SSG_DLLIMPEXP CEarthQuake
-{
-public:
-	CEarthQuake(void);
-	CEarthQuake(CEarthQuake &eq) {*this=eq;}
-	~CEarthQuake(){;}
-
-	int iEarthQuakeProbility;
-	int iAccDefineMethod;
-	float fMainAmpEffect,f2ndAmpEffect,f3rdAmpEffect;  //有效峰值主方向加速度峰值，次方向峰值加速度，垂直方向峰值加速度 
-	float fMainAmp,f2ndAmp,f3rdAmp; // 实际峰值主方向加速度峰值，次方向峰值加速度，垂直方向峰值加速度
-	float fTimeInterval;	//数据点时间间隔
-	float fStartComputeTime;//时程分析起始时间
-	float fEndComputeTime;  //时程分析终止时间
-	float fMaxFileTime;		//数据最大时间=max(X-文件最大时间, Y-文件最大时间, Z-文件最大时间)
-	int iMainDir;			//主方向，0--X，1--Y
-
-
-	CDataSequence2 cAX,cAY,cAZ;  //保存文件中的原值
-
-	void GetRatio(float &fRatioX,float &fRatioY,float &fRatioZ);  //根据fMainAmp,fRatio1,fRatio2计算fRatioX,fRatioY,fRatioZ
-	void ReadData();  //读取三个方向的地震波数据
-	int CreateData(float *&ax,float *&ay,float *&az);  //创建数组，插值计算当前组的所有地震荷载点
-	void  GetRealPeakAccValue(); //求fMainAmp
-	CEarthQuake & operator=(const CEarthQuake &eq);
-	BOOL  operator==(const CEarthQuake &eq);//邱海 2018年3月2日
-
-	void Read10(CASCFile &fin);  //只读取配置信息，数据系列在使用时读取
-	void Read(CASCFile &fin);  //只读取配置信息，数据系列在使用时读取
-	void Write(CFile &fout); //只保存配置信息
-};
-
-
-
-class CLoadCase;
 class _SSG_DLLIMPEXP COutput
 {
 public:
@@ -1647,158 +1736,24 @@ private:
 	int value;
 };
 
-//工况组合
-class _SSG_DLLIMPEXP CLoadCase
-{
-public:
-	CLoadCase(void);
-	CLoadCase(CLoadCase &lc)
-	{
-		*this=lc;
-	}
-
-	~CLoadCase() {}
-
-	CString sCaseName;  //工况组合名称
-	CString sMemo;  //说明
-	float fCoeffLiveLoad;		//活荷载质量加权系数
-	float fCoeffDeadLoad;		//恒荷载质量加权系数
-
-	//显式动力加载参数
-	BOOL  bCloseNonLinear; //是否关闭几何非线性，1-关闭
-	BOOL  bCalIsolatorBeta; //是否关闭几何非线性，1-关闭
-	float fMassDamp;	//质量阻尼系数，
-	float fStiffDamp; //刚度阻尼系数
-	float fTerm1;  	//振型周期1
-	float fTerm2;  	//振型周期2
-	float fKsi1;   	//振型阻尼比1
-	float fKsi2;   	//振型阻尼比2
-	BOOL bInputAlpha;	//是否直接输入 //ver32
-	float fTimeStep;  //加载时间步长
-	int iCrtCons;  //混凝土二维本构模型,0弹性、1塑性损伤、2-性能化设计
-	int iRebarCons;  //钢筋本构模型,0弹性、1弹塑性、2-性能化设计
-	int	iStirrupCons;  //箍筋本构类型，取值为0--弹性、1--规范模型、2---约束混凝土模型
-	int iSlabElastic; //是否考虑楼板弹性
-	int iShearNonLinear; //是否考虑剪切非线性
-	float fShearGama; //剪切屈服应变
-	float fShearRatio; //剪切屈服后刚度比
-	float fWallShear; //剪力墙分布钢筋抗剪调整系数
-	int	iDamage;  //损伤定义方式
-	int	iMethod;  //分析方法
-	float fWaveAngle; //地震波主方向与坐标系夹角
-	BOOL bStiffDamp;  //是否计入刚度阻尼
-	int	iDampType;  //阻尼类型，0-Rayleigh阻尼，1-振型阻尼
-	int nModeNum;  //振型个数，用于计算振型阻尼，m_iDampType=1时有效
-	int iModalDampType;  //振型阻尼类型，0-全楼统一，1-按材料区分
-	int iSimpleModalDamp;  //简化振型阻尼
-	float fModeDamp[Sys_MaxModeNum];  //对应于m_iModeNum的各个振型的阻尼比，m_iDampType=1时有效
-	float fModeDampSteel[Sys_MaxModeNum];  //对应于m_iModeNum的各个振型的阻尼比，m_iDampType=1时有效//2017.8.26
-
-	CEarthQuake cEarchQuake;  //地震波信息
-
-	CLoadCase& operator=(const CLoadCase& lc);
-	BOOL operator==(const CLoadCase& lc);//ISO中震设计用，邱海2018年3月6日
-	BOOL isIsoParaEqual(const CLoadCase& lc);//ISO中震设计用，判断工况参数是否改变 邱海2018年3月6日 不包括地震动信息和工况名
-
-
-	void Read10(CASCFile &fin);
-	void Read20(CASCFile &fin);
-	void Read(CASCFile &fin);
-	void Write(CFile &fout);
-
-
-};
-
-class _SSG_DLLIMPEXP CLoadCollection
-{
-public:
-	CLoadCollection(){;}
-	CLoadCollection(const CLoadCollection &load) 
-	{
-		*this=load;
-	};
-	~CLoadCollection(){RemoveAll();}
-
-	int Append(CLoadCase *load);
-
-	void RemoveAt(int index);
-
-	void RemoveAll();
-
-	INT_PTR GetCount() const {return aLoadCasePtr.GetCount();}
-
-	CLoadCase *GetAt(int i) {return aLoadCasePtr.GetAt(i);}
-
-	CLoadCase *operator[](int i) {return aLoadCasePtr[i];}
-
-	void SetAt(int i,CLoadCase *load) {aLoadCasePtr[i]=load;}
-
-	CLoadCollection& operator=(const CLoadCollection&load);
-
-	void Write(CFile &fout) 
-	{
-		for(int i=0;i<aLoadCasePtr.GetCount();i++)
-			aLoadCasePtr[i]->Write(fout);
-	}
-
-private:
-	CArray<CLoadCase*,CLoadCase*> aLoadCasePtr; //荷载工况组合集合
-};
-
-//已选地震动
-class _SSG_DLLIMPEXP CWaveCollection
-{
-public:
-	CWaveCollection(){;}
-	CWaveCollection(const CWaveCollection &wave) 
-	{
-		*this=wave;
-	};
-	~CWaveCollection(){RemoveAll();}
-
-	int Append(CEarthQuake *wave);
-
-	void RemoveAt(int index);
-
-	void RemoveAll();
-
-	INT_PTR GetCount() const {return awavePtr.GetCount();}
-
-	CEarthQuake *GetAt(int i) {return awavePtr.GetAt(i);}
-
-	CEarthQuake *operator[](int i) {return awavePtr[i];}
-
-	void SetAt(int i,CEarthQuake *wave) {awavePtr[i]=wave;}
-
-	CWaveCollection& operator=(const CWaveCollection&wave);
-
-	void Write(CFile &fout) 
-	{
-		for(int i=0;i<awavePtr.GetCount();i++)
-			awavePtr[i]->Write(fout);
-	}
-
-private:
-	CArray<CEarthQuake*,CEarthQuake*> awavePtr; //荷载工况组合集合
-};
-
-
 //分组类
 class _SSG_DLLIMPEXP CGroup
 {
 public:
-	CGroup(void){nPrimitive=0; pIDG=NULL;}
+	CGroup(void){nPrimitive=0;bRelateOutput=true;pIDG=NULL;}
 	~CGroup(void){if(pIDG) delete[] pIDG; nPrimitive=0; pIDG=NULL;}
 
 	CString sName;  //组名
 	int nPrimitive; //本组图元数目
 	int *pIDG; //构件图元IDG
+	bool bRelateOutput;
 
 	CGroup &operator=(const CGroup &grp)
 	{
 		if(this==&grp) return *this;
 		sName=grp.sName;
 		nPrimitive=grp.nPrimitive;
+		bRelateOutput=grp.bRelateOutput;
 		delete[] pIDG;
 		pIDG=new int[nPrimitive];
 		for(int i=0;i<grp.nPrimitive;i++)
@@ -2135,7 +2090,7 @@ extern "C" _SSG_DLLIMPEXP STRUCT_TYPE GetPickedType(int IDG);
 //从IDG换成类型起始特征值
 extern "C" _SSG_DLLIMPEXP int GetBaseType(int IDG);
 
-
+extern "C" _SSG_DLLIMPEXP BOOL ValidHit(int iHit);   //判断拾取索引iHit是否有效
 
 //对坐标相同的点进行合并,返回旧点编号到新点编号的索引index， 同时原结点坐标数组被更新，索引数组为函数创建的动态内存，调用程序用完后应释放
 //失败则返回空指针
@@ -2204,18 +2159,29 @@ public:
 
 protected:
 	virtual void RearrangeID()=0;  //重新编排ID，去掉无效图元
-	void RemoveInvalidVex(int &nVex,CVertex *pVex,int *index1,CGroupCollection &aGroup);      //去掉无效框架点，被RearrengeID调用
+	void RemoveInvalidVex(int &nVex,CVertex *pVex,int *index1,CGroupCollection &aGroup,CGroupCollection *DmpGroup=NULL);      //去掉无效框架点，被RearrengeID调用
 	void RemoveInvalidNode(int &nVex,CVertex *pVex,int *index1);      //去掉无效网格结点，被RearrengeID调用
 	void RemoveInvalidBeamElm(int &nElm,CBeamElm *pElm,CVertex *pVex);   //被RearrengeID调用
 	void RemoveInvalidTriangleElm(int &nElm,CTriangleElm *pElm,CVertex *pVex);   //被RearrengeID调用
 	void RemoveInvalidQuadElm(int &nElm,CQuadElm *pElm,CVertex *pVex);   //被RearrengeID调用
-	void RemoveInvalidLine(int &nLine,CLine *pLine,CArray<CVertex,CVertex&> &aVex,int *index2,CGroupCollection &aGroup);   //被RearrengeID调用
-	void RemoveInvalidGuides(int &nGuides,CVertex *pVex,CLine *pLine,CGroupCollection &aGroup);   //被RearrengeID调用
-	void RemoveInvalidBeamStruc(int &nStruc,CArray<CLine,CLine&> &aLine,CBeamStruc *pStruc,int *index4,CGroupCollection &aGroup);   //被RearrengeID调用
-	void RemoveInvalidPlateStruc(int &nStruc,CArray<CLine,CLine&> &aLine,CPlateStruc *pStruc,int *index3,CGroupCollection &aGroup);   //被RearrengeID调用
+	void RemoveInvalidLine(int &nLine,CLine *pLine,CArray<CVertex,CVertex&> &aVex,int *index2,CGroupCollection &aGroup,CGroupCollection *DmpGroup=NULL);   //被RearrengeID调用
+	void RemoveInvalidGuides(int &nGuides,CVertex *pVex,CLine *pLine,CGroupCollection &aGroup,CGroupCollection *DmpGroup=NULL);   //被RearrengeID调用
+	void RemoveInvalidBeamStruc(int &nStruc,CArray<CLine,CLine&> &aLine,CBeamStruc *pStruc,int *index4,CGroupCollection &aGroup,CGroupCollection *DmpGroup=NULL);   //被RearrengeID调用
+	void RemoveInvalidPlateStruc(int &nStruc,CArray<CLine,CLine&> &aLine,CPlateStruc *pStruc,int *index3,CGroupCollection &aGroup,CGroupCollection *DmpGroup=NULL);   //被RearrengeID调用
 
 	void RemoveInvalidGroup(STRUCT_TYPE iPrimType,int nStruc,const int *index1,CGroupCollection &aGroup);  //被以上各图元函数调用
 };
 
 extern "C" _SSG_DLLIMPEXP STRUCT_KEYWORD g_StructKeyword[Sys_StructTypeNum];
-extern "C" _SSG_DLLIMPEXP STRUCT_PROPERTY1 g_PropTable1[16];
+extern "C" _SSG_DLLIMPEXP STRUCT_PROPERTY1 g_PropTable1[17];
+
+//生成板构件边线与节点对应关系存在CLine.aNodes中
+extern "C" _SSG_DLLIMPEXP void GenPlateEdgeNodes(CPlateStruc &plate,int iLindId);
+//生成板构件边线与节点对应关系存在CLine.aNodes中只有线上有荷载才生成
+extern "C" _SSG_DLLIMPEXP void GenPlateAllEdgeNodes(CPlateStruc &plate);
+//获得虚梁对应节点
+extern "C" _SSG_DLLIMPEXP void GenVirtualBeamNodes(CBeamStruc &beam);
+//获得梁上结构线对应节点
+extern "C" _SSG_DLLIMPEXP void GenBeamLineNodes(CBeamStruc &beam);
+
+extern "C" _SSG_DLLIMPEXP void GetBeamInitialImperfection(CBeamStruc &beam,bool bRewrite=false);

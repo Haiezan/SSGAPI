@@ -162,7 +162,7 @@ public:
 		*this=para;
 	}
 
-	enum {PRJ_NUMBER=54};	//乔保娟 2015.5.7
+	enum {PRJ_NUMBER=56};	//乔保娟 2015.5.7
 
 	//以下为标准格式，在SSG文件中定义
 	/*0 */CString Prj_Name;						//项目名称
@@ -226,6 +226,8 @@ public:
 	/*51*/int	Prj_SlabSeisGrade;	//板的抗震等级 
 	/*52*/int	Prj_SeisDetailsGrade;//抗震构造措施的抗震等级 提高两级 提高一级 不改变 降低一级 降低两级
 	/*53*/int	Prj_IsolatStory;//隔震层位置
+	/*54*/float	Prj_ImportanceCoef;//结构重要性系数
+	/*55*/float	Prj_BearingCoef;//承载力抗震调整系数
 
 	//定义的剖面或断面
 	CArray<PROFILE_PARA,PROFILE_PARA&> m_aPrj_Profile;
@@ -275,7 +277,7 @@ public:
 		/*10*/Prj_GravityAcce			=para.Prj_GravityAcce;		
 		/*11*/Prj_EdgeRebar				=para.Prj_EdgeRebar;		
 		/*12*/Prj_LinkRebar				=para.Prj_LinkRebar;
-		/*13*/Prj_BeamStirrup				=para.Prj_BeamStirrup;				
+		/*13*/Prj_BeamStirrup			=para.Prj_BeamStirrup;				
 		/*14*/Prj_ColumnStirrup			= para.Prj_ColumnStirrup;			
 		/*15*/Prj_BeamLinkSpace			=para.Prj_BeamLinkSpace;	
 		/*16*/Prj_ColumnLinkSpace		=para.Prj_ColumnLinkSpace;
@@ -313,14 +315,18 @@ public:
 		/*43*/Prj_MaxTriAngle			=para.Prj_MaxTriAngle;
 		/*44*/Prj_nSmooth				=para.Prj_nSmooth;
 		/*45*/Prj_MinLineSize			=para.Prj_MinLineSize; 
-		/*46*/Prj_BeamOverlayStiffDeduction	=para.Prj_BeamOverlayStiffDeduction	; 
-		/*47*/Prj_BeamOverlayAreaDeduction	=para.Prj_BeamOverlayAreaDeduction	; 
-		/*48*/Prj_PlateOverlayStiffDeduction=para.Prj_PlateOverlayStiffDeduction	; 
-		/*49*/Prj_PlateOverlayAreaDeduction	=para.Prj_PlateOverlayAreaDeduction	; 
-		/*50*/Prj_FortificationCategory	=para.Prj_FortificationCategory				;
+		/*46*/Prj_BeamOverlayStiffDeduction		=para.Prj_BeamOverlayStiffDeduction	; 
+		/*47*/Prj_BeamOverlayAreaDeduction		=para.Prj_BeamOverlayAreaDeduction	; 
+		/*48*/Prj_PlateOverlayStiffDeduction	=para.Prj_PlateOverlayStiffDeduction	; 
+		/*49*/Prj_PlateOverlayAreaDeduction		=para.Prj_PlateOverlayAreaDeduction	; 
+		/*50*/Prj_FortificationCategory			=para.Prj_FortificationCategory				;
 		/*51*/Prj_SlabSeisGrade					=para.Prj_SlabSeisGrade				;
-		/*52*/Prj_SeisDetailsGrade			=para.Prj_SeisDetailsGrade				;
-		/*53*/Prj_IsolatStory						=para.Prj_IsolatStory;			
+		/*52*/Prj_SeisDetailsGrade				=para.Prj_SeisDetailsGrade				;
+		/*53*/Prj_IsolatStory					=para.Prj_IsolatStory;			
+		/*54*/Prj_ImportanceCoef				=para.Prj_ImportanceCoef;			
+		/*55*/Prj_BearingCoef					=para.Prj_BearingCoef;			
+
+
 		m_aPrj_Profile.RemoveAll();
 		m_aPrj_Profile.Copy(para.m_aPrj_Profile);
 
@@ -339,10 +345,20 @@ class _SSG_DLLIMPEXP  CProgramControl
 public:
 	CProgramControl(void);
 	~CProgramControl(void);
-	int Sys_MaxUndoStep;
-	float Sys_AngStep;  
-	int Sys_MaxUndoStepDefault;
-	float Sys_AngStepDefault;
+
+	union
+	{
+		struct
+		{
+			float Sys_MaxUndoStep;						//最大undo级数
+			float Sys_AngStep;								//键盘方向键移动图形的角度步长，度
+			float Sys_AutoSaving;							//定时自动保存工程(1-是，0-否)
+			float Sys_AutoSavingTimeStep;			//定时自动保存工程时间间隔
+			float Sys_SaveBackup;							//工程保存时同时保存副本
+			float Sys_MaxBackupNumber;			// 工程保存最大副本数量
+		};
+		float Sys_ProgCtrlArray[6];
+	};
 };
 
 class _SSG_DLLIMPEXP  CInitialviewParameter
@@ -374,6 +390,14 @@ public:
 
 	struct
 	{
+		int Sys_PerformType;//2为RBS，0为默认，1为倒塌//2019.11.27王丹
+		CString Sys_PerformGradeNameRBS[5];//2019.11.27王丹
+		COLORREF Sys_PerformGradeColorRBS[5];//2019.11.27王丹
+		int Sys_bPerformDefault;//2020.4.1王丹，判断用户是否为第一次使用程序，不是为1
+	
+		float Sys_RebarSteelStrainRBS[3];//2019.12.30王丹
+		float Sys_DcRBS[3];//2019.12.30王丹
+
 		int Sys_PerformGradeNum;
 		CString Sys_PerformGradeName[Sys_MaxPerformGrade];
 		float Sys_StrainGrade[Sys_MaxPerformGrade];
@@ -418,7 +442,7 @@ public:
 	};
 };
 
-#define Sys_ComponentNum 173 //预定义的子截面形状个数
+#define Sys_ComponentNum 188 //分量名称
 struct _SSG_DLLIMPEXP COMPONENT_COMMENT_TABLE
 {
 	CString sName;				//分量名称
@@ -434,6 +458,6 @@ extern "C" _SSG_DLLIMPEXP CPerformanceGradePara g_cSysPerformGradePara;
 extern "C" _SSG_DLLIMPEXP CHingeGradePara g_cSysHingeGradePara;
 extern "C" _SSG_DLLIMPEXP float g_Sys_Size_Default[SYSTEM_SIZE_NUMBER];
 extern "C" _SSG_DLLIMPEXP COLORREF g_Sys_Color_Default[SYSTEM_COLOR_NUMBER];
-extern "C" _SSG_DLLIMPEXP float g_Sys_Size_Default[SYSTEM_SIZE_NUMBER];
+extern "C" _SSG_DLLIMPEXP float g_Sys_ProgCtrl_Default[6];
 extern "C" _SSG_DLLIMPEXP float g_Sys_InitialviewParameter_Default[4];
 extern "C" _SSG_DLLIMPEXP COMPONENT_COMMENT_TABLE aComponentCommentTable[Sys_ComponentNum];
