@@ -102,7 +102,7 @@ BEGIN_MESSAGE_MAP(CReadSSGDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_DISP, &CReadSSGDlg::OnBnClickedButtonDisp)
 	ON_BN_CLICKED(IDC_BUTTON_HARM_DISP, &CReadSSGDlg::OnBnClickedButtonHarmDisp)
 	ON_EN_KILLFOCUS(IDC_EDIT_NUM, &CReadSSGDlg::OnEnKillfocusEditNum)
-	ON_BN_CLICKED(IDC_BUTTON1, &CReadSSGDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON1, &CReadSSGDlg::OnBnClickedButtonReadSSG)
 END_MESSAGE_MAP()
 
 
@@ -366,6 +366,38 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 		m_cDis.Clear();
 		return;
 	}
+
+	//////////////////开始计算/////////////////
+
+	for (int iBeam = 0; iBeam < theData.m_cFrame.m_nBeam; iBeam++)
+	{
+		CBeamStruc &beam = theData.m_cFrame.m_aBeam[iBeam];
+		//截面
+		CBeamSection *psec = theData.m_cFrame.m_cSection.GetBeamSection(beam.iSectionID);
+		//材料
+		CString sConc = beam.ConcMat;
+		CString sRebar = beam.RebarMat;
+		CString sStirrup = beam.StirrupMat;
+		CString sSteel = beam.SteelMat;
+		//寻找混凝土截面
+		int nSec = psec->aSubSec.GetCount();
+		int iSec = -1;
+		for (int k = 0; k < nSec; k++)
+		{
+			if (psec->aSubSec[k].iSubMatType == SUBSECTION_MAT_TYPE_CONC)
+			{
+				iSec = k;
+				break;
+			}
+		}
+		iSec = 0;
+		CSubSection &sub = psec->aSubSec[iSec];
+		int iShape = sub.iShape;
+	}
+	
+
+
+
 
 
 	//遍历所有时步，求节点最大转角
@@ -1461,12 +1493,3 @@ void CReadSSGDlg::OnEnKillfocusEditNum()
 	UpdateData(false);
 }
 
-
-void CReadSSGDlg::OnBnClickedButton1()
-{
-	// 在此输入您的程序
-
-	AfxMessageBox(L"用SSGAPI编写我的程序”！\r\n");
-
-	return;
-}

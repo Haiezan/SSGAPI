@@ -241,14 +241,20 @@
     <ClInclude Include="..\Common\Vector4_Reference.h" />
     <ClInclude Include="..\Common\VisibleStruct.h" />
     <ClInclude Include="..\Common\WaveTool.h" />
+    <ClInclude Include="Fibre.h" />
+    <ClInclude Include="Interpolation.h" />
+    <ClInclude Include="Mat.h" />
     <ClInclude Include="ReadSSG.h" />
     <ClInclude Include="ReadSSGDlg.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
+    <ClInclude Include="Stract.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\MatPara.cpp" />
+    <ClCompile Include="Interpolation.cpp" />
+    <ClCompile Include="Mat.cpp" />
     <ClCompile Include="ReadSSG.cpp" />
     <ClCompile Include="ReadSSGDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
@@ -257,6 +263,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="Stract.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ReadSSG.rc" />

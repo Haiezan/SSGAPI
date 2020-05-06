@@ -16,6 +16,9 @@
     <Filter Include="Common">
       <UniqueIdentifier>{4d27e624-5207-4802-9c04-6be4e7d491ce}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tract">
+      <UniqueIdentifier>{dc433c03-0085-4dfb-868c-f99f01dc2fb6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="ReadMe.txt" />
@@ -159,6 +162,18 @@
     <ClInclude Include="ReadSSGDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="Interpolation.h">
+      <Filter>Tract</Filter>
+    </ClInclude>
+    <ClInclude Include="Mat.h">
+      <Filter>Tract</Filter>
+    </ClInclude>
+    <ClInclude Include="Stract.h">
+      <Filter>Tract</Filter>
+    </ClInclude>
+    <ClInclude Include="Fibre.h">
+      <Filter>Tract</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -172,6 +187,15 @@
     </ClCompile>
     <ClCompile Include="..\Common\MatPara.cpp">
       <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Interpolation.cpp">
+      <Filter>Tract</Filter>
+    </ClCompile>
+    <ClCompile Include="Mat.cpp">
+      <Filter>Tract</Filter>
+    </ClCompile>
+    <ClCompile Include="Stract.cpp">
+      <Filter>Tract</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
