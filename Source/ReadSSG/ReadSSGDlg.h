@@ -51,4 +51,5 @@ public:
 	// 是否打开结果文件
 	BOOL m_bOpenTxt;
 	afx_msg void OnBnClickedButton1();
+	afx_msg void OnBnClickedButtonDispratio();
 };

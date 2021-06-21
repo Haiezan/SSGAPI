@@ -103,6 +103,7 @@ BEGIN_MESSAGE_MAP(CReadSSGDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_HARM_DISP, &CReadSSGDlg::OnBnClickedButtonHarmDisp)
 	ON_EN_KILLFOCUS(IDC_EDIT_NUM, &CReadSSGDlg::OnEnKillfocusEditNum)
 	ON_BN_CLICKED(IDC_BUTTON1, &CReadSSGDlg::OnBnClickedButton1)
+	ON_BN_CLICKED(IDC_BUTTON_DISPRATIO, &CReadSSGDlg::OnBnClickedButtonDispratio)
 END_MESSAGE_MAP()
 
 
@@ -220,6 +221,7 @@ CString GetMatName(int id)
 
 void CReadSSGDlg::OnBnClickedButtonReadSSG()
 {
+	//打开SSG模型
 	CString fname=L"";
 	CString stitle=L"SAUSAGE文件|*.ssg||";
 	CFileDialog dlg(TRUE,L"ssg",L"*.ssg",0,stitle);
@@ -236,19 +238,11 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 	AppendMsg(L"开始读入SSG模型数据...\r\n");
 
 	//读入项目配置参数
-	AppendMsg(L"读入*PROJECT ...\r\n");
 	bSuccess&=theData.m_cPrjPara.Read(theData.m_sPrjFile);
-
-	tick1=GetTickCount();
-	tick0=tick1;
 
 	//读入楼层数据
 	CASCFile fin;
 	if(!fin.Open(theData.m_sPrjFile,CFile::modeRead|CFile::shareDenyWrite)) return;
-	tick1=GetTickCount();
-	tick0=tick1;
-
-	AppendMsg(L"读入*STORY ...\r\n");
 	int count;
 	if(fin.FindKey("*STORY"))
 	{
@@ -262,11 +256,6 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 			}
 		}
 	}
-	
-	AppendMsg(L"读入*STYPROP ...\r\n");
-	tick1=GetTickCount();
-	tick0=tick1;
-
 	if(fin.FindKey("*STYPROP"))  //楼层参数
 	{
 		fin.GetKeyValueInt("NPARA=");  //参数个数（列数），行数为楼层数（包括0层）
@@ -330,22 +319,12 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 
 
 	//读入模型数据
-	AppendMsg(L"读入构件数据 ...\r\n");
 	bSuccess&=theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara);
-
 	if(bSuccess)
 	{
 		//读入网格
-		tick1=GetTickCount();
-		tick0=tick1;
-		AppendMsg(L"读入单元数据 ...\r\n");
 		theData.m_cMesh.ReadMeshBin(theData.m_nStory,theData.m_pStory);
-
-
 		//生成结点到单元的索引
-		tick1=GetTickCount();
-		tick0=tick1;
-
 		theData.m_cMesh.CreateNode2Elm();
 		theData.m_cMesh.CreateShellSubElm();		
 	}
@@ -1467,6 +1446,359 @@ void CReadSSGDlg::OnBnClickedButton1()
 	// 在此输入您的程序
 
 	AfxMessageBox(L"用SSGAPI编写我的程序”！\r\n");
+	return;
+}
+
+
+void CReadSSGDlg::OnBnClickedButtonDispratio()
+{
+	// TODO: 在此添加控件通知处理程序代码
+	UpdateData(true);
+
+	CString fname = L"";
+	CString stitle = L"SAUSAGE文件|*.ssg||";
+	CFileDialog dlg(TRUE, L"ssg", L"*.ssg", 0, stitle);
+	if (dlg.DoModal() != IDOK) return;
+	fname = dlg.GetPathName();
+
+	//清除所有数据
+	theData.Clear();
+	theData.m_sPrjFile = fname;
+	BOOL bSuccess = TRUE;
+
+	DWORD tick0 = GetTickCount(), tick1;
+	ClearMsg();
+	AppendMsg(L"开始读入SSG模型数据...\r\n");
+
+	//读入项目配置参数
+	AppendMsg(L"读入*PROJECT ...\r\n");
+	bSuccess &= theData.m_cPrjPara.Read(theData.m_sPrjFile);
+
+	tick1 = GetTickCount();
+	tick0 = tick1;
+
+	//读入楼层数据
+	CASCFile fin;
+	if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) return;
+	tick1 = GetTickCount();
+	tick0 = tick1;
+
+	AppendMsg(L"读入*STORY ...\r\n");
+	int count;
+	if (fin.FindKey("*STORY"))
+	{
+		count = fin.GetKeyValueInt("NUMBER=");
+		if (count > 0)
+		{
+			theData.m_nStory = count - 1;
+			for (int i = 0; i <= theData.m_nStory; i++)
+			{
+				theData.m_pStory[i].Read(fin);
+			}
+		}
+	}
+
+	AppendMsg(L"读入*STYPROP ...\r\n");
+	tick1 = GetTickCount();
+	tick0 = tick1;
+
+	if (fin.FindKey("*STYPROP"))  //楼层参数
+	{
+		fin.GetKeyValueInt("NPARA=");  //参数个数（列数），行数为楼层数（包括0层）
+		fin.GetKeyValueInt("NSTRUCTTYPE=");  //构件种类
+		int nrec = fin.GetKeyValueInt("NUMBER=");  //记录数
+		for (int i = 0; i < nrec; i++)
+		{
+			CString key = fin.GetStr();  //结构类型关键字
+			int iStruct = GetStructKeywordIndex(key);
+			if (iStruct == -1) continue;
+			int iStory = fin.GetInt();  //楼层号
+			int id_conc = fin.GetInt();
+			int id_rebar = fin.GetInt();
+			int id_steel = fin.GetInt();
+			theData.m_pStory[iStory].sConc[iStruct] = GetMatName(id_conc);
+			theData.m_pStory[iStory].sRebar[iStruct] = GetMatName(id_rebar);
+			theData.m_pStory[iStory].sSteel[iStruct] = GetMatName(id_steel);
+			switch (g_StructKeyword[iStruct].iType)
+			{
+			case STRUCT_BEAM:
+				theData.m_pStory[iStory].fPara[1][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[2][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[3][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[4][iStruct] = fin.GetFloat();
+				break;
+			case STRUCT_PILLAR:
+				theData.m_pStory[iStory].fPara[9][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[10][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[11][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[12][iStruct] = fin.GetFloat();
+				break;
+			case STRUCT_BRACING:
+				theData.m_pStory[iStory].fPara[9][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[10][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[11][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[12][iStruct] = fin.GetFloat();
+				break;
+			case STRUCT_PLATE:
+				theData.m_pStory[iStory].fPara[1][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[2][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[3][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[4][iStruct] = fin.GetFloat();
+				break;
+			case STRUCT_WALL:
+			case STRUCT_BEAMWALL:
+				theData.m_pStory[iStory].fPara[9][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[10][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[11][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[12][iStruct] = fin.GetFloat();
+				break;
+			default:
+				theData.m_pStory[iStory].fPara[1][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[2][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[3][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[4][iStruct] = fin.GetFloat();
+				break;
+			}
+		}
+	}
+	fin.Close();
+
+
+	//读入模型数据
+	AppendMsg(L"读入构件数据 ...\r\n");
+	bSuccess &= theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara);
+
+	if (bSuccess)
+	{
+		//读入网格
+		tick1 = GetTickCount();
+		tick0 = tick1;
+		AppendMsg(L"读入单元数据 ...\r\n");
+		theData.m_cMesh.ReadMeshBin(theData.m_nStory, theData.m_pStory);
+
+
+		//生成结点到单元的索引
+		tick1 = GetTickCount();
+		tick0 = tick1;
+
+		theData.m_cMesh.CreateNode2Elm();
+		theData.m_cMesh.CreateShellSubElm();
+	}
+	AppendMsg(L"SSG模型读取成功！\r\n\r\n");
+
+	//判断工况编号
+	if (m_iCaseNum > theData.m_cFrame.m_cLoad.GetCount())
+	{
+		AfxMessageBox(L"工况定义错误！\r\n");
+		return;
+	}
+	else
+	{
+		CString str;
+		str.Format(L"读取*%s*工况结果\r\n", theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName);
+		AppendMsg(str);
+	}
+
+
+	AppendMsg(L"开始读取结果...\r\n");
+
+	//读取动力分析节点位移
+	CNodeFieldSet m_cDis;
+	m_cDis.Clear();
+	AppendMsg(L"加载动力分析结点位移文件...\r\n");
+	fname = theData.GetFilePath(FILE_DISP_BIN, theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName); //直接写工况名称也可以
+	BOOL ret = m_cDis.ReadBinNodeField_AllStep(fname, false);
+	if (!ret || m_cDis.GetStepNumber() < 1)
+	{
+		AppendMsg(L"没找到结果文件！\r\n");
+		m_cDis.Clear();
+		return;
+	}
+
+
+	//求节点位移
+	int iNodeNum = 1000;
+	int nStep = m_cDis.nMaxSteps;
+	float *fNodeDispX = new float[nStep];
+	float *fNodeDispY = new float[nStep];
+	memset(fNodeDispX, 0, sizeof(float)*nStep);
+	memset(fNodeDispY, 0, sizeof(float)*nStep);
+
+	for (int iStep = 0; iStep < nStep; iStep++)
+	{
+		Vector4 d;
+		d.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 0, m_cDis.nItems);	//后三个分量是转角，前三个分量是平动位移
+		d.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 1, m_cDis.nItems);
+		d.z = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 2, m_cDis.nItems);
+		fNodeDispX[iStep] = d.x;
+		fNodeDispY[iStep] = d.y;
+	}
+
+	//读取DEF文件
+	AppendMsg(L"开始读取DEF文件...\r\n");
+	//CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + sGroup + CString(".") + FILE_OUTPUT_DEF;
+	CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + CString("All") + CString(".") + FILE_OUTPUT_DEF;
+	int *story_pillar_node = NULL;
+	int nstory1 = theData.m_nStory + 1;
+
+	int npillar = 0;
+	int nstory = 0;
+	if (fin.Open(defname, CFile::modeRead | CFile::shareDenyWrite))
+	{
+		nstory = fin.GetInt();//层数
+		//ASSERT(nstory == theData.m_nStory);
+		npillar = fin.GetInt();
+		for (int i = 0; i < npillar; i++)
+		{
+			fin.GetInt();
+		}
+
+		story_pillar_node = new int[nstory1 * npillar];
+		for (int i = 0; i < nstory; i++)
+		{
+			int istory = fin.GetInt();
+			for (int j = 0; j < npillar; j++)
+			{
+				story_pillar_node[istory + j * nstory] = fin.GetInt() - 1;
+			}
+		}
+		fin.Close();
+	}
+	AppendMsg(L"读取数据成功\r\n\r\n");
+
+
+	float **fDispMax; //层位移最大值
+	int *iDispMax = new int[nstory]; //层位移最大值对应节点
+	*fDispMax = new float[nstory];
+	
+	float **fDispAve; //层平均位移
+	*fDispAve = new float[nstory];
+
+	float **fRatio; //层位移比
+	*fRatio = new float[nstory];
+
+
+	for (int i = 0; i < nstory; i++)
+	{
+		fDispMax[i] = new float[nStep];
+		fDispAve[i] = new float[nStep];
+		fRatio[i] = new float[nStep];
+
+		memset(fDispMax[i], 0, sizeof(float)*(nStep));
+		memset(fDispAve[i], 0, sizeof(float)*(nStep));
+		memset(fRatio[i], 0, sizeof(float)*(nStep));
+	}
+
+
+
+	float *fDispAve = new float[nstory];
+	float *fRatio = new float[nstory];
+	memset(fDispMax, 0, sizeof(float)*(nstory));
+	memset(fDispAve, 0, sizeof(float)*(nstory));
+	memset(fRatio, 0, sizeof(float)*(nstory));
+
+	AppendMsg(L"正在输出层间位移角文件...\r\n");
+
+	CString sFileName = theData.GetEarthQuakePath(theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName) + theData.GetPrjName() + L"_DispHs.txt";
+	FILE* fd = fopen("DispHs.txt", "wb");
+
+
+
+	for (int iStep = 0; iStep < nStep; iStep++)
+	{
+		for (int i = 1; i < nstory; i++)
+		{
+			float fRatio1 = 0.f;
+
+			float fDispMax1 = 0.f;
+			float fDispAve1 = 0.f;
+			float fDispSum1 = 0.f;
+			int nNum = 0;
+
+			for (int j = 0; j < npillar; j++)
+			{
+				int iNode0 = story_pillar_node[i - 1 + j * nstory];
+				int iNode1 = story_pillar_node[i + j * nstory];
+
+				//if (iNode0 < 0 || iNode1 < 0) continue;
+				if (iNode1 < 0) continue;
+
+				//float fHeight = theData.m_pStory[i].fHeight;
+
+				Vector4 d0, d1;
+				d0.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode0, 0, m_cDis.nItems);
+				d0.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode0, 1, m_cDis.nItems);
+
+				d1.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 0, m_cDis.nItems);
+				d1.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 1, m_cDis.nItems);
+
+				if (abs(d1.x) > abs(fDispMax1))
+				{
+					fDispMax1 = d1.x;
+				}
+
+				//fDispMax1 = max(fDispMax1, abs(d1.x));
+				fDispSum1 += d1.x;
+				nNum++;
+			}
+
+			fDispAve1 = fDispSum1 / nNum;
+			fRatio1 = fDispMax1 / fDispAve1;
+
+			if (abs(fDispMax1) > abs(fDispMax[i]))
+			{
+				fDispMax[i] = fDispMax1;
+			}
+			if (abs(fDispAve1) > abs(fDispAve[i]))
+			{
+				fDispAve[i] = fDispAve1;
+			}
+			if (abs(fRatio1) > abs(fRatio[i]))
+			{
+				fRatio[i] = fRatio1;
+			}
+
+			fprintf(fd, "%d\t%d\t%f\t%f\t%f\n", iStep, i, fDispMax1, fDispAve1, fRatio1);
+
+		}
+
+	}
+
+	fclose(fd);
+
+	//输出位移文件
+	CASCFile fout;
+	char buf[512];
+	CString sOutFileName = theData.GetEarthQuakePath(theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName) + theData.GetPrjName() + L"_Disp.txt";
+	if (!fout.Open(sOutFileName, CFile::modeCreate | CFile::modeWrite | CFile::shareDenyWrite))return;
+	USES_CONVERSION;
+
+	AppendMsg(L"输出位移文件\r\n");
+
+	sprintf_s(buf, sizeof(buf), "**SAUSAGE层位移\r\n");
+	fout.Write(buf, strlen(buf));
+
+	sprintf_s(buf, sizeof(buf), "层号\tDispMax\tDispAverage\tRatio\r\n");
+	fout.Write(buf, strlen(buf));
+
+	for (int iStory = 0; iStory < nstory; iStory++)
+	{
+		sprintf_s(buf, sizeof(buf), "%3d\t%f\t%f\t%f\t\r\n",
+			iStory, fDispMax[iStory], fDispAve[iStory], fRatio[iStory]);
+		fout.Write(buf, strlen(buf));
+	}
+	fout.Close();
+
+	CString msgfile = L"notepad.exe \"" + sOutFileName + CString(L"\"");
+	if (m_bOpenTxt) WinExec(T2A(msgfile), SW_SHOW);
+
+	AppendMsg(L"结构层位移输出成功！\r\n");
+
+	delete[] fDispMax;
+	delete[] fDispAve;
+	delete[] fRatio;
+
+	theData.Clear();
 
 	return;
 }
