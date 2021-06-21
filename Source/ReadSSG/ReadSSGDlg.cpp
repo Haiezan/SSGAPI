@@ -78,6 +78,7 @@ CReadSSGDlg::CReadSSGDlg(CWnd* pParent /*=NULL*/)
 	, m_fAngleGap(15)
 	, m_sAngle(_T("0,"))
 	, m_bOpenTxt(FALSE)
+	, m_fError(0.5f)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDI_ICON);
 }
@@ -91,6 +92,7 @@ void CReadSSGDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_ANGLE, m_sAngle);
 	DDX_Control(pDX, IDC_EDIT1, m_cEditMsg);
 	DDX_Check(pDX, IDC_CHECK_OPENTXT, m_bOpenTxt);
+	DDX_Text(pDX, IDC_EDIT_ERROR, m_fError);
 }
 
 BEGIN_MESSAGE_MAP(CReadSSGDlg, CDialogEx)
@@ -1615,25 +1617,6 @@ void CReadSSGDlg::OnBnClickedButtonDispratio()
 		return;
 	}
 
-
-	//求节点位移
-	int iNodeNum = 1000;
-	int nStep = m_cDis.nMaxSteps;
-	float *fNodeDispX = new float[nStep];
-	float *fNodeDispY = new float[nStep];
-	memset(fNodeDispX, 0, sizeof(float)*nStep);
-	memset(fNodeDispY, 0, sizeof(float)*nStep);
-
-	for (int iStep = 0; iStep < nStep; iStep++)
-	{
-		Vector4 d;
-		d.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 0, m_cDis.nItems);	//后三个分量是转角，前三个分量是平动位移
-		d.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 1, m_cDis.nItems);
-		d.z = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 2, m_cDis.nItems);
-		fNodeDispX[iStep] = d.x;
-		fNodeDispY[iStep] = d.y;
-	}
-
 	//读取DEF文件
 	AppendMsg(L"开始读取DEF文件...\r\n");
 	//CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + sGroup + CString(".") + FILE_OUTPUT_DEF;
@@ -1666,43 +1649,44 @@ void CReadSSGDlg::OnBnClickedButtonDispratio()
 	}
 	AppendMsg(L"读取数据成功\r\n\r\n");
 
+	float *fDispMaxTH = new float[nstory];	//时程层位移最大值
+	float *fDispMinTH = new float[nstory];	//时程层位移最小值
+	memset(fDispMaxTH, 0, sizeof(float)*(nstory));
+	memset(fDispMinTH, 0, sizeof(float)*(nstory));
 
 	float **fDispMax; //层位移最大值
-	int *iDispMax = new int[nstory]; //层位移最大值对应节点
-	*fDispMax = new float[nstory];
+	fDispMax = new float *[nstory];
+
+	int **iDispMax; //层位移最大值对应节点
+	iDispMax = new int *[nstory];
 	
 	float **fDispAve; //层平均位移
-	*fDispAve = new float[nstory];
+	fDispAve = new float *[nstory];
 
 	float **fRatio; //层位移比
-	*fRatio = new float[nstory];
+	fRatio = new float *[nstory];
 
-
+	int nStep = m_cDis.nMaxSteps;
 	for (int i = 0; i < nstory; i++)
 	{
 		fDispMax[i] = new float[nStep];
+		iDispMax[i] = new int[nStep];
 		fDispAve[i] = new float[nStep];
 		fRatio[i] = new float[nStep];
 
 		memset(fDispMax[i], 0, sizeof(float)*(nStep));
+		memset(iDispMax[i], 0, sizeof(int)*(nStep));
 		memset(fDispAve[i], 0, sizeof(float)*(nStep));
 		memset(fRatio[i], 0, sizeof(float)*(nStep));
 	}
 
+	AppendMsg(L"正在计算层位移...\r\n");
 
-
-	float *fDispAve = new float[nstory];
-	float *fRatio = new float[nstory];
-	memset(fDispMax, 0, sizeof(float)*(nstory));
-	memset(fDispAve, 0, sizeof(float)*(nstory));
-	memset(fRatio, 0, sizeof(float)*(nstory));
-
-	AppendMsg(L"正在输出层间位移角文件...\r\n");
-
-	CString sFileName = theData.GetEarthQuakePath(theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName) + theData.GetPrjName() + L"_DispHs.txt";
-	FILE* fd = fopen("DispHs.txt", "wb");
-
-
+	CString sPath = theData.GetEarthQuakePath(theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName);
+	CString sFileHs = sPath + theData.GetPrjName() + L"_DispHs.csv";
+	string strFileHs = CT2A(sFileHs);
+	FILE* fdHs = fopen(strFileHs.c_str(), "wb");
+	fprintf(fdHs, "分析步,层号,最大位移,平均位移,位移比,节点号\n");
 
 	for (int iStep = 0; iStep < nStep; iStep++)
 	{
@@ -1711,6 +1695,7 @@ void CReadSSGDlg::OnBnClickedButtonDispratio()
 			float fRatio1 = 0.f;
 
 			float fDispMax1 = 0.f;
+			int iDispNodeID = 0;
 			float fDispAve1 = 0.f;
 			float fDispSum1 = 0.f;
 			int nNum = 0;
@@ -1735,6 +1720,7 @@ void CReadSSGDlg::OnBnClickedButtonDispratio()
 				if (abs(d1.x) > abs(fDispMax1))
 				{
 					fDispMax1 = d1.x;
+					iDispNodeID = iNode1;
 				}
 
 				//fDispMax1 = max(fDispMax1, abs(d1.x));
@@ -1742,61 +1728,81 @@ void CReadSSGDlg::OnBnClickedButtonDispratio()
 				nNum++;
 			}
 
+			if (fDispMax1 > fDispMaxTH[i])
+			{
+				fDispMaxTH[i] = fDispMax1;
+			}
+			else if (fDispMax1 < fDispMinTH[i])
+			{
+				fDispMinTH[i] = fDispMax1;
+			}
+
 			fDispAve1 = fDispSum1 / nNum;
 			fRatio1 = fDispMax1 / fDispAve1;
 
-			if (abs(fDispMax1) > abs(fDispMax[i]))
-			{
-				fDispMax[i] = fDispMax1;
-			}
-			if (abs(fDispAve1) > abs(fDispAve[i]))
-			{
-				fDispAve[i] = fDispAve1;
-			}
-			if (abs(fRatio1) > abs(fRatio[i]))
-			{
-				fRatio[i] = fRatio1;
-			}
+			fDispMax[i][iStep] = fDispMax1;
+			iDispMax[i][iStep] = iDispNodeID;
+			fDispAve[i][iStep] = fDispAve1;
+			fRatio[i][iStep] = fRatio1;
 
-			fprintf(fd, "%d\t%d\t%f\t%f\t%f\n", iStep, i, fDispMax1, fDispAve1, fRatio1);
+			fprintf(fdHs, "%6d,%4d,%10.8f,%10.8f,%10.8f,%5d\n", iStep, i, fDispMax1, fDispAve1, fRatio1, iDispNodeID);
 
 		}
 
 	}
 
-	fclose(fd);
+	fclose(fdHs);
 
-	//输出位移文件
-	CASCFile fout;
-	char buf[512];
-	CString sOutFileName = theData.GetEarthQuakePath(theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName) + theData.GetPrjName() + L"_Disp.txt";
-	if (!fout.Open(sOutFileName, CFile::modeCreate | CFile::modeWrite | CFile::shareDenyWrite))return;
-	USES_CONVERSION;
+	AppendMsg(L"正在输出层位移...\r\n");
 
-	AppendMsg(L"输出位移文件\r\n");
+	//输出层位移数据
+	float fError = m_fError;
+	float* fRatio0 = new float[nstory];
+	memset(fRatio0, 0, sizeof(float)*(nstory));
 
-	sprintf_s(buf, sizeof(buf), "**SAUSAGE层位移\r\n");
-	fout.Write(buf, strlen(buf));
+	CString sFileDisp = sPath + theData.GetPrjName() + L"_Disp.csv";
+	string strFileDisp = CT2A(sFileDisp);
+	FILE* fdDisp = fopen(strFileDisp.c_str(), "wb");
+	fprintf(fdDisp, "层号,位移比\n");
 
-	sprintf_s(buf, sizeof(buf), "层号\tDispMax\tDispAverage\tRatio\r\n");
-	fout.Write(buf, strlen(buf));
-
-	for (int iStory = 0; iStory < nstory; iStory++)
+	for (int i = 1; i < nstory; i++)
 	{
-		sprintf_s(buf, sizeof(buf), "%3d\t%f\t%f\t%f\t\r\n",
-			iStory, fDispMax[iStory], fDispAve[iStory], fRatio[iStory]);
-		fout.Write(buf, strlen(buf));
-	}
-	fout.Close();
+		for (int j = 0; j < nStep; j++)
+		{
+			if (fDispMax[i][j] <= fError*fDispMaxTH[i] && fDispMax[i][j] >= fError*fDispMinTH[i]) continue;
 
-	CString msgfile = L"notepad.exe \"" + sOutFileName + CString(L"\"");
-	if (m_bOpenTxt) WinExec(T2A(msgfile), SW_SHOW);
+			fRatio0[i] = max(fRatio0[i], fDispMax[i][j] / fDispAve[i][j]);
+		}
+		fprintf(fdDisp, "%d,%10.8f\n", i, fRatio0[i]);
+	}
+
+	fclose(fdDisp);
+
+	CString msgfile = L"notepad.exe \"" + sFileDisp + CString(L"\"");
+	if (m_bOpenTxt) WinExec(CT2A(msgfile), SW_SHOW);
 
 	AppendMsg(L"结构层位移输出成功！\r\n");
 
+	//delete[] fDispMax;
+	//delete[] fDispAve;
+	//delete[] fRatio;
+
+	delete[] fDispMaxTH;
+	delete[] fDispMinTH;
+	for (int i = 0; i < nstory; i++)
+	{
+		delete[] fDispMax[i];
+		delete[] iDispMax[i];
+		delete[] fDispAve[i];
+		delete[] fRatio[i];
+	}
 	delete[] fDispMax;
+	delete[] iDispMax;
 	delete[] fDispAve;
 	delete[] fRatio;
+
+	delete[] fRatio0;
+	delete[] story_pillar_node;
 
 	theData.Clear();
 
