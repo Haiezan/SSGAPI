@@ -31,6 +31,9 @@
     <None Include="res\icon.ico">
       <Filter>资源文件</Filter>
     </None>
+    <None Include="res\icon2.ico">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -159,6 +162,9 @@
     <ClInclude Include="ReadSSGDlg.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="DlgReadDispRatio.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -171,6 +177,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="..\Common\MatPara.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DlgReadDispRatio.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

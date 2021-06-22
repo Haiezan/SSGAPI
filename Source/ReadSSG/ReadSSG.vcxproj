@@ -200,6 +200,7 @@
     <None Include="ReadMe.txt" />
     <None Include="res\icon.ico" />
     <None Include="res\icon1.ico" />
+    <None Include="res\icon2.ico" />
     <None Include="res\ReadSSG.ico" />
     <None Include="res\ReadSSG.rc2" />
   </ItemGroup>
@@ -241,6 +242,7 @@
     <ClInclude Include="..\Common\Vector4_Reference.h" />
     <ClInclude Include="..\Common\VisibleStruct.h" />
     <ClInclude Include="..\Common\WaveTool.h" />
+    <ClInclude Include="DlgReadDispRatio.h" />
     <ClInclude Include="ReadSSG.h" />
     <ClInclude Include="ReadSSGDlg.h" />
     <ClInclude Include="Resource.h" />
@@ -249,6 +251,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Common\MatPara.cpp" />
+    <ClCompile Include="DlgReadDispRatio.cpp" />
     <ClCompile Include="ReadSSG.cpp" />
     <ClCompile Include="ReadSSGDlg.cpp" />
     <ClCompile Include="stdafx.cpp">
