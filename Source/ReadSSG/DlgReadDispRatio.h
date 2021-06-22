@@ -36,4 +36,5 @@ public:
 
 	float m_fError; //剔除误差
 	float m_fAngle; //计算角度
+	BOOL m_bMinusGra; //扣除静力位移
 };

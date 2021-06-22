@@ -42,8 +42,9 @@ CDlgReadDispRatio::CDlgReadDispRatio(CWnd* pParent /*=nullptr*/)
 	, m_sMsg(_T(""))
 	, m_iCaseNum(1)
 	, m_bOpenTxt(TRUE)
-	, m_fError(0.5f)
+	, m_fError(0.99f)
 	, m_fAngle(0.f)
+	, m_bMinusGra(FALSE)
 {
 
 }
@@ -61,6 +62,7 @@ void CDlgReadDispRatio::DoDataExchange(CDataExchange* pDX)
 	DDX_Check(pDX, IDC_CHECK_OPENTXT, m_bOpenTxt);
 	DDX_Text(pDX, IDC_EDIT_ERROR, m_fError);
 	DDX_Text(pDX, IDC_EDIT_ANGLE, m_fAngle);
+	DDX_Check(pDX, IDC_CHECK_MINUSGRA, m_bMinusGra);
 }
 
 
@@ -251,8 +253,11 @@ void CDlgReadDispRatio::OnBnClickedButtonDispratio()
 	FILE* fdHs = fopen(strFileHs.c_str(), "wb");
 	fprintf(fdHs, "分析步,层号,最大位移,平均位移,位移比,节点号\n");
 
+	//FILE* fd0 = fopen("TEST.csv", "wb");
+
 	for (int iStep = 0; iStep < nStep; iStep++)
 	{
+		//fprintf(fd0, "%d,", iStep);
 		for (int i = 1; i < nstory; i++)
 		{
 			float fRatio1 = 0.f;
@@ -277,8 +282,17 @@ void CDlgReadDispRatio::OnBnClickedButtonDispratio()
 				//d0.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode0, 0, m_cDis.nItems);
 				//d0.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode0, 1, m_cDis.nItems);
 
-				d1.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 0, m_cDis.nItems);
-				d1.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 1, m_cDis.nItems);
+				//扣除静力位移
+				float d0x = 0.f;
+				float d0y = 0.f;
+				if (m_bMinusGra)
+				{
+					d0x = m_cDis.aFieldsPtr[0]->GetItemData(iNode1, 0, m_cDis.nItems);
+					d0y = m_cDis.aFieldsPtr[0]->GetItemData(iNode1, 1, m_cDis.nItems);
+				}
+
+				d1.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 0, m_cDis.nItems) - d0x;
+				d1.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 1, m_cDis.nItems) - d0y;
 
 				float fdisp = d1.x*cos(fAngle) + d1.y*sin(fAngle);
 
@@ -291,6 +305,12 @@ void CDlgReadDispRatio::OnBnClickedButtonDispratio()
 				//fDispMax1 = max(fDispMax1, abs(d1.x));
 				fDispSum1 += fdisp;
 				nNum++;
+
+
+				//if (i == 33)
+				//{
+				//	fprintf(fd0, "%10.8f,", fdisp);
+				//}
 			}
 
 			if (fDispMax1 > fDispMaxTH[i])
@@ -303,20 +323,31 @@ void CDlgReadDispRatio::OnBnClickedButtonDispratio()
 			}
 
 			fDispAve1 = fDispSum1 / nNum;
-			fRatio1 = fDispMax1 / fDispAve1;
+
+			if (fDispAve1 > 1e-8)
+			{
+				fRatio1 = fDispMax1 / fDispAve1;
+			}
+			else
+			{
+				fRatio1 = 0.f;
+			}
+			
 
 			fDispMax[i][iStep] = fDispMax1;
 			iDispMax[i][iStep] = iDispNodeID;
 			fDispAve[i][iStep] = fDispAve1;
 			fRatio[i][iStep] = fRatio1;
 
-			fprintf(fdHs, "%6d,%4d,%10.8f,%10.8f,%10.8f,%5d\n", iStep, i, fDispMax1, fDispAve1, fRatio1, iDispNodeID);
+			fprintf(fdHs, "%6d,%4d,%10.8f,%10.8f,%10.8f,%5d\n", iStep, i, fDispMax1, fDispAve1, fRatio1, iDispNodeID + 1);
 
 		}
-
+		//fprintf(fd0, "\n");
 	}
 
 	fclose(fdHs);
+
+	//fclose(fd0);
 
 	AppendMsg(L"正在输出层位移...\r\n");
 
@@ -355,7 +386,7 @@ void CDlgReadDispRatio::OnBnClickedButtonDispratio()
 
 			fRatio0[i] = max(fRatio0[i], fDispMax[i][j] / fDispAve[i][j]);
 		}
-		fprintf(fdDisp, "%4d,%10.8f,%10.8f,%10.8f,%5d\n", i, fDispMax0[i], fDispAve0[i], fRatio0[i], iDispMaxID0[i]);
+		fprintf(fdDisp, "%4d,%10.8f,%10.8f,%10.8f,%5d\n", i, fDispMax0[i], fDispAve0[i], fRatio0[i], iDispMaxID0[i] + 1);
 	}
 
 	fclose(fdDisp);
