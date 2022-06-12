@@ -20,6 +20,9 @@
 
 工程中包含API应用实例，用户可参照修改。更多信息请联系SAUSG研发人员。
 
+详细信息参见[SAUSG-API用户手册](UserManual.md)
+
+
 ## 版本
 
 * branch master 用于SAUSG2020版本
