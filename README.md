@@ -22,6 +22,7 @@
 
 详细信息参见[SAUSG-API用户手册](UserManual.md)
 
+为编写高质量代码请阅读[C++编程习惯指南](CodingGuide.md)
 
 ## 版本
 
