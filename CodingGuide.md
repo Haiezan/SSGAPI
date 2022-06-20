@@ -89,3 +89,19 @@ IDC_CHECK_NOSHOWCONSAMEBEAMSTEEL，前面的IDC_CHECK是控件放在窗口上时
     .......
 
     
+* 1 代码的缩进层次，一般来说不应超过3层。当缩进层次多了以后，不移动水平滚动条就无法看到代码，十分不便。实际上这种多层缩进是可以解开的。例如下面代码：
+if(OldFile.Open(m_szFileName, CFile::modeRead|CFile::typeText|CFile::shareDenyNone, NULL) )
+{
+   ...........
+}
+实际上可以写成
+if(!OldFile.Open(m_szFileName, CFile::modeRead|CFile::typeText|CFile::shareDenyNone, NULL) )
+{
+	AfxMessageBox("ChangTimeTemp open error!");
+	return ;
+}
+.........
+
+这样打开文件成功后的代码（一般肯定比错误处理代码更长）就可以不缩进了。
+
+另外，如果缩进过多，某种程度上说明本函数干得过多，把应该另起一个函数的内容写在了本函数。即最内层的几层缩进可以用一个函数来代替。
