@@ -208,3 +208,116 @@ DrawOnULeft(DC,pos,_T(”左左”),3.3,l);
 
 **推荐两本参考书供大家参考：《The Effective C++》和《More Effective C++》，网上均有中文的PDF的电子版下载。**
 
+# 规范化注释
+
+如何保证代码和文档的一致性一直是一件困难的事情。主要原因是当程序员花费大量时间在保证代码和文档的一致性时，不免就会提出疑问：为什么要提供文档。文档是给谁看的。
+
+那么，至少有两点是我们需要有文档的原因：其一，当代码相当多的时候，理解代码的组织就成了一个问题。我们可以看到，当我们了解MFC库的时候，我们并没有去把它的源代码都阅读一遍（虽然阅读源代码是获益良多的），我们通过帮助文件去了解MFC库，了解有哪些类，类的相互关系，类函数有哪些，哪些是可以调用的外部函数。那么，如果我们的注释能够自动化生成这些帮助文件，那就解决了大问题；其二，当我们需要开放一些API的时候，就可以将这些帮助文件发布出去，而不需要另写一个帮助文件。最重要的是，每当我们修改函数形参，同时修改注释的时候，只需要重新生成一次帮助文件就行了。
+
+现在有这样的帮助文件自动生成工具---Doxygen。我们采用JavaDOC书写风格。详细的编写规定可参考本章结尾的参考文档。
+
+先简单说明注释的编写格式：下面第一种是块注释形式，第二种是行注释形式。注意和普通C++注释的不同，块注释每行多了一个’*’，结尾为‘.’--注意是英文的句号。行注释每行多了一个前缀’/’，结尾为‘.’。Doxygen程序正是通过这些标识去提取文档的。
+
+```C++
+/** 简要说明.
+ *  详细说明.
+ */
+
+/// 简要说明.
+/// 详细说明.
+```
+
+## 1
+
+文件的开头应该有版权信息，规格如下：
+
+```C++
+/**  
+* @file AColZhongSteel.h.
+* @brief 本文件为暗柱钢筋类的头文件.
+* @Copyright 软件有限公司.
+* @version 1.0 .
+* @data 2010/1/1.
+*/ 
+```
+
+上式中，以@开头的一些单词是Doxygen的一些保留字，这些保留字是帮助文档的生成的。
+无论是cpp还是h文件，都应该有此版权信息头
+
+## 2 类注释
+
+
+```C++
+/** 
+ * @class CTest
+ * @ingroup testgroup
+ * @brief test class
+ *
+ * @details test details class
+ */
+class CTest{
+};
+
+///@brief 本类用于暗柱纵筋的存储和显示
+///
+///@details 该类应该在TGBACol中被调用
+///
+class CAColZhongSteel : public AcDbObject{
+```
+
+## 3 函数注释
+
+```C++
+///@brief 设置定位点
+///
+///@param[in] const TCoord& pos:二维点坐标
+///@ see TCoord
+	void SetPos(const TCoord& pos);
+```
+
+上式中，参数描述@param[in]中的[in]表示是输入变量，而[out]表示输出变量。
+
+```C++
+/**
+ * a normal member taking two arguments and returning an integer value.
+ * @param[in] a an integer argument.
+ * @param[out] s a constant character pointer.
+ * @see  testMe2()
+ * @return The test results
+ */
+ ```
+
+上式中，@return描述返回值，@see表示参见testMe2函数。
+
+## 4 变量注释
+
+一般只注释成员变量，私有变量不应公开。
+
+有三种形式，示例如下：
+
+* a)
+
+```C++
+/**
+ * test var 
+ */
+double m_dTest;
+```
+
+* b)
+
+```C++
+double m_dTest; ///< test var
+```
+
+* c)
+
+```C++
+double m_dTest; /**< test var */
+```
+
+以上2）3）4）条只注释头文件的声明部分，cpp中实现部分不再注释，一方面是为减少注释量，另一方面如果想查看变量的意思，选择函数体右键很容易就能定位到头文件相应位置。注释应当适当、够用。重复注释增加维护量，而过时的注释反而会对代码的理解造成障碍。
+
+**参考资料：doxygen_manual-1.5.9.pdf，在网上也可以搜寻到一些大公司的源代码作为范本（例如在code.google.com中搜寻 ）**
+
+
