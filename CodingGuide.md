@@ -6,6 +6,70 @@ C++具有很多强大的语言特性，但是不受约束的编码会使得代�
 
 本指南以C++为主要说明对象。
 
+# 头文件
+
+## 头文件定义
+
+每个头文件都必须使用#define来防止被多重包含。如果是手动编写的.h文件，命名格式应该为：
+
+```C++
+<PROJECT>_<PATH>_<FILE>_H_
+```
+
+如：
+
+```C++
+#ifndef PMCAD_MAIN_COMDATA_H_
+
+#define PMCAD_MAIN_COMDATA_H_
+
+//头文件代码
+
+#endif //PMCAD_MAIN_COMDATA_H_
+```
+
+## Include文件以及lib文件路径的设定
+Include以及lib文件的路径应该在Project中进行设置，禁止在VC的Option中修改全局的路径参数（包括P盘公共库路径也不得在此设置）。
+
+标准的工程目录结构为：
+
+```C++
++./
+
+- lib
+
+- inc
+
+- Project1
+
+...
+```
+
+**在Project中的路径设置必须采用相对路径，如 ../inc，而不得用d:\aaa\inc的格式。（P盘的库以绝对路径设置）**
+
+## 头文件的引用
+
+头文件的引用顺序应该依次为：
+
+* 1 系统头文件(如 stdlib.h)
+* 2 公共代码库头文件 (如 comdata.h)
+* 3工程自有的头文件
+
+对于第1、2类头文件，应该是尖括号引用，如#include <stdlib.h>。
+
+对于第3类头文件应该使用引号包含，如 #include "myclass.h"
+
+对头文件的引用禁止使用绝对路径。
+
+```C++
+#include <hash_map>
+#include <vector>
+
+#include "base/basictypes.h"
+#include "base/commandlineflags.h"
+#include "foo/public/bar.h"
+```
+
 # 命名规则
 
 命名采用**匈牙利命名法**，以chBoundSameDensity为例，ch表示char变量，然后以一连串首字母大写的单词表述变量的意义。取名的意义十分重大，需要认真对待。因为固然你可以加一个说明解释变量的意义，但都不及一个好名字来得方便。代码的最高境界是不需注释就能明白代码的意义（当然一个精巧的算法应该用注释说明，一个公式也应该注释说明，因为此时只靠命名不能解决阅读问题）。
