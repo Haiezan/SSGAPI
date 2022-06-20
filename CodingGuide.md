@@ -472,6 +472,107 @@ double m_dTest; /**< test var */
 
 **参考资料：doxygen_manual-1.5.9.pdf，在网上也可以搜寻到一些大公司的源代码作为范本（例如在code.google.com中搜寻 ）**
 
+# 格式
+
+## 行长度
+
+一行长度一般不超过80个字符，特殊不超过132字符，特殊计算公式等不受限制
+
+## 函数定义
+
+返回值必须与函数名一行，变量过多可以分行写
+
+括号必须与函数名在同一行，并且中间没有空格，右括号紧跟最后一个参数
+
+花括号另起一行
+
+```C++
+ReturnType ClassName::FunctionName(Type par_name1, Type par_name2) 
+{
+  DoSomething();
+  ...
+}
+ReturnType ClassName::ReallyLongFunctionName(Type par_name1,
+                                             Type par_name2,
+                                             Type par_name3) 
+{
+  DoSomething();
+  ...
+}
+```
+
+## 函数调用
+
+尽量放在同一行，否则，将实参封装在圆括号中。
+
+```C++
+bool retval = DoSomething(argument1, argument2, argument3);
+```
+
+如果同一行放不下，可断为多行，后面每一行都和第一个实参对齐，左圆括号后和右圆括号前不要留空格
+
+```C++
+bool retval = DoSomething(averyveryveryverylongargument1,
+                          argument2, argument3);
+```
+
+函数参数比较多，可以出于可读性的考虑每行只放一个参数
+
+```C++
+bool retval = DoSomething(argument1,
+                          argument2,
+                          argument3,
+                          argument4);
+```
+
+## 条件语句
+
+不在圆括号中添加空格，关键字else另起一行。
+
+```C++
+if (condition)   // 没有空格
+{
+  ...  // 缩进
+}
+else //else另起一行
+{  
+  ...
+}
+```
+
+有些条件语句写在同一行以增强可读性，只有当语句简单并且没有使用else子句时使用
+
+```C++
+if (x == kFoo) return new Foo();
+```
+
+分行写的一定用大括号，即使只有一句。
+
+```C++
+if (condition) 
+{
+  DoSomething(); 
+}
+```
+
+## 指针和引用表达式
+
+句点（.）或箭头（->）前后不要有空格，指针/地址操作符（*、&）后不要有空格。
+
+```C++
+x = *p;
+p = &x;
+x = r.y;
+x = r->y;
+```
+
+声明指针变量或参数时，星号与类型或变量名紧挨。
+
+```C++
+char *c;
+const string &str;
+```
+
 # 编写ObjectARX代码的一些规范：
 
 * 1 打开数据库对象之后一定记得关闭，不关闭下次就打不开或者报错；
