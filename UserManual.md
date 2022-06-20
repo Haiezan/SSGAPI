@@ -4,6 +4,29 @@ SSG-API可用于SAUSG系列软件模型的前后处理数据读取和编辑。
 
 # 数据结构
 
+## 模型数据
+
+CSSGData类：包含模型所有信息
+
+theData对象：全局变量
+
+```C++
+class _SSG_DLLIMPEXP  CSSGData 
+{
+public:
+	CSSGData();
+	~CSSGData();
+	void Clear(void);
+public:
+	CProjectPara m_cPrjPara;
+	CFrame m_cFrame; //结构造型数据,需要undo/redo的数据都尽量放在CFrame类中
+	CMesh m_cMesh; //网格数据
+	CStory m_pStory[Sys_Max_Stories]; //楼层数组，需要undo
+	int m_nStory; //楼层数量
+	MODEL_SOURCE m_iModelSource;  //模型来源
+}
+```
+
 # 模型信息
 
 获取并修改建模信息。
