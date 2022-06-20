@@ -320,4 +320,11 @@ double m_dTest; /**< test var */
 
 **参考资料：doxygen_manual-1.5.9.pdf，在网上也可以搜寻到一些大公司的源代码作为范本（例如在code.google.com中搜寻 ）**
 
+# 编写ObjectARX代码的一些规范：
+1、	打开数据库对象之后一定记得关闭，不关闭下次就打不开或者报错；
+2、	创建的实体对象(new)在被添加进数据库后要使用close()关闭，而未添加进数据库的要delete；
+3、	创建的(new)缓冲区resbuf在使用结束后要用acutRelRb()释放；
+4、	得到ads_name之后注意使用acedSSFree()释放；
+5、	使用Arx提供的全局函数时注意判断返回值是否符合要求，例如acdbGetObjectId()注意判断返回值是否等于Acad::eOk；一般在循环中不满足可以continue，这样可以减少层次关系；
+6、	有的Arx函数返回的字符串需要手动释放资源，有的不用，需要仔细区分。例如获得图层的函数pEnt->layer()，获得的字符串应该delete。
 
