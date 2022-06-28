@@ -56,12 +56,12 @@ bSuccess &= theData.m_cPrjPara.Read(fname);
 读入楼层数据，储存于m_nStory中
 
 ```C++
-//打开ssg文件
-CASCFile fin;
-if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) return;
-//根据*STORY关键字读取楼层信息
-int count;
-if (fin.FindKey("*STORY"))
+	//打开ssg文件
+	CASCFile fin;
+	if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) return;
+	//根据*STORY关键字读取楼层信息
+	int count;
+	if (fin.FindKey("*STORY"))
 	{
 		count = fin.GetKeyValueInt("NUMBER=");
 		if (count > 0)
@@ -73,6 +73,68 @@ if (fin.FindKey("*STORY"))
 			}
 		}
 	}
+
+	//根据*STYPROP关键字读取楼层参数
+	if (fin.FindKey("*STYPROP"))  //楼层参数
+	{
+		fin.GetKeyValueInt("NPARA=");  //参数个数（列数），行数为楼层数（包括0层）
+		fin.GetKeyValueInt("NSTRUCTTYPE=");  //构件种类
+		int nrec = fin.GetKeyValueInt("NUMBER=");  //记录数
+		for (int i = 0; i < nrec; i++)
+		{
+			CString key = fin.GetStr();  //结构类型关键字
+			int iStruct = GetStructKeywordIndex(key);
+			if (iStruct == -1) continue;
+			int iStory = fin.GetInt();  //楼层号
+			int id_conc = fin.GetInt();
+			int id_rebar = fin.GetInt();
+			int id_steel = fin.GetInt();
+			theData.m_pStory[iStory].sConc[iStruct] = GetMatName(id_conc);
+			theData.m_pStory[iStory].sRebar[iStruct] = GetMatName(id_rebar);
+			theData.m_pStory[iStory].sSteel[iStruct] = GetMatName(id_steel);
+			switch (g_StructKeyword[iStruct].iType)
+			{
+			case STRUCT_BEAM:
+				theData.m_pStory[iStory].fPara[1][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[2][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[3][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[4][iStruct] = fin.GetFloat();
+				break;
+			case STRUCT_PILLAR:
+				theData.m_pStory[iStory].fPara[9][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[10][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[11][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[12][iStruct] = fin.GetFloat();
+				break;
+			case STRUCT_BRACING:
+				theData.m_pStory[iStory].fPara[9][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[10][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[11][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[12][iStruct] = fin.GetFloat();
+				break;
+			case STRUCT_PLATE:
+				theData.m_pStory[iStory].fPara[1][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[2][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[3][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[4][iStruct] = fin.GetFloat();
+				break;
+			case STRUCT_WALL:
+			case STRUCT_BEAMWALL:
+				theData.m_pStory[iStory].fPara[9][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[10][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[11][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[12][iStruct] = fin.GetFloat();
+				break;
+			default:
+				theData.m_pStory[iStory].fPara[1][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[2][iStruct] = fin.GetFloat()*100.0f;
+				theData.m_pStory[iStory].fPara[3][iStruct] = fin.GetFloat();
+				theData.m_pStory[iStory].fPara[4][iStruct] = fin.GetFloat();
+				break;
+			}
+		}
+	}
+	fin.Close();
 ```
 
 ## 构件信息
