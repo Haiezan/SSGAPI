@@ -6,6 +6,8 @@ SSG-API可用于SAUSG系列软件模型的前后处理数据读取和编辑。
 
 ## 模型数据
 
+### CSSGData类
+
 CSSGData类：包含模型所有信息
 
 theData对象：全局变量
@@ -24,12 +26,30 @@ public:
 	CStory m_pStory[Sys_Max_Stories]; //楼层数组，需要undo
 	int m_nStory; //楼层数量
 	MODEL_SOURCE m_iModelSource;  //模型来源
+
+	vector<COMBO_STRUCT> m_vvCombGroup; //组合构件组
+	CString m_sPrjFile;    //项目文件名
 }
+```
+
+* 清除数据(运行API前执行)
+```C++
+theData.Clear();
 ```
 
 # 模型信息
 
 获取并修改建模信息。
+
+## 项目信息
+
+读取项目总信息，储存于m_cPrjPara中
+
+```C++
+//读取项目总信息
+CString fname = L"D:/AA.ssg"; //ssg文件
+bSuccess &= theData.m_cPrjPara.Read(fname);
+```
 
 ## 构件信息
 
