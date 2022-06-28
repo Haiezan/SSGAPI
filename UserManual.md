@@ -51,6 +51,30 @@ CString fname = L"D:/AA.ssg"; //ssg文件
 bSuccess &= theData.m_cPrjPara.Read(fname);
 ```
 
+## 楼层数据
+
+读入楼层数据，储存于m_nStory中
+
+```C++
+//打开ssg文件
+CASCFile fin;
+if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) return;
+//根据*STORY关键字读取楼层信息
+int count;
+if (fin.FindKey("*STORY"))
+	{
+		count = fin.GetKeyValueInt("NUMBER=");
+		if (count > 0)
+		{
+			theData.m_nStory = count - 1;
+			for (int i = 0; i <= theData.m_nStory; i++)
+			{
+				theData.m_pStory[i].Read(fin);
+			}
+		}
+	}
+```
+
 ## 构件信息
 
 获取构件信息并进行修改。
