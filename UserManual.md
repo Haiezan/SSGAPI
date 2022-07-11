@@ -202,56 +202,54 @@ if (!ret || m_cDis.GetStepNumber() < 1)
 
 ### 节点位移
 ```C++
-//求节点位移
-int iNodeNum = 1000;
-int nStep = m_cDis.nMaxSteps;		// 文件中最大时间步数，读入文件时赋值
+int iNodeNum = 1000;	// 文件中最大时间步数，读入文件时赋值
+int nStep = m_cDis.nMaxSteps;
 float *fNodeDispX = new float[nStep];
-memset(fNodeDispX, 0, sizeof(float)*nStep);  // memset()：指在一段内存块中填充某一个给定的值，返回一个指向存储区 str 的指针。
+memset(fNodeDispX, 0, sizeof(float)*nStep);	// memset()：指在一段内存块中填充某一个给定的值，返回一个指向存储区 str 的指针。
 
 for (int iStep = 0; iStep < nStep; iStep++)
-	{
+{
 	Vector4 d;
-	d.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 0, m_cDis.nItems);	// 后三个分量是转角，前三个分量是平动位移
+	d.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 0, m_cDis.nItems);	//后三个分量是转角，前三个分量是平动位移
 	d.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 1, m_cDis.nItems);	// 同上 
 	d.z = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 2, m_cDis.nItems);	// 同时
 	fNodeDispX[iStep] = d.x;
-	}
+}
 
-//读取DEF文件，DEF文件中存的是模型的节点号
+//读取DEF文件
 AppendMsg(L"开始读取DEF文件...\r\n");
-CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + CString("All") + CString(".") + FILE_OUTPUT_DEF; // 文件的路径
+//CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + sGroup + CString(".") + FILE_OUTPUT_DEF;
+CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + CString("All") + CString(".") + FILE_OUTPUT_DEF;	// 文件的路径
 int *story_pillar_node = NULL;
 int nstory1 = theData.m_nStory + 1;
 
 int npillar = 0;
 int nstory = 0;
-if (fin.Open(defname, CFile::modeRead | CFile::shareDenyWrite)) // 打开DEF文件
+if (fin.Open(defname, CFile::modeRead | CFile::shareDenyWrite))	// 打开DEF文件
 {
-nstory = fin.GetInt() ;		// 模型的层数，读DEF文件的第一行数据
-
-npillar = fin.GetInt();		// 支柱的数量，读DEF文件的第二行数据
-for (int i = 0; i < npillar; i++)		 // 这循环的目的是跳过DEF文件中的第三行的数据
+	nstory = fin.GetInt() ;	// 模型的层数，读DEF文件的第一行数据
+	//ASSERT(nstory == theData.m_nStory);
+	npillar = fin.GetInt();	// 支柱的数量，读DEF文件的第二行数据
+	for (int i = 0; i < npillar; i++)	// 这循环的目的是跳过DEF文件中的第三行的数据
 	{
-	fin.GetInt();
+		fin.GetInt();
 	}
 
-story_pillar_node = new int[nstory1 * npillar];	// 创建一个有nstory1 * npillar个元素动态整型数组
-for (int i = 0; i < nstory; i++)		
+	story_pillar_node = new int[nstory1 * npillar];	// 创建一个有nstory1 * npillar个元素动态整型数组
+	for (int i = 0; i < nstory; i++)
 	{
-	int istory = fin.GetInt();
-	for (int j = 0; j < npillar; j++)
+		int istory = fin.GetInt();
+		for (int j = 0; j < npillar; j++)
 		{
-		story_pillar_node[istory + j * nstory] = fin.GetInt() - 1;	// 将DEF文件中的节点号读进来
+			story_pillar_node[istory + j * nstory] = fin.GetInt() - 1;	// 将DEF文件中的节点号读进来
 		}
 	}
-fin.Close();
+	fin.Close();
 }
 AppendMsg(L"读取数据成功\r\n\r\n");
 
-
 float *fStoryDriftAll = new float[fVectorAngle.size()*nstory];
-memset(fStoryDriftAll, 0, sizeof(float)*(fVectorAngle.size()*nstory));// memset()：指在一段内存块中填充某一个给定的值0，返回一个指向存储区 str 的指针。
-
+memset(fStoryDriftAll, 0, sizeof(float)*(fVectorAngle.size()*nstory));	// memset()：指在一段内存块中填充某一个给定的值0，返回一个指向存储区 str 的指针。
 
 AppendMsg(L"正在输出层间位移角文件...\r\n");
 
@@ -264,61 +262,63 @@ for (int m = 0; m < fVectorAngle.size(); m++)
 	float *fNodeDriftX = new float[nstory * npillar];
 	float *fNodeDriftY = new float[nstory * npillar];
 
-	memset(fNodeDriftX, 0, sizeof(float)*(nstory * npillar)); 
+	memset(fNodeDriftX, 0, sizeof(float)*(nstory * npillar));
 	memset(fNodeDriftY, 0, sizeof(float)*(nstory * npillar));
 
 	float *fStoryDriftX = new float[nstory];
 	int *iMaxStoryDriftNode = new int[nstory];	//X向最大层间位移角对应节点号
-
+	//float *fStoryDriftY = new float[nstory];
 	memset(fStoryDriftX, 0, sizeof(float)*nstory);
 	memset(iMaxStoryDriftNode, 0, sizeof(float)*nstory);
+	//memset(fStoryDriftY, 0, sizeof(float)*nstory);
 
-
-for (int i = 1; i < nstory; i++)
+	for (int i = 1; i < nstory; i++)
 	{
-	for (int j = 0; j < npillar; j++)
+		for (int j = 0; j < npillar; j++)
 		{
 		int iNode0 = story_pillar_node[i - 1 + j * nstory];
 		int iNode1 = story_pillar_node[i + j * nstory];
 
-		if (iNode0 < 0 || iNode1 < 0) continue; // 只要iNode0或者iNode1小于0，就为True
-		float fHeight = theData.m_pStory[i].fHeight;	// 楼层层高
+			if (iNode0 < 0 || iNode1 < 0) continue;	// 只要iNode0或者iNode1小于0，就为True
+
+			float fHeight = theData.m_pStory[i].fHeight;Q	// 楼层层高
 
 
-		float fDriftX = 0;
-		float fDriftY = 0;
-		for (int iStep = 0; iStep < nStep; iStep++)
+			float fDriftX = 0;
+			float fDriftY = 0;
+			for (int iStep = 0; iStep < nStep; iStep++)
 			{
-			Vector4 d0, d1;
-			d0.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode0, 0, m_cDis.nItems); // 后三个分量是转角，前三个分量是平动位移
-			d0.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode0, 1, m_cDis.nItems); // 同上
+				Vector4 d0, d1;
+				d0.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode0, 0, m_cDis.nItems);	// 后三个分量是转角，前三个分量是平动位移
+				d0.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode0, 1, m_cDis.nItems);	// 同上
 
-			d1.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 0, m_cDis.nItems);
-			d1.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 1, m_cDis.nItems);
+				d1.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 0, m_cDis.nItems);
+				d1.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 1, m_cDis.nItems);
 
-			fDriftX = abs((d1.x*cos(fAngle) + d1.y*sin(fAngle)) - (d0.x*cos(fAngle) + d0.y*sin(fAngle))) / fHeight;
-			fDriftY = abs((d1.x*sin(fAngle) - d1.y*cos(fAngle)) - (d0.x*sin(fAngle) - d0.y*cos(fAngle))) / fHeight;
-			fNodeDriftX[i + j * nstory] = max(fNodeDriftX[i + j * nstory], fDriftX);	// X向层间位移角取max
-			fNodeDriftY[i + j * nstory] = max(fNodeDriftY[i + j * nstory], fDriftY);	// Y向层间位移角max
+				fDriftX = abs((d1.x*cos(fAngle) + d1.y*sin(fAngle)) - (d0.x*cos(fAngle) + d0.y*sin(fAngle))) / fHeight;	// X向层间位移角取max
+				fDriftY = abs((d1.x*sin(fAngle) - d1.y*cos(fAngle)) - (d0.x*sin(fAngle) - d0.y*cos(fAngle))) / fHeight;	// Y向层间位移角max
+				fNodeDriftX[i + j * nstory] = max(fNodeDriftX[i + j * nstory], fDriftX);
+				fNodeDriftY[i + j * nstory] = max(fNodeDriftY[i + j * nstory], fDriftY);
 			}
-		//最大位移角包络
-		if (fNodeDriftX[i + j * nstory] > fStoryDriftX[i])
+			//最大位移角包络
+			if (fNodeDriftX[i + j * nstory] > fStoryDriftX[i])
 			{
-			iMaxStoryDriftNode[i] = iNode1 + 1;	//X向最大层间位移角对应节点号
-			fStoryDriftX[i] = fNodeDriftX[i + j * nstory];
+				iMaxStoryDriftNode[i] = iNode1 + 1;	//X向最大层间位移角对应节点号
+				fStoryDriftX[i] = fNodeDriftX[i + j * nstory];
 			}
-
+			//fStoryDriftX[i] = max(fStoryDriftX[i], fNodeDriftX[i + j * nstory]);
+			//fStoryDriftY[i] = max(fStoryDriftY[i], fNodeDriftY[i + j * nstory]);
 		}
 
-	fStoryDriftAll[m*nstory + i] = fStoryDriftX[i];
+		fStoryDriftAll[m*nstory + i] = fStoryDriftX[i];
 	}
 
 	//输出位移角文件
 	CASCFile fout;
-	char buf[512]; // 申请一个512大的空间
+	char buf[512];	// 申请一个512大的空间
 	CString str;
 	str.Format(_T("%0.0f"), fAngle0);
-	CString sOutFileName = theData.GetEarthQuakePath(theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName) + theData.GetPrjName() + L"_Drift_" + str + L".txt"; // 得到工况子目录
+	CString sOutFileName = theData.GetEarthQuakePath(theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName) + theData.GetPrjName() + L"_Drift_" + str + L".txt";	// 得到工况子目录
 	if (!fout.Open(sOutFileName, CFile::modeCreate | CFile::modeWrite | CFile::shareDenyWrite))return;
 	USES_CONVERSION;
 
@@ -328,26 +328,27 @@ for (int i = 1; i < nstory; i++)
 	sprintf_s(buf, sizeof(buf), "**SAUSAGE层间位移角\r\n");	// sprintf_s()将数据格式化输出到字符串,
 	fout.Write(buf, strlen(buf));	// 在".txt"文本中写入”**SAUSAGE层间位移角”
 
-	sprintf_s(buf, sizeof(buf), "层号\t%0.0f°\t\t\t节点号\r\n", fAngle0);
+	sprintf_s(buf, sizeof(buf), "层号\t位移角°\t\t\t节点号\r\n", fAngle0);
 	fout.Write(buf, strlen(buf));
 
 	for (int iStory = 0; iStory < nstory; iStory++)	// 该循环主要是将"楼层号、层间位移角、节点号"写入".txt"文本中。
-		{
+	{
 		sprintf_s(buf, sizeof(buf), "%3d\t%f\t1/%0.0f\t%6d\t\r\n",
 			iStory, fStoryDriftX[iStory], 1.0 / fStoryDriftX[iStory], iMaxStoryDriftNode[iStory]);
 		fout.Write(buf, strlen(buf));
-		}
-		fout.Close();
+	}
+	fout.Close();
 
-		CString msgfile = L"notepad.exe \"" + sOutFileName + CString(L"\"");	// 文件路径
-	if (m_bOpenTxt) WinExec(T2A(msgfile), SW_SHOW);// 如果为TRUE,SW_SHOW 表示以当前大小激活运行后的程序窗口并显示txt文本。
+	CString msgfile = L"notepad.exe \"" + sOutFileName + CString(L"\"");
+	if (m_bOpenTxt) WinExec(T2A(msgfile), SW_SHOW);	// 如果为TRUE,SW_SHOW 表示以当前大小激活运行后的程序窗口并显示txt文本。
 }
 
 //输出所有层间位移角
 AppendMsg(L"正在输出所有方向层间位移角文件...\r\n");
 CASCFile fout;
 char buf[512];
-
+//int i = m_iCaseNum;
+//CString sss = theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName;
 CString sOutFileName = theData.GetEarthQuakePath(theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName) + theData.GetPrjName() + L"_Drift_All.txt";
 if (!fout.Open(sOutFileName, CFile::modeCreate | CFile::modeWrite | CFile::shareDenyWrite))return;
 USES_CONVERSION;
@@ -355,43 +356,46 @@ USES_CONVERSION;
 sprintf_s(buf, sizeof(buf), "**SAUSAGE层间位移角\r\n");
 fout.Write(buf, strlen(buf));	// 在"_Drift_All.txt"文本中写入”**SAUSAGE层间位移角”
 
-sprintf_s(buf, sizeof(buf), "层号\t");	”
+sprintf_s(buf, sizeof(buf), "层号\t");
 fout.Write(buf, strlen(buf));	// 在"_Drift_All.txt"文本中写入”层号”二字
 
-for (int i = 0; i < fVectorAngle.size(); i++)
-	{
+for (int i = 0; i < fVectorAngle.size(); i++)	
+{
 	float fAngle0 = fVectorAngle[i];
 	CString str;
 	str.Format(_T("%0.0f"), fAngle0);
 
 	sprintf_s(buf, sizeof(buf), "%0.0f°\t", fAngle0);
 	fout.Write(buf, strlen(buf));
-	}
+}
 sprintf_s(buf, sizeof(buf), "\r\n");
 fout.Write(buf, strlen(buf));
 
 
 for (int iStory = 0; iStory < nstory; iStory++)	// 该循环主要是将"楼层号"和"层间位移角"写入"Drift_All.txt"文本
-	{
+{
 	sprintf_s(buf, sizeof(buf), "%3d\t", iStory);
 	fout.Write(buf, strlen(buf));
 	for (int i = 0; i < fVectorAngle.size(); i++)
-		{
+	{
 		sprintf_s(buf, sizeof(buf), "%f\t", fStoryDriftAll[iStory + i * nstory]);
 		fout.Write(buf, strlen(buf));
-		}
+	}
 	sprintf_s(buf, sizeof(buf), "\r\n");
 	fout.Write(buf, strlen(buf));
-	}
+}
 fout.Close();
 
 AppendMsg(L"结构层间位移角输出成功！\r\n");
 
 CString msgfile = L"notepad.exe \"" + sOutFileName + CString(L"\"");
-WinExec(T2A(msgfile), SW_SHOW);	// W_SHOW 表示以当前大小激活运行后的程序窗口并显示Drift_All.txt文本结果。
+WinExec(T2A(msgfile), SW_SHOW);		// W_SHOW 表示以当前大小激活运行后的程序窗口并显示Drift_All.txt文本结果。
+
 
 theData.Clear();
-}
+
+
+
 ```
 
 ### 节点速度
