@@ -143,10 +143,8 @@ bSuccess &= theData.m_cPrjPara.Read(fname);
 获取构件信息并进行修改。
 
 ```C++
-
 AppendMsg(L"读入构件数据 ...\r\n");
 bSuccess &= theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara);  // 判断是否读取成功，成功为1，否则为0
-
 ```
 ## 单元信息
 
@@ -169,7 +167,6 @@ if (bSuccess)
 	theData.m_cMesh.CreateShellSubElm();	 // 创建细分单元
 	}
 AppendMsg(L"SSG模型读取成功！\r\n\r\n");
-
 ```
 
 ## 节点信息
@@ -255,25 +252,26 @@ AppendMsg(L"读取数据成功\r\n\r\n");
 float *fStoryDriftAll = new float[fVectorAngle.size()*nstory];
 memset(fStoryDriftAll, 0, sizeof(float)*(fVectorAngle.size()*nstory));// memset()：指在一段内存块中填充某一个给定的值0，返回一个指向存储区 str 的指针。
 
+
 AppendMsg(L"正在输出层间位移角文件...\r\n");
 
 for (int m = 0; m < fVectorAngle.size(); m++)
 {
 
-//计算任意角度层间位移角
-float fAngle0 = fVectorAngle[m];
-float fAngle = fAngle0 * 3.14 / 180;
-float *fNodeDriftX = new float[nstory * npillar];
-float *fNodeDriftY = new float[nstory * npillar];
+	//计算任意角度层间位移角
+	float fAngle0 = fVectorAngle[m];
+	float fAngle = fAngle0 * 3.14 / 180;
+	float *fNodeDriftX = new float[nstory * npillar];
+	float *fNodeDriftY = new float[nstory * npillar];
 
-memset(fNodeDriftX, 0, sizeof(float)*(nstory * npillar)); 
-memset(fNodeDriftY, 0, sizeof(float)*(nstory * npillar));
+	memset(fNodeDriftX, 0, sizeof(float)*(nstory * npillar)); 
+	memset(fNodeDriftY, 0, sizeof(float)*(nstory * npillar));
 
-float *fStoryDriftX = new float[nstory];
-int *iMaxStoryDriftNode = new int[nstory];	//X向最大层间位移角对应节点号
+	float *fStoryDriftX = new float[nstory];
+	int *iMaxStoryDriftNode = new int[nstory];	//X向最大层间位移角对应节点号
 
-memset(fStoryDriftX, 0, sizeof(float)*nstory);
-memset(iMaxStoryDriftNode, 0, sizeof(float)*nstory);
+	memset(fStoryDriftX, 0, sizeof(float)*nstory);
+	memset(iMaxStoryDriftNode, 0, sizeof(float)*nstory);
 
 
 for (int i = 1; i < nstory; i++)
@@ -315,34 +313,34 @@ for (int i = 1; i < nstory; i++)
 	fStoryDriftAll[m*nstory + i] = fStoryDriftX[i];
 	}
 
-//输出位移角文件
-CASCFile fout;
-char buf[512]; // 申请一个512大的空间
-CString str;
-str.Format(_T("%0.0f"), fAngle0);
-CString sOutFileName = theData.GetEarthQuakePath(theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName) + theData.GetPrjName() + L"_Drift_" + str + L".txt"; // 得到工况子目录
-if (!fout.Open(sOutFileName, CFile::modeCreate | CFile::modeWrite | CFile::shareDenyWrite))return;
-USES_CONVERSION;
+	//输出位移角文件
+	CASCFile fout;
+	char buf[512]; // 申请一个512大的空间
+	CString str;
+	str.Format(_T("%0.0f"), fAngle0);
+	CString sOutFileName = theData.GetEarthQuakePath(theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName) + theData.GetPrjName() + L"_Drift_" + str + L".txt"; // 得到工况子目录
+	if (!fout.Open(sOutFileName, CFile::modeCreate | CFile::modeWrite | CFile::shareDenyWrite))return;
+	USES_CONVERSION;
 
-AppendMsg(str);
-AppendMsg(L"\r\n");
+	AppendMsg(str);
+	AppendMsg(L"\r\n");
 
-sprintf_s(buf, sizeof(buf), "**SAUSAGE层间位移角\r\n");	// sprintf_s()将数据格式化输出到字符串,
-fout.Write(buf, strlen(buf));	// 在".txt"文本中写入”**SAUSAGE层间位移角”
+	sprintf_s(buf, sizeof(buf), "**SAUSAGE层间位移角\r\n");	// sprintf_s()将数据格式化输出到字符串,
+	fout.Write(buf, strlen(buf));	// 在".txt"文本中写入”**SAUSAGE层间位移角”
 
-sprintf_s(buf, sizeof(buf), "层号\t%0.0f°\t\t\t节点号\r\n", fAngle0);
-fout.Write(buf, strlen(buf));
-
-for (int iStory = 0; iStory < nstory; iStory++)	// 该循环主要是将"楼层号、层间位移角、节点号"写入".txt"文本中。
-	{
-	sprintf_s(buf, sizeof(buf), "%3d\t%f\t1/%0.0f\t%6d\t\r\n",
-		iStory, fStoryDriftX[iStory], 1.0 / fStoryDriftX[iStory], iMaxStoryDriftNode[iStory]);
+	sprintf_s(buf, sizeof(buf), "层号\t%0.0f°\t\t\t节点号\r\n", fAngle0);
 	fout.Write(buf, strlen(buf));
-	}
-fout.Close();
 
-CString msgfile = L"notepad.exe \"" + sOutFileName + CString(L"\"");	// 文件路径
-if (m_bOpenTxt) WinExec(T2A(msgfile), SW_SHOW);// 如果为TRUE,SW_SHOW 表示以当前大小激活运行后的程序窗口并显示txt文本。
+	for (int iStory = 0; iStory < nstory; iStory++)	// 该循环主要是将"楼层号、层间位移角、节点号"写入".txt"文本中。
+		{
+		sprintf_s(buf, sizeof(buf), "%3d\t%f\t1/%0.0f\t%6d\t\r\n",
+			iStory, fStoryDriftX[iStory], 1.0 / fStoryDriftX[iStory], iMaxStoryDriftNode[iStory]);
+		fout.Write(buf, strlen(buf));
+		}
+		fout.Close();
+
+		CString msgfile = L"notepad.exe \"" + sOutFileName + CString(L"\"");	// 文件路径
+	if (m_bOpenTxt) WinExec(T2A(msgfile), SW_SHOW);// 如果为TRUE,SW_SHOW 表示以当前大小激活运行后的程序窗口并显示txt文本。
 }
 
 //输出所有层间位移角
@@ -394,7 +392,6 @@ WinExec(T2A(msgfile), SW_SHOW);	// W_SHOW 表示以当前大小激活运行后�
 
 theData.Clear();
 }
-
 ```
 
 ### 节点速度
