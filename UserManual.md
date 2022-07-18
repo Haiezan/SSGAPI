@@ -42,26 +42,42 @@ theData.Clear();	// theData是CSSGData对象
 
 获取并修改建模信息。
 
-## 项目信息
+## *.ssg模的路径
 
-读取项目总信息，储存于m_cPrjPara中
 
 ```C++
-//读取项目总信息
-CString fname = L"D:/AA.ssg"; //ssg文件
-bSuccess &= theData.m_cPrjPara.Read(fname);
+//获取AA.ssg模型路径
+CString fname = _T("E:模型\\ssg\\AA.ssg"); // _T()将string字符串 转为CString字符串
+
 ```
 
-## 楼层数据
-
-读入楼层数据，储存于m_nStory中
+## 读取*.ssg模型
 
 ```C++
+void Read_My_Model(CString& fname)
+{
+	theData.m_sPrjFile = fname;
+	bool bSuccess = TRUE;
+
+	//读入项目配置参数
+	printf("读入*PROJECT ...\r\n");
+	bSuccess &= theData.m_cPrjPara.Read(theData.m_sPrjFile); // 读取项目总信息，储存于m_cPrjPara中
 	//打开ssg文件
 	CASCFile fin;
+<<<<<<< HEAD
+	if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) 	// theData.m_sPrjFile：项目文件名
+	{
+		printf("fail to open the file");
+		return ;//或者抛出异常。
+	}
+
+	printf("读入*STORY ...\r\n");
+=======
 	if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) return;		// theData.m_sPrjFile：项目文件名
 	//根据*STORY关键字读取楼层信息
+>>>>>>> adaaef7ffc87aa90d9fa49e846a5b11440e97136
 	int count;
+	//根据*STORY关键字读取楼层信息	
 	if (fin.FindKey("*STORY"))
 	{
 		count = fin.GetKeyValueInt("NUMBER=");
@@ -76,6 +92,7 @@ bSuccess &= theData.m_cPrjPara.Read(fname);
 	}
 
 	//根据*STYPROP关键字读取楼层参数
+	printf("读入*STYPROP ...\r\n");
 	if (fin.FindKey("*STYPROP"))  //楼层参数
 	{
 		fin.GetKeyValueInt("NPARA=");  //参数个数（列数），行数为楼层数（包括0层）
@@ -135,9 +152,33 @@ bSuccess &= theData.m_cPrjPara.Read(fname);
 			}
 		}
 	}
+
 	fin.Close();
+
+	// 获取构件信息
+	printf("读入构件数据 ...\r\n");
+	bSuccess &= theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara); // 判断是否读取成功，成功为1，否则为0
+
+
+	// 获取单元信息数据
+	if (bSuccess)
+		{
+		//读入网格
+		printf(L"读入单元数据 ...\r\n");
+		theData.m_cMesh.ReadMeshBin(theData.m_nStory, theData.m_pStory); // 读取单元和坐标
+
+
+		//生成结点到单元的索引
+		theData.m_cMesh.CreateNode2Elm(); // 生成结点到单元的索引数组m_pNode2Elm，读入网格后以及生成网格后要调用
+		theData.m_cMesh.CreateShellSubElm();  // 创建细分单元
+		}
+	printf("SSG模型读取成功！\n");
+
+}
 ```
 
+<<<<<<< HEAD
+=======
 ## 构件信息
 
 获取构件信息并进行修改。
@@ -168,6 +209,7 @@ if (bSuccess)
 	}
 AppendMsg(L"SSG模型读取成功！\r\n\r\n");
 ```
+>>>>>>> adaaef7ffc87aa90d9fa49e846a5b11440e97136
 
 ## 节点信息
 
@@ -176,13 +218,21 @@ AppendMsg(L"SSG模型读取成功！\r\n\r\n");
 //读取动力分析节点位移
 CNodeFieldSet m_cDis;  // 定义 CNodeFieldSet 类的一个对象m_cDis，节点位移数据
 m_cDis.Clear();		// 清除
+<<<<<<< HEAD
+printf("加载动力分析结点位移文件...\r\n"); 
+=======
 AppendMsg(L"加载动力分析结点位移文件...\r\n"); 
+>>>>>>> adaaef7ffc87aa90d9fa49e846a5b11440e97136
 fname = theData.GetFilePath(FILE_DISP_BIN, theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName); //直接写工况名称也可以
 BOOL ret = m_cDis.ReadBinNodeField_AllStep(fname, false);  // 读入二进制结点位移, TRUE时选择一个分量读取，FALSE时读取所有分量
 
 if (!ret || m_cDis.GetStepNumber() < 1)
 	{
+<<<<<<< HEAD
+	printf(L"没找到结果文件！\r\n");
+=======
 	AppendMsg(L"没找到结果文件！\r\n");
+>>>>>>> adaaef7ffc87aa90d9fa49e846a5b11440e97136
 	m_cDis.Clear();
 	return;
 	}
@@ -202,8 +252,13 @@ if (!ret || m_cDis.GetStepNumber() < 1)
 
 ### 节点位移
 ```C++
+<<<<<<< HEAD
+int iNodeNum = 1000;	
+int nStep = m_cDis.nMaxSteps; // 文件中最大时间步数，读入文件时赋值
+=======
 int iNodeNum = 1000;	// 文件中最大时间步数，读入文件时赋值
 int nStep = m_cDis.nMaxSteps;
+>>>>>>> adaaef7ffc87aa90d9fa49e846a5b11440e97136
 float *fNodeDispX = new float[nStep];
 memset(fNodeDispX, 0, sizeof(float)*nStep);	// memset()：指在一段内存块中填充某一个给定的值，返回一个指向存储区 str 的指针。
 
@@ -216,10 +271,16 @@ for (int iStep = 0; iStep < nStep; iStep++)
 	fNodeDispX[iStep] = d.x;
 }
 
+<<<<<<< HEAD
+//读取DEF文件，DEF文件中存的是模型的节点号
+printf("开始读取DEF文件...\r\n");
+CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + CString("All") + CString(".") + FILE_OUTPUT_DEF;	// DEF的文件路径
+=======
 //读取DEF文件
 AppendMsg(L"开始读取DEF文件...\r\n");
 //CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + sGroup + CString(".") + FILE_OUTPUT_DEF;
 CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + CString("All") + CString(".") + FILE_OUTPUT_DEF;	// 文件的路径
+>>>>>>> adaaef7ffc87aa90d9fa49e846a5b11440e97136
 int *story_pillar_node = NULL;
 int nstory1 = theData.m_nStory + 1;
 
@@ -228,7 +289,11 @@ int nstory = 0;
 if (fin.Open(defname, CFile::modeRead | CFile::shareDenyWrite))	// 打开DEF文件
 {
 	nstory = fin.GetInt() ;	// 模型的层数，读DEF文件的第一行数据
+<<<<<<< HEAD
+
+=======
 	//ASSERT(nstory == theData.m_nStory);
+>>>>>>> adaaef7ffc87aa90d9fa49e846a5b11440e97136
 	npillar = fin.GetInt();	// 支柱的数量，读DEF文件的第二行数据
 	for (int i = 0; i < npillar; i++)	// 这循环的目的是跳过DEF文件中的第三行的数据
 	{
@@ -246,6 +311,11 @@ if (fin.Open(defname, CFile::modeRead | CFile::shareDenyWrite))	// 打开DEF文�
 	}
 	fin.Close();
 }
+<<<<<<< HEAD
+
+printf("读取数据成功\r\n\r\n");
+
+=======
 AppendMsg(L"读取数据成功\r\n\r\n");
 
 float *fStoryDriftAll = new float[fVectorAngle.size()*nstory];
@@ -393,6 +463,7 @@ WinExec(T2A(msgfile), SW_SHOW);		// W_SHOW 表示以当前大小激活运行后�
 
 
 theData.Clear();
+>>>>>>> adaaef7ffc87aa90d9fa49e846a5b11440e97136
 
 
 
