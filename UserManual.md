@@ -213,8 +213,7 @@ if (!ret || m_cDis.GetStepNumber() < 1)
 ```C++
 int iNodeNum = 1000;	
 int nStep = m_cDis.nMaxSteps; // 文件中最大时间步数，读入文件时赋值
-int iNodeNum = 1000;	// 文件中最大时间步数，读入文件时赋值
-int nStep = m_cDis.nMaxSteps;
+
 float *fNodeDispX = new float[nStep];
 memset(fNodeDispX, 0, sizeof(float)*nStep);	// memset()：指在一段内存块中填充某一个给定的值，返回一个指向存储区 str 的指针。
 
