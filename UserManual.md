@@ -9,16 +9,17 @@ SSG-API可用于SAUSG系列软件模型的前后处理数据读取和编辑。
 ### CSSGData类
 
 CSSGData类：包含模型所有信息
+// 语法：class+定义的宏+类名{}
 
 theData对象：全局变量
 
 ```C++
-class _SSG_DLLIMPEXP  CSSGData 
+class _SSG_DLLIMPEXP  CSSGData 	//  class _SSG_DLLMPEXP CSSGData，编译的时候会展开成class _declspect(dllexport)
 {
 public:
-	CSSGData();
-	~CSSGData();
-	void Clear(void);
+	CSSGData();		// 构造函数，构造函数是一个和类同名的方法
+	~CSSGData();	// 析构函数，析构函数也是以类占用作为函数名，和构造函数不一样的是，需要在函数名前面添加一个“~”符号
+	void Clear(void);	// 清空
 public:
 	CProjectPara m_cPrjPara;
 	CFrame m_cFrame; //结构造型数据,需要undo/redo的数据都尽量放在CFrame类中
@@ -34,33 +35,49 @@ public:
 
 * 清除数据(运行API前执行)
 ```C++
-theData.Clear();
+theData.Clear();	// theData是CSSGData对象
 ```
 
 # 模型信息
 
 获取并修改建模信息。
 
-## 项目信息
+## *.ssg模的路径
 
-读取项目总信息，储存于m_cPrjPara中
 
 ```C++
-//读取项目总信息
-CString fname = L"D:/AA.ssg"; //ssg文件
-bSuccess &= theData.m_cPrjPara.Read(fname);
+//获取AA.ssg模型路径
+CString fname = _T("E:模型\\ssg\\AA.ssg"); // _T()将string字符串 转为CString字符串
+
 ```
 
-## 楼层数据
-
-读入楼层数据，储存于m_nStory中
+## 读取*.ssg模型
 
 ```C++
+void Read_My_Model(CString& fname)
+{
+	theData.m_sPrjFile = fname;
+	bool bSuccess = TRUE;
+
+	//读入项目配置参数
+	printf("读入*PROJECT ...\r\n");
+	bSuccess &= theData.m_cPrjPara.Read(theData.m_sPrjFile); // 读取项目总信息，储存于m_cPrjPara中
 	//打开ssg文件
 	CASCFile fin;
-	if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) return;
+
+	if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) 	// theData.m_sPrjFile：项目文件名
+	{
+		printf("fail to open the file");
+		return ;//或者抛出异常。
+	}
+
+	printf("读入*STORY ...\r\n");
+
+	if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) return;		// theData.m_sPrjFile：项目文件名
 	//根据*STORY关键字读取楼层信息
+
 	int count;
+	//根据*STORY关键字读取楼层信息	
 	if (fin.FindKey("*STORY"))
 	{
 		count = fin.GetKeyValueInt("NUMBER=");
@@ -75,6 +92,7 @@ bSuccess &= theData.m_cPrjPara.Read(fname);
 	}
 
 	//根据*STYPROP关键字读取楼层参数
+	printf("读入*STYPROP ...\r\n");
 	if (fin.FindKey("*STYPROP"))  //楼层参数
 	{
 		fin.GetKeyValueInt("NPARA=");  //参数个数（列数），行数为楼层数（包括0层）
@@ -134,20 +152,50 @@ bSuccess &= theData.m_cPrjPara.Read(fname);
 			}
 		}
 	}
+
 	fin.Close();
+
+	// 获取构件信息
+	printf("读入构件数据 ...\r\n");
+	bSuccess &= theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara); // 判断是否读取成功，成功为1，否则为0
+
+
+	// 获取单元信息数据
+	if (bSuccess)
+		{
+		//读入网格
+		printf(L"读入单元数据 ...\r\n");
+		theData.m_cMesh.ReadMeshBin(theData.m_nStory, theData.m_pStory); // 读取单元和坐标
+
+
+		//生成结点到单元的索引
+		theData.m_cMesh.CreateNode2Elm(); // 生成结点到单元的索引数组m_pNode2Elm，读入网格后以及生成网格后要调用
+		theData.m_cMesh.CreateShellSubElm();  // 创建细分单元
+		}
+	printf("SSG模型读取成功！\n");
+
+}
 ```
 
-## 构件信息
-
-获取构件信息并进行修改。
-
-## 单元信息
-
-获取单元信息并进行数据处理。
 
 ## 节点信息
 
 获取单元节点信息并进行数据处理。
+```C++
+//读取动力分析节点位移
+CNodeFieldSet m_cDis;  // 定义 CNodeFieldSet 类的一个对象m_cDis，节点位移数据
+m_cDis.Clear();		// 清除
+printf("加载动力分析结点位移文件...\r\n"); 
+fname = theData.GetFilePath(FILE_DISP_BIN, theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName); //直接写工况名称也可以
+BOOL ret = m_cDis.ReadBinNodeField_AllStep(fname, false);  // 读入二进制结点位移, TRUE时选择一个分量读取，FALSE时读取所有分量
+
+if (!ret || m_cDis.GetStepNumber() < 1)
+	{
+	printf(L"没找到结果文件！\r\n");
+	m_cDis.Clear();
+	return;
+	}
+```
 
 # 结果数据
 
@@ -162,6 +210,57 @@ bSuccess &= theData.m_cPrjPara.Read(fname);
 获取节点计算结果。
 
 ### 节点位移
+```C++
+int iNodeNum = 1000;	
+int nStep = m_cDis.nMaxSteps; // 文件中最大时间步数，读入文件时赋值
+
+float *fNodeDispX = new float[nStep];
+memset(fNodeDispX, 0, sizeof(float)*nStep);	// memset()：指在一段内存块中填充某一个给定的值，返回一个指向存储区 str 的指针。
+
+for (int iStep = 0; iStep < nStep; iStep++)
+{
+	Vector4 d;
+	d.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 0, m_cDis.nItems);	//后三个分量是转角，前三个分量是平动位移
+	d.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 1, m_cDis.nItems);	// 同上 
+	d.z = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 2, m_cDis.nItems);	// 同时
+	fNodeDispX[iStep] = d.x;
+}
+
+//读取DEF文件，DEF文件中存的是模型的节点号
+printf("开始读取DEF文件...\r\n");
+CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + CString("All") + CString(".") + FILE_OUTPUT_DEF;	// DEF的文件路径
+int *story_pillar_node = NULL;
+int nstory1 = theData.m_nStory + 1;
+
+int npillar = 0;
+int nstory = 0;
+if (fin.Open(defname, CFile::modeRead | CFile::shareDenyWrite))	// 打开DEF文件
+{
+	nstory = fin.GetInt() ;	// 模型的层数，读DEF文件的第一行数据
+	npillar = fin.GetInt();	// 支柱的数量，读DEF文件的第二行数据
+	for (int i = 0; i < npillar; i++)	// 这循环的目的是跳过DEF文件中的第三行的数据
+	{
+		fin.GetInt();
+	}
+
+	story_pillar_node = new int[nstory1 * npillar];	// 创建一个有nstory1 * npillar个元素动态整型数组
+	for (int i = 0; i < nstory; i++)
+	{
+		int istory = fin.GetInt();
+		for (int j = 0; j < npillar; j++)
+		{
+			story_pillar_node[istory + j * nstory] = fin.GetInt() - 1;	// 将DEF文件中的节点号读进来
+		}
+	}
+	fin.Close();
+}
+
+printf("读取数据成功\r\n\r\n");
+
+
+
+
+```
 
 ### 节点速度
 
