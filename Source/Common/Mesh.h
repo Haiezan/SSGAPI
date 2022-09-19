@@ -13,6 +13,7 @@
 #include <vector>
 #include <algorithm>
 #include <functional>
+#include "..\Common\VisibleMesh.h"
 
 
 //结点到单元的映射关系
@@ -129,6 +130,8 @@ public:
 
 	CDataPathCollection m_cDataPath; //路径
 
+	CVisibleMesh m_cVisibleElm;  //模型可见分类
+
 	CMesh & operator=(const CMesh & mesh)
 	{
 		if(this==&mesh) return *this;
@@ -137,7 +140,6 @@ public:
 	}
 
 	void Clear();
-	float GetMinMax(CVertex &MinCoor,CVertex &MaxCoor); //返回外包直径
 	float GetMinMax(Vector4 &MinCoor,Vector4 &MaxCoor); //返回外包直径
 	int GetNodeID(float x,float y,float z);  //根据坐标找到结点号
 

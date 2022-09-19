@@ -13,7 +13,7 @@
 #include "BeamSection.h"
 #include "Material.h"
 #include "EdgeStruct.h"
-
+#include "StaticLoadCase.h"
 
 #include <afxtempl.h>
 #include <vector>
@@ -128,8 +128,75 @@ public:
 	void Read10(CASCFile &fin);  //只读取配置信息，数据系列在使用时读取
 	void Read(CASCFile &fin);  //只读取配置信息，数据系列在使用时读取
 	void Write(CFile &fout); //只保存配置信息
+	void Write2020(CFile &fout); //只保存配置信息
 };
 
+enum PUSHLOAD_TYPE
+{
+	PUSHLOAD_TRI,   //倒三角
+	PUSHLOAD_RECT,//矩形
+	PUSHLOAD_PARA,	 //抛物线
+	PUSHLOAD_MODE,//模态
+	PUSHLOAD_LC,	 //荷载工况
+};
+
+struct PUSH_TRI
+{
+	float fAngle;			//作用角度
+	float fShearRatio;	//基底剪力比
+};
+struct PUSH_MODE
+{
+	int nMode;			//模态阶数
+	float fAmp; //放大倍数
+};
+struct PUSH_LC
+{
+	int nStload;			//静力荷载工况id
+	float fAmp;			//放大倍数
+};
+
+class CPushLoad
+{
+public:
+	CPushLoad();
+	CPushLoad(CPushLoad &push) {*this=push;}
+	~CPushLoad(){;}
+public:
+
+	PUSHLOAD_TYPE iType;	//荷载模式
+	union
+	{
+		PUSH_TRI TriLoad;
+		PUSH_TRI RectLoad;
+		PUSH_TRI ExpLoad;
+		PUSH_MODE ModeLoad;
+		PUSH_LC LcLoad;
+	};
+public:
+	CPushLoad & operator=(const CPushLoad &push);
+	BOOL  operator==(const CPushLoad &push);
+	void Read(CASCFile &fin); 
+	void Write(CFile &fout);
+	void Write2020(CFile &fout);
+};
+
+class CMultiPtExcited
+{
+public:
+	CMultiPtExcited();
+	CMultiPtExcited(CMultiPtExcited &multipt) {*this=multipt;}
+	~CMultiPtExcited(){;}
+public:
+	float fAngle;//传播角度
+	float fVelo;//视波速
+public:
+	CMultiPtExcited & operator=(const CMultiPtExcited &multipt);
+	BOOL  operator==(const CMultiPtExcited &multipt);
+	void Read(CASCFile &fin); 
+	void Write(CFile &fout);
+	void Write2020(CFile &fout);
+};
 
 
 class CLoadCase;
@@ -149,6 +216,7 @@ public:
 
 	CString sCaseName;  //工况组合名称
 	CString sMemo;  //说明
+	char m_iCaseType; //分析类型
  	int iLoadComb;		//荷载组合
 
 	//显式动力加载参数
@@ -163,7 +231,7 @@ public:
 	BOOL bInputAlpha;	//是否直接输入 //ver32
 	float fTimeStep;  //加载时间步长
 	int iCrtCons;  //混凝土二维本构模型,0弹性、1塑性损伤、2-性能化设计
-	int iRebarCons;  //钢筋本构模型,0弹性、1弹塑性、2-性能化设计
+	int iLinkCons;  //一般连接本构模型,0弹性、1塑性损伤、2-性能化设计
 	int	iStirrupCons;  //箍筋本构类型，取值为0--弹性、1--规范模型、2---约束混凝土模型
 	int iSlabElastic; //是否考虑楼板弹性
 	int m_bShearNonLinear; //是否考虑剪切非线性
@@ -188,18 +256,29 @@ public:
 
 	BOOL bStaticExp;	//采用显式分析进行竖向荷载加载 1-是，0-否
 	BOOL bStaticResult;
-	float fStaticTime;//静力非线性加载时长
-	float fStaticAmpCoef;//静力非线性荷载放大系数
+	float fDynaTime;//时变力加载时长：静力非线性加载时长、地震动、多点激励共用
+	float fVarLoadAmpCoef;//静力非线性荷载放大系数
 	BOOL m_bOverallDefect;
 	BOOL m_bMemberDefect;	
-	float m_fConLoadCoef[Sys_MaxLoadcase]; //不变荷载组合系数
-	float m_fVarLoadCoef[Sys_MaxLoadcase]; //可变荷载组合
 	float fStaticExpTime;//初始分析考虑非线性时长 与 bStaticExp 及bStaticResult 对应
 	BOOL bInitAnaly;//是否进行初始分析：如静力非线性直接竖向加载的情况
-
+	float fHorzEarthquakeCoef;//水平地震系数 暂时不用 2021年1月7日
+	float fVertEarthquakeCoef;//竖向地震系数 暂时不用 2021年1月7日
+	int iVarLoadFunc;			//时变荷载函数id
+	int iDynaCase; // 动力荷载工况编号（当前版本不包括时变荷载，只有多点激励）
+	BOOL bAllNode; //是否按全楼所有节点控制终止
+	int iControlNode;	//位移作用节点编号
+	int iNodeDof;			//DX-0 DY-1 DZ-2 3-全量
+	float fStopDisp;		//最大位移
+	BOOL bRelativeVelo;//是否采用相对速度计算阻尼力
+	int iRelativeNode;//相对速度计算参考点
+	//
+	CPushLoad cPushLoad;//静力推覆荷载
 	CEarthQuake cEarchQuake;  //地震波信息
+	CMultiPtExcited cMultiPt;//多点激励荷载
 
-
+	vector<CombData> vConLoadComb;
+	vector<CombData> vVarLoadComb;
 
 	CLoadCase& operator=(const CLoadCase& lc);
 	BOOL operator==(const CLoadCase& lc);//ISO中震设计用，邱海2018年3月6日
@@ -211,8 +290,19 @@ public:
 	void Read20(CASCFile &fin);
 	void Read(CASCFile &fin);
 	void Write(CFile &fout);
+	void Write2020(CFile &fout);
 
 	float GetProgress();
+	void SetLoadCoef(int iComb);
+	float GetStep(BOOL bNoIso =FALSE);
+	//自动施加1恒+0.5活
+	void AutoAddGravity();
+	//直接分析设计是否有地震
+	BOOL bSeismic();
+	//只有设计工况用0静力1风2地震 
+	int GetLoadCaseType();
+	//是否是1D+0.5L
+	BOOL bAutoAddGravity();
 };
 
 class _SSG_DLLIMPEXP CLoadCollection
@@ -248,6 +338,7 @@ public:
 	}
 	void	SetOutputfile(CString sOut){sOutputFile=sOut;}
 	CString	Outputfile(){return sOutputFile;}
+	void WriteAnnotation(int iType, CFile &fout);
 private:
 	CArray<CLoadCase*,CLoadCase*> aLoadCasePtr; //荷载工况组合集合
 	CString sOutputFile;
@@ -288,4 +379,182 @@ public:
 
 private:
 	CArray<CEarthQuake*,CEarthQuake*> awavePtr; //荷载工况组合集合
+};
+
+enum HISTYPE
+{
+	HIS_FROMFILE,		//文件读取
+	HIS_USER,		//用户定义
+	HIS_SINE,		//正弦曲线
+	HIS_COSINE,	//余弦曲线
+	HIS_STEP,		//步行荷载
+	HIS_RAMP		//斜坡
+	
+};
+
+struct FUN_SINE
+{
+	float fT;
+	int nPoint;
+	int nCycles;
+	float fAmp;
+};
+
+struct FUN_STEP{
+	float fG;
+	float fs;
+	float fInter;
+	int nCycles;
+	int nOrder;
+	int nPeople;
+	int iMoveType;
+	int iCoord;
+	int iStyle;
+	
+};
+
+struct FUN_FILE
+{
+	char sFile[MAX_PATH]; 
+	int iFirstLine;
+	int iLastLine;
+	int nPtPerLine;
+	int iFormat;//0-时间和数值 1等间距
+	float	fDtime;
+};
+
+
+
+class _SSG_DLLIMPEXP CTimeFunction
+{
+public:
+	CTimeFunction(void)
+	{
+		sName = L"";
+		iFuncType = 0;
+		iHisType = HIS_USER;
+		iScale = 0;
+		fScale = 0;
+		nPoints = 0;
+		pData = NULL;
+	}
+	CTimeFunction(const CTimeFunction &func) {pData=NULL;*this=func;}
+	CTimeFunction(int iHisType);
+	~CTimeFunction(){Clear();}
+
+	CString sName;
+	int iFuncType; //0 时程 1 反应谱
+	HISTYPE iHisType;
+	union
+	{
+		FUN_SINE cSine;
+		FUN_STEP cStep;
+		FUN_FILE cFile;
+	}cData;
+	//缩放
+	int iScale;
+	float fScale;
+	float fAmp;
+	//存储数据
+	int nPoints;  //数据点数
+	DATA_SEQUENCE2	*pData;
+
+	//以下为临时数据
+	float fMinValue,fMaxValue;  //最大最小值
+	float fMinValueTime,fMaxValueTime;  //最大最小值时刻
+	float fStartTime;//起始时间
+	float fEndTime;  //终止时间
+
+	void Clear(void) 
+	{
+		sName = L"";
+		iFuncType = 0;
+		iHisType = HIS_USER;
+		iScale = 0;
+		fScale = 0;
+		fAmp = 0;
+		if (pData)
+		{
+			delete[] pData;	
+			pData=NULL;
+		}
+		nPoints=0;
+	}
+	BOOL IsValid(){return nPoints>0 && pData;}
+
+	//赋值运算符重载
+	CTimeFunction & operator=(const CTimeFunction& data)
+	{
+		if(this==&data) return *this;
+		Clear();
+		sName = data.sName;
+		iFuncType = data.iFuncType; 
+		iHisType = data.iHisType; 
+		iScale = data.iScale ;
+		fScale = data.fScale ;
+		fAmp = data.fAmp;
+		nPoints = data.nPoints; 
+		pData=new DATA_SEQUENCE2[nPoints];
+		ASSERT(pData);
+		for(int i=0; i<nPoints; i++)
+		{
+			pData[i] = data.pData[i]; 
+		}
+		if(iHisType != HIS_USER)
+			cData = data.cData;
+		fMinValue = data.fMinValue;
+		fMaxValue = data.fMaxValue;
+		fMinValueTime = data.fMinValueTime;
+		fMaxValueTime = data.fMaxValueTime;
+		fStartTime = data.fStartTime;
+		fEndTime = data.fEndTime;
+
+		return *this;
+	}
+	BOOL  operator==(const CTimeFunction &func);
+	void GetFuncData();
+	void GetShowData(float *pTime,float *pVal);
+	float inline GetFuncTime(){return fEndTime - fStartTime;}
+	void GetEqualStepData(unsigned int &nPts, float *&pVal, float fStep=0.01f);
+	void IntegralData(const unsigned int nPts, float *&pVal, float fStep=0.01f);
+	void ConvertToUser();
+
+	void Read(CASCFile &fin);
+	void Write(CFile &fout);
+};
+
+class _SSG_DLLIMPEXP CFunctionCollection
+{
+public:
+	CFunctionCollection(){;}
+	CFunctionCollection(const CFunctionCollection &funcs) 
+	{
+		*this=funcs;
+	};
+	~CFunctionCollection(){RemoveAll();}
+
+	int Append(CTimeFunction *func);
+
+	void RemoveAt(int index);
+
+	void RemoveAll();
+
+	INT_PTR GetCount() const {return afuncPtr.GetCount();}
+
+	CTimeFunction *GetAt(int i) {return afuncPtr.GetAt(i);}
+
+	CTimeFunction *operator[](int i) {return afuncPtr[i];}
+
+	void SetAt(int i,CTimeFunction *func) {afuncPtr[i]=func;}
+
+	CFunctionCollection& operator=(const CFunctionCollection&funcs);
+
+	void Write(CFile &fout) 
+	{
+		for(int i=0;i<afuncPtr.GetCount();i++)
+			afuncPtr[i]->Write(fout);
+	}
+
+private:
+	CArray<CTimeFunction*,CTimeFunction*> afuncPtr;
 };

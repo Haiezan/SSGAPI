@@ -96,6 +96,7 @@ public:
 	CString sTitle;  //物理场标题,Read前赋值
 	CString pComponentName[Sys_Max_Node_Components];  //分量名称,Read前赋值，前三个分量必须是dx,dy,dz
 	float fMin[Sys_Max_Node_Components],fMax[Sys_Max_Node_Components];  //最大最小值,读入后即赋值
+	int iMaxNodeId[Sys_Max_Node_Components];
 	int nMaxSteps;  //文件中最大时间步数，读入文件时赋值
 
 	CArray<CFieldOneStep*,CFieldOneStep*> aFieldsPtr; //场函数数组，下标为时间步序号，Read中赋值

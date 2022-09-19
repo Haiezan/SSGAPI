@@ -11,7 +11,7 @@
 
 class Matrix4x4CPU;
 
-extern Matrix4x4CPU g_MatrixCPU_Identity;
+extern _SSG_DLLIMPEXP Matrix4x4CPU g_MatrixCPU_Identity;
 
 inline Vector4CPU operator*(Vector4CPU &v, Matrix4x4CPU &matrix);
 inline Matrix4x4CPU operator*(Matrix4x4CPU &a, Matrix4x4CPU &b);

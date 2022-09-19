@@ -23,14 +23,14 @@ class _SSG_DLLIMPEXP CGeneralLoad
 {
 public:
 	CGeneralLoad(void);
-	CGeneralLoad(CASE_TYPE nType,bool bNewCode=true);
+	CGeneralLoad(STCASE_TYPE nType,bool bNewCode=true);
 	CGeneralLoad(CGeneralLoad &lc)
 	{
 		*this=lc;
 	}
 	~CGeneralLoad() {}
 	
-	CASE_TYPE m_iCaseType;//荷载类型
+	STCASE_TYPE m_iCaseType;//荷载类型
 	CString m_sCaseName;  //荷载工况名称
 	CString m_sMemo;
 	float m_fMassCoef;//重力荷载代表值组合值系数
@@ -39,13 +39,12 @@ public:
 	//						风：分项系数、抗震组合系数、无震组合系数
 	//					地震：主控、非主控、0
 	float m_fPartCoef[3];
-	float m_fLcComb[Sys_MaxLoadcaseComb];//荷载组合
-	float m_fBucklingComb; //屈曲分析荷载组合
 	CGeneralLoad& operator=(const CGeneralLoad& lc);
 	BOOL operator==(const CGeneralLoad& lc);
 	
 	void Read(CASCFile &fin);
 	void Write(CFile &fout);
+	void Write2020(CFile &fout);
 };
 
 class _SSG_DLLIMPEXP CGeneralCollection

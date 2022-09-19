@@ -29,8 +29,9 @@ public:
 	}
 	~CWindLoad() {}
 
-	
+	int m_iStLoad;
 	CString sCaseName;  //风荷载工况名称
+	CString sMemo;  //说明
 	BOOL m_bUserDefine;   //是否用户自定义,0-程序计算,1-用户自定义
 		
 
@@ -60,14 +61,18 @@ public:
 	float m_AlongWind[Sys_Max_Stories][Sys_Max_Towers]; //顺风向荷载
 	float m_AcrossWind[Sys_Max_Stories][Sys_Max_Towers]; //横风向风荷载
 	float m_TorsionalWind[Sys_Max_Stories][Sys_Max_Towers]; //扭转风荷载
-	float m_fLcComb[Sys_MaxLoadcaseComb];//荷载组合
-	float m_fBucklingComb; //屈曲分析荷载组合
 
 	CWindLoad& operator=(const CWindLoad& lc);
 	BOOL operator==(const CWindLoad& lc);
 
 	void Read(CASCFile &fin);
 	void Write(CFile &fout);
+	void Write2020(CFile &fout);
+
+	void CalculateWindLoad();
+	void CalculateAlongWindLoad();
+	void CalculateAcrossWindLoad();
+	void CalculateTorsionWindLoad();
 };
 
 class _SSG_DLLIMPEXP CWindCollection

@@ -1027,6 +1027,7 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 
 	//清除所有数据
 	theData.Clear();
+	theData.InitialAPI();
 	theData.m_sPrjFile = fname;
 	BOOL bSuccess = TRUE;
 

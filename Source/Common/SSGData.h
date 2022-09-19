@@ -1,19 +1,27 @@
-#pragma once
+ï»¿#pragma once
 
 #include "HeadDefine.h"
 #include "data.h"
 #include "UserDefine.h"
-#include "VisibleStruct.h" //¶¨ÒåÊä³ö·Ö×éĞŞ¸Ä Çñº£ 2016Äê7ÔÂ11ÈÕ
+#include "VisibleStruct.h" //å®šä¹‰è¾“å‡ºåˆ†ç»„ä¿®æ”¹ é‚±æµ· 2016å¹´7æœˆ11æ—¥
 #include "Frame.h"
 #include "Mesh.h"
-//#include "..\StructGraph\SSGAppInterface.h"
+
+#include "..\Common\SSGAppInterface.h"
+
+extern _SSG_DLLIMPEXP ISSGApp* pTheApp;
 
 enum LOADCASETYPE
 {
 	STATIC=-1,
-	EARTHQUAKE=0,//´óÕğÑéËã£¬SSGÄ¬ÈÏ£¬SSG¿ÉÒÔ´ò¿ª m_cLoad
-	DIRECTANALY=1,//Éè¼Æ¹¤¿ö ¸Ö½á¹¹¡¢¼õÕğ¡¢¸ôÕğ m_cLoadDesign
-	NLSTATIC=2,//¾²Á¦·ÇÏßĞÔ m_cLoadStatic
+	EARTHQUAKE=0,//å¤§éœ‡éªŒç®—ï¼ŒSSGé»˜è®¤ï¼ŒSSGå¯ä»¥æ‰“å¼€ m_cLoad
+	DIRECTANALY=1,//è®¾è®¡å·¥å†µ é’¢ç»“æ„ã€å‡éœ‡ã€éš”éœ‡ m_cLoadDesign
+	NLSTATIC=2,//é™åŠ›éçº¿æ€§ m_cLoadStatic
+	EQELASTIC=3,//ç­‰æ•ˆå¼¹æ€§è®¾è®¡ å‡éœ‡ã€éš”éœ‡  m_cLoadElastic
+	TIMEHISTORY=4,//é€šç”¨åŠ¨åŠ›æ—¶ç¨‹åˆ†æ m_cLoad
+	PUSHOVER=5,	//é™åŠ›æ¨è¦†ç»“æœ m_cLoadStatic
+	MULTIPTEXCITE=6,
+	SPECTRUM = 7, // ååº”è°±å·¥å†µ  æ—æ€é½ 20210722
 };
 
 class _SSG_DLLIMPEXP  CSSGData 
@@ -24,29 +32,29 @@ public:
 	void Clear(void);
 public:
 	CProjectPara m_cPrjPara;
-	CFrame m_cFrame; //½á¹¹ÔìĞÍÊı¾İ,ĞèÒªundo/redoµÄÊı¾İ¶¼¾¡Á¿·ÅÔÚCFrameÀàÖĞ
-	CMesh m_cMesh; //Íø¸ñÊı¾İ
-	CStory m_pStory[Sys_Max_Stories]; //Â¥²ãÊı×é£¬ĞèÒªundo
-	int m_nStory; //Â¥²ãÊıÁ¿
-	MODEL_SOURCE m_iModelSource;  //Ä£ĞÍÀ´Ô´
-	/////////////////////ÒÔÉÏĞèÒª±£´æundo£¬ĞèÒª´æ´¢µ½ÎÄ¼ş/////////////////////////////////
+	CFrame m_cFrame; //ç»“æ„é€ å‹æ•°æ®,éœ€è¦undo/redoçš„æ•°æ®éƒ½å°½é‡æ”¾åœ¨CFrameç±»ä¸­
+	CMesh m_cMesh; //ç½‘æ ¼æ•°æ®
+	CStory m_pStory[Sys_Max_Stories]; //æ¥¼å±‚æ•°ç»„ï¼Œéœ€è¦undo
+	int m_nStory; //æ¥¼å±‚æ•°é‡
+	MODEL_SOURCE m_iModelSource;  //æ¨¡å‹æ¥æº
+	/////////////////////ä»¥ä¸Šéœ€è¦ä¿å­˜undoï¼Œéœ€è¦å­˜å‚¨åˆ°æ–‡ä»¶/////////////////////////////////
 
 
 	
-// 	//±à¼­¿ØÖÆÊı¾İ
-//	BOOL m_bModified; //Ä£ĞÍÊı¾İĞŞ¸Ä±êÖ¾
+// 	//ç¼–è¾‘æ§åˆ¶æ•°æ®
+//	BOOL m_bModified; //æ¨¡å‹æ•°æ®ä¿®æ”¹æ ‡å¿—
 // 	BUILDRANGE m_Range;
 
-	//ĞéµãĞÅÏ¢
-// 	VIRTUAL_POINT_TYPE m_iVirtualPointType;  //ĞéµãÀàĞÍ
-// 	CVertex m_vVirtualPoint;  //Ğéµã×ø±ê
+	//è™šç‚¹ä¿¡æ¯
+// 	VIRTUAL_POINT_TYPE m_iVirtualPointType;  //è™šç‚¹ç±»å‹
+// 	CVertex m_vVirtualPoint;  //è™šç‚¹åæ ‡
 // 	CRefPoint m_cRefPoint;
 
 //	CUndoRedo m_cUndo;
 	
 	BOOL IsFromPKPMPre(){return (m_iModelSource==MODEL_PRE);}
 
-	vector<COMBO_STRUCT> m_vvCombGroup; //×éºÏ¹¹¼ş×é£¬´ò¿ª»ò¹Ø±ÕÎÄ¼şÊ±ĞèÒªÇå¿Õ
+	vector<COMBO_STRUCT> m_vvCombGroup; //ç»„åˆæ„ä»¶ç»„ï¼Œæ‰“å¼€æˆ–å…³é—­æ–‡ä»¶æ—¶éœ€è¦æ¸…ç©º
 	void ClearCombGroup()
 	{
 		for (size_t i=0;i<m_vvCombGroup.size();i++)
@@ -56,68 +64,77 @@ public:
 		m_vvCombGroup.clear();
 	};
 
-	CString m_sPrjFile;    //ÏîÄ¿ÎÄ¼şÃû£¬²»Îª¿ÕÊ±Ò»¶¨ÓĞÄÚ´æÊı¾İ£¬¼´m_bProjectOpened=TRUE
-	BOOL m_bAutoCross;  //»­¸¨ÖúÏßÊ±×Ô¶¯¼ì²éÓë½á¹¹ÏßµÄ½»²æÇé¿ö
+	CString m_sPrjFile;    //é¡¹ç›®æ–‡ä»¶åï¼Œä¸ä¸ºç©ºæ—¶ä¸€å®šæœ‰å†…å­˜æ•°æ®ï¼Œå³m_bProjectOpened=TRUE
+	BOOL m_bAutoCross;  //ç”»è¾…åŠ©çº¿æ—¶è‡ªåŠ¨æ£€æŸ¥ä¸ç»“æ„çº¿çš„äº¤å‰æƒ…å†µ
 
-	//·½·¨
+	CString m_sPrjFile2020;
+	//æ–¹æ³•
 public:
 
 	
-	//Ğ´³ö²Ù×÷¼ÇÂ¼ÎÄ¼ş£¬ÓÃ·¨ÓëTRACEÏàÍ¬
+	//å†™å‡ºæ“ä½œè®°å½•æ–‡ä»¶ï¼Œç”¨æ³•ä¸TRACEç›¸åŒ
 	void WriteMsg(const char* fmt, ...);
 	void WriteMsg(const wchar_t* fmt, ...);
 	void WriteError(const char* fmt, ...);
 	void WriteError(const wchar_t* fmt, ...);
 
-	//Çå¿Õ²Ù×÷¼ÇÂ¼ÎÄ¼ş
+	//æ¸…ç©ºæ“ä½œè®°å½•æ–‡ä»¶
 	void ClearMsg(void);
 	void ClearFeaMsg(void);
-
+	void ClearFeaMsg(const CString &sLoadCase);
 	
-	CString GetPrjPath(void); //µÃµ½ÏîÄ¿¸ùÄ¿Â¼£¬Àı£º"d:\exam_path\"
-	CString GetPrjName(void); //µÃµ½ÏîÄ¿Ãû£¬Àı£º"exam"
-	CString GetPrjBucklingPath(void); //µÃµ½ÏîÄ¿ÁÙÊ±Ä¿Â¼£¬Àı£º"d:\exam_path\Buckling\"
-	CString GetUserDataPath(void); //µÃµ½ÓÃ»§Êı¾İÄ¿Â¼£¬Àı£º"d:\exam_path\UserData\"
-	CString GetStaticPath(void); //µÃµ½¾²Á¦¹¤¿ö¸ùÄ¿Â¼£¬Àı£º"d:\exam_path\StaticResult\"
-	CString GetEarthQuakeRoot(void); //µÃµ½µØÕğ¹¤¿ö¸ùÄ¿Â¼£¬Àı£º"d:\exam_path\EarthQuakeResult\"
-	CString GetEarthQuakePath(const CString &sLoadCase); //µÃµ½ÈÎÒâ¹¤¿ö×ÓÄ¿Â¼£¬Àı£º"d:\exam_path\EarthQuakeResult\case_n\"
-	CString GetCurCaseFilePath(const CString &sExt,const CString &sGroupName=L"");  //µÃµ½µ±Ç°¹¤¿öÎÄ¼şÈ«Â·¾¶£¬¸ù¾İÀ©Õ¹Ãû²»Í¬±æÈÏ²»Í¬µÄ×ÓÄ¿Â¼,sGroupNameÎªÑ¡Ôñ¼¯Ãû³Æ
-	CString GetFilePath(const CString &sExt,const CString &sLoadCase=L"",const CString &sGroupName=L"");  //µÃµ½ÈÎÒâ¹¤¿öÎÄ¼şÈ«Â·¾¶£¬¸ù¾İÀ©Õ¹Ãû²»Í¬±æÈÏ²»Í¬µÄ×ÓÄ¿Â¼,sGroupNameÎªÑ¡Ôñ¼¯Ãû³Æ
+	CString GetPrjPath(void); //å¾—åˆ°é¡¹ç›®æ ¹ç›®å½•ï¼Œä¾‹ï¼š"d:\exam_path\"
+	CString GetPrjPath2020(void);
+	CString GetPrjName(void); //å¾—åˆ°é¡¹ç›®åï¼Œä¾‹ï¼š"exam"
+	CString GetPrjName2020(void); //å¾—åˆ°é¡¹ç›®åï¼Œä¾‹ï¼š"exam"
+	CString GetPrjBucklingPath(void); //å¾—åˆ°é¡¹ç›®ä¸´æ—¶ç›®å½•ï¼Œä¾‹ï¼š"d:\exam_path\Buckling\"
+	CString GetUserDataPath(void); //å¾—åˆ°ç”¨æˆ·æ•°æ®ç›®å½•ï¼Œä¾‹ï¼š"d:\exam_path\UserData\"
+	CString GetStaticPath(void); //å¾—åˆ°é™åŠ›å·¥å†µæ ¹ç›®å½•ï¼Œä¾‹ï¼š"d:\exam_path\StaticResult\"
+	CString GetEarthQuakeRoot(void); //å¾—åˆ°åœ°éœ‡å·¥å†µæ ¹ç›®å½•ï¼Œä¾‹ï¼š"d:\exam_path\EarthQuakeResult\"
+	CString GetEarthQuakePath(const CString &sLoadCase); //å¾—åˆ°ä»»æ„å·¥å†µå­ç›®å½•ï¼Œä¾‹ï¼š"d:\exam_path\EarthQuakeResult\case_n\"
+	CString GetCurCaseFilePath(const CString &sExt,const CString &sGroupName=L"");  //å¾—åˆ°å½“å‰å·¥å†µæ–‡ä»¶å…¨è·¯å¾„ï¼Œæ ¹æ®æ‰©å±•åä¸åŒè¾¨è®¤ä¸åŒçš„å­ç›®å½•,sGroupNameä¸ºé€‰æ‹©é›†åç§°
+	CString GetFilePath(const CString &sExt,const CString &sLoadCase=L"",const CString &sGroupName=L"");  //å¾—åˆ°ä»»æ„å·¥å†µæ–‡ä»¶å…¨è·¯å¾„ï¼Œæ ¹æ®æ‰©å±•åä¸åŒè¾¨è®¤ä¸åŒçš„å­ç›®å½•,sGroupNameä¸ºé€‰æ‹©é›†åç§°
+	CString GetFilePathFromNoIso(const CString &sExt,const CString &sLoadCase=L"",const CString &sGroupName=L"");
 
-	int GetStoryByZ(float z);		//¸ù¾İ±ê¸ßµÃµ½Êµ¼ÊÂ¥²ãºÅ£¬²ÉÓÃÂ¥²ãÃæ°üÂç¼ÆËã
-	//void InitialApp(ISSGApp* theExeApp);
-	void ReadMatFile();//¶ÁÈ¡ÓÃ»§×Ô¶¨Òå²ÄÁÏÎÄ¼ş
+	CString GetCModePath(void); //å¾—åˆ°å¤æ¨¡æ€åˆ†ææ ¹ç›®å½•ï¼Œä¾‹ï¼š"d:\exam_path\CModalResult\"
+	CString GetCModalSpectCasePath(const CString &sLoadCase); //å¾—åˆ°å¤æ¨¡æ€ååº”è°±å·¥å†µå­ç›®å½•ï¼Œä¾‹ï¼š"d:\exam_path\CModalResult\case_n\"
 
-	int GetMatID(CString &mat);
-	CString GetMatName(int id);
+	int GetStoryByZ(float z);		//æ ¹æ®æ ‡é«˜å¾—åˆ°å®é™…æ¥¼å±‚å·ï¼Œé‡‡ç”¨æ¥¼å±‚é¢åŒ…ç»œè®¡ç®—
+	void InitialApp(ISSGApp* theExeApp);
+	//For API é‚±æµ· 2022å¹´9æœˆ16æ—¥
+	void InitialAPI();
+
+
 
 	BOOL GetBeamStoryMat(CBeamStruc &beam);
 	BOOL GetPlateStoryMat(CPlateStruc &plate);
 
-	CString GetCaseStaticPath(const CString &sLoadCase); //µÃµ½¾²Á¦¹¤¿ö¸ùÄ¿Â¼£¬Àı£º"d:\exam_path\StaticResult\"
+	CString GetCaseStaticPath(const CString &sLoadCase); //å¾—åˆ°é™åŠ›å·¥å†µæ ¹ç›®å½•ï¼Œä¾‹ï¼š"d:\exam_path\StaticResult\"
 	//
 	BOOL HasTimeHis(int iCmb);
-	//
-	float GetLoadCoef(CLoadCase *lc,CASE_TYPE nType,BOOL bConLoad=TRUE);
-	//µÃµ½µ±Ç°¹¤¿öÁĞ±í
+
+	//å¾—åˆ°å½“å‰å·¥å†µåˆ—è¡¨
 	CLoadCollection *GetLoadCollecton();
 
-	//ÉèÖÃµ±Ç°¹¤¿öÀàĞÍ£¬ÓÃÓÚ¶ÁÈ¡½á¹ûÎÄ¼ş
+	//è®¾ç½®å½“å‰å·¥å†µç±»å‹ï¼Œç”¨äºè¯»å–ç»“æœæ–‡ä»¶
 	void SetLoadCollection(int iType=0){m_iLoadCaseType=(LOADCASETYPE)iType;};
 	LOADCASETYPE GetLoadCollectionType(){return m_iLoadCaseType;};
+	void GetCurCaseName(int id, CString &sCase);  //å¾—åˆ°å·¥å†µåç§°
 	// 
-	int CreateOverallDefect(float* &coord);
+	BOOL CreateOverallDefect(float* &coord, bool bShowMessage = false);
 	int CreateMemberDefect(float* &coord);
 	BOOL WriteBinStatcNodeFieldOneStep(const CString &fname,const int nNode,float *&coord,const CString &sCmpName);
 	//
 	int CreateOverallDefectFile();
 	int CreateMemberDefectFile();
 	int CreateSuperPosDefectFile();
+
 private:
 	LOADCASETYPE m_iLoadCaseType;
+	ISSGApp *pAPI;
 };
 
-extern "C" _SSG_DLLIMPEXP CSSGData  theData;
+extern "C" _SSG_DLLIMPEXP CSSGData theData;
 
 //extern "C" __declspec(dllexport) CSSGData theData;
 

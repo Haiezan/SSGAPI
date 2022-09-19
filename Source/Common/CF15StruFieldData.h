@@ -287,10 +287,16 @@ public:
 	
 	void Clear(void)
 	{
-		delete[] pBeamIndex; 
-		delete[] pPlateIndex;
-		pBeamIndex=NULL;
-		pPlateIndex=NULL;
+		if(pBeamIndex)
+		{
+			delete[] pBeamIndex; 
+			pBeamIndex=NULL;
+		}
+		if(pPlateIndex)
+		{
+			delete[] pPlateIndex;
+			pPlateIndex=NULL;
+		}
 		if(ppData)
 		{
 			for(int i=0;i<nMaxSteps;i++) delete[] ppData[i];

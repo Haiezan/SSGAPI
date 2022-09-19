@@ -250,7 +250,6 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\Common\MatPara.cpp" />
     <ClCompile Include="DlgReadDispRatio.cpp" />
     <ClCompile Include="ReadSSG.cpp" />
     <ClCompile Include="ReadSSGDlg.cpp" />

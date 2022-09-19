@@ -446,6 +446,11 @@ public:
 	{
 		return "General_CPU";
 	}
+
+	inline bool operator<(const Vector4CPU that) const
+	{
+		return memcmp((void*)this, (void*)&that, sizeof(Vector4CPU)) > 0;
+	}
 };
 
 inline bool operator==(const Vector4CPU &a, const Vector4CPU &b)

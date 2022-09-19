@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\common\vba.h"
+#include "vba.h"
 
 //-----------------------------------
 //AutoWrap的调用参数是倒序的，例如：

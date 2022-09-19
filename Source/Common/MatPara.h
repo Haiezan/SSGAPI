@@ -1,47 +1,54 @@
 #pragma once
-#include "..\Common\SysPara.h"
+#include "HeadDefine.h"
 
-const int Sys_Conc_Para_Num=14; //材料库中混凝土参数个数
-const int g_iMax_Material=100;
+#include "..\Common\SysPara.h"
+#include "..\Common\PublicFunc_Cpp.h"
+
+const int g_iMax_Material=125;//因预应力筋添加将值从100改为120
 const int g_iMax_Conc=80;
-const int g_iMax_Steel=80;
+const int g_iMax_Steel=100;
 
 
 //材料通用参数，包括混凝土和钢材、钢筋
 struct MAT_PROP
 {
 	int id;
-	wchar_t sName[256];
+	wchar_t *sName;//sName[256];标准材料库的材料名称
+	//CString sName;
 	MATERIAL_TYPE iType;
-	float E;  //单位：MPa
-	float V;
-	float fck; //抗压强度 （标准强度）,单位：MPa
-	float ftk; //抗拉强度（标准强度）,单位：MPa
+	float E;	//单位：MPa
+	float V;	//泊松比
+	float fcuk;	//立方体抗压强度（标准值），单位：MPa	
+	float fck;	//抗压强度（标准值），单位：MPa	
+	float ftk;	//抗拉强度（标准值），单位：MPa		
+	float fcd;	//抗压强度（设计值），单位：MPa，钢筋、钢材设计值没给值的按0.9标准值取值
+	float ftd;	//抗拉强度（设计值），单位：MPa，钢筋、钢材设计值没给值的按0.9标准值取值
+	float fcm;	//抗压强度（平均值，广东省），单位：MPa
+	float ftm;	//抗拉强度（平均值，广东省），单位：MPa
+	float fstk;	//极限强度(标准值），单位：MPa，混凝土为按0.88倍fcuk，钢筋为为按1.5倍ftk，钢材为为按1.5倍ftk，预应力筋为公称强度，朱衡给的
+	float fTc;	//线膨胀系数1/C
+	float fDen;	//质量密度
+	//MAT_PROP & operator=(const MAT_PROP &mat_prop);
 };
 
-//混凝土材料参数
-struct MAT_CONCETE_PROP
+struct MAT_MECH_PROP
 {
-	int id;
-	double Para[Sys_Conc_Para_Num];  
+	float E;	//单位：MPa
+	float V;	//泊松比
+	float fcuk;	//立方体抗压强度（标准值），单位：MPa	
+	float fck;	//抗压强度（标准值），单位：MPa	
+	float ftk;	//抗拉强度（标准值），单位：MPa		
+	float fcd;	//抗压强度（设计值），单位：MPa，钢筋、钢材设计值没给值的按0.9标准值取值
+	float ftd;	//抗拉强度（设计值），单位：MPa，钢筋、钢材设计值没给值的按0.9标准值取值
+	float fcm;	//抗压强度（平均值，广东省），单位：MPa
+	float ftm;	//抗拉强度（平均值，广东省），单位：MPa
+	float fstk;	//极限强度(标准值），单位：MPa，混凝土为按0.88倍fcuk，钢筋为为按1.5倍ftk，钢材为为按1.5倍ftk，预应力筋为公称强度，朱衡给的
+	float fTc;	//线膨胀系数1/C
+	float fDen;	//质量密度
+	//MAT_PROP & operator=(const MAT_PROP &mat_prop);
 };
 
-//金属材料附加参数，不包括E,V
-struct MAT_STEEL_PROP
-{
-	int id;
-	double Fy,B;
-};
 
 //获取所有材料数
-int GetMatNum(void);
-
-//获取混凝土材料数
-int GetConcNum(void);
-
-//获取钢材和钢筋材料总数
-int GetSteelNum(void);
-
-extern MAT_PROP g_Material[];
-extern MAT_CONCETE_PROP g_Concete_Prop[];
-extern MAT_STEEL_PROP g_Steel_Prop[];
+int _SSG_DLLIMPEXP GetMatNum(void);
+extern _SSG_DLLIMPEXP MAT_PROP g_Material[];

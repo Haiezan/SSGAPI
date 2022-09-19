@@ -37,10 +37,11 @@ public:
 
 	BOOL Read(CASCFile &fin);
 	void Write(CASCFile &fout);
+	void Write2020(CASCFile &fout);
 	CString sMatName();
 	BOOL CheckPlateSect();//检查截面类型及层数是否对应
 	float DrawPlateSection(CDC *pDC,BOOL bGrid,BOOL bFibre,const CRect &re);  //绘制组合截面,返回绘制比例
-	BOOL GetPlateSec(SECTION_MAT_TYPE &secType,float &fThickness,int &nSteelLayer,float &fSteelThick);
+	BOOL GetPlateSec(SECTION_MAT_TYPE &secType,float &fThickness,int &nSteelLayer,float &fSteelThick,float &fConcThick);
 	int GetPlateStructType();
 	int GetPlateSecType();
 
@@ -50,6 +51,8 @@ public:
 	BOOL SetSectParameter(float fSteelThk);
 	//根据截面命名规则自动获得名称
 	CString &AutoName(void);
+	//得到截面厚度
+	float GetSecThickness(SUBSECTION_MAT_TYPE iType);
 };
 
 //截面类集合
@@ -95,6 +98,7 @@ public:
 
 	void Read(CASCFile &fin);
 	void Write(CASCFile &fout);
+	void Write2020(CASCFile &fout);
 	void LoadDefaultLib(void);  //加载系统库
 };
 

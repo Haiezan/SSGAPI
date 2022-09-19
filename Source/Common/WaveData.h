@@ -29,12 +29,32 @@ typedef std::wstring _tstring;
 typedef std::string _tstring;
 #endif
 
-
 //const long g_idWaveLib = 20170921;//20150501;	//<-- 修改为新的格式
 const int  g_iVersion = 11;
 
 const int g_iComp = 3;		//分量个数 <--- 原来为2 现改为 3
-const int g_iTGS = 10;
+const int g_iTGS = 63;
+//const std::string Tgs[] = {"0.20", "0.25", "0.30", 
+
+const std::string g_Tgs[]={
+	"0.20", "0.25", "0.30", "0.35", "0.40", "0.45", "0.55", "0.65", "0.75", "0.90", "1.10", 
+	"GD-I-0.20-T=0.20-0.50", "GD-I-0.20-T=0.50-3.00", "GD-I-0.20-T=3.00-6.00", "GD-I-0.20-T=6.00-10.0",
+	"GD-I-0.25-T=0.25-0.75", "GD-I-0.25-T=0.75-3.00", "GD-I-0.25-T=3.00-6.00", "GD-I-0.25-T=6.00-10.0",
+	"GD-I-0.35-T=0.35-1.25", "GD-I-0.35-T=1.25-3.00", "GD-I-0.35-T=3.00-6.00", "GD-I-0.35-T=6.00-10.0",
+	"GD-I-0.50-T=0.50-1.50", "GD-I-0.50-T=1.50-3.00", "GD-I-0.50-T=3.00-6.00", "GD-I-0.50-T=6.00-10.0",
+
+	"GD-II-0.35-T=0.35-1.25", "GD-II-0.35-T=1.25-3.00", "GD-II-0.35-T=3.00-6.00", "GD-II-0.35-T=6.00-10.0",
+	"GD-II-0.50-T=0.50-1.50", "GD-II-0.50-T=1.50-3.00", "GD-II-0.50-T=3.00-6.00", "GD-II-0.50-T=6.00-10.0",
+	"GD-II-0.70-T=0.70-1.50", "GD-II-0.70-T=1.50-3.00", "GD-II-0.70-T=3.00-6.00", "GD-II-0.70-T=6.00-10.0",
+
+	"GD-III-0.45-T=0.45-1.50", "GD-III-0.45-T=1.50-3.00", "GD-III-0.45-T=3.00-6.00", "GD-III-0.45-T=6.00-10.0",
+	"GD-III-0.65-T=0.65-1.50", "GD-III-0.50-T=1.50-3.00", "GD-III-0.50-T=3.00-6.00", "GD-III-0.50-T=6.00-10.0",
+	"GD-III-0.90-T=0.90-1.50", "GD-III-0.50-T=1.50-3.00", "GD-III-0.50-T=3.00-6.00", "GD-III-0.50-T=6.00-10.0",
+
+	"GD-IV-0.65-T=0.65-1.50", "GD-IV-0.65-T=1.50-3.00", "GD-IV-0.65-T=3.00-6.00", "GD-IV-0.65-T=6.00-10.0",
+	"GD-IV-0.85-T=0.85-1.50", "GD-IV-0.85-T=1.50-3.00", "GD-IV-0.85-T=3.00-6.00", "GD-IV-0.85-T=6.00-10.0",
+	"GD-IV-1.05-T=1.05-1.50", "GD-IV-1.05-T=1.50-3.00", "GD-IV-1.05-T=3.00-6.00", "GD-IV-1.05-T=6.00-10.0"
+};
 
 const int g_charlen = 256;
 
@@ -169,16 +189,15 @@ struct WaveDataOne {
 typedef int (__stdcall *DLL_fnReadHeader)(const wchar_t* filename, S_WaveHeader& waveHeader, std::vector<S_WaveIndex>& vecWaveIndex, std::vector<float>& vecTn);
 typedef int (__stdcall *DLL_fnReadAccFromLib)(int idxWave, std::vector<std::vector<float>>& vecTime, std::vector<std::vector<float>>& vecAcc);
 typedef int (__stdcall *DLL_fnReadSpectrumFromLib)(int idxWave, S_SpectrumOne& specOne);
-typedef int (__stdcall *DLL_fnSelectEarthquake)(int, float, int, int, int, const char* , float , float , float , std::vector<int>& , std::vector<int>& );
+//typedef int (__stdcall *DLL_fnSelectEarthquake)(int, float, int, int, int, const char* , float , float , float , std::vector<int>& , std::vector<int>& );
 typedef int (__stdcall *DLL_fnWriteWaveLib)(std::vector<WaveDataOne> &vecData, const wchar_t *filename);
 typedef int (__stdcall *DLL_fnDeleteWave)(const wchar_t* libname, std::vector<int>& vecIdx);
 typedef int (__stdcall *DLL_fnAppendWave)(const wchar_t* libname, float dt, const char* sname, std::vector<std::vector<float>>& vecAcc);
 
-
-typedef int (__stdcall *DLL_SelectEarthquake)(int code, int iScale, float fDamp, int iSI, int iGroup, int iSite, 
-	const char* path, const char* title, 
-	float fBetaMin, float fBetaMax, float fLambdaMin, float fLambdaMax, 
-	std::vector<float> vecEtaMin, std::vector<float> vecEtaMax, 
-	std::vector<float> vecPeriod, 
-	int nOpt1, int nOpt2, std::vector<int> vecOption,
-	std::vector<std::vector<int>>& vecSelectedCombo);
+//typedef int (__stdcall *DLL_SelectEarthquake)(int code, int iScale, float fDamp, int iSI, int iGroup, int iSite, 
+//	const char* path, const char* title, 
+//	float fBetaMin, float fBetaMax, float fLambdaMin, float fLambdaMax, 
+//	std::vector<float> vecEtaMin, std::vector<float> vecEtaMax, 
+//	std::vector<float> vecPeriod, 
+//	int nOpt1, int nOpt2, std::vector<int> vecOption,
+//	std::vector<std::vector<int>>& vecSelectedCombo);

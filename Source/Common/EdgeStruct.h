@@ -35,6 +35,8 @@ public:
 	float fImportRebarArea;  //纵筋配筋面积,是指从PKPM导入的面积=max(构造配筋量, 规范最小配筋量)，用户不可修改。
 	float fImportRebarRatio;  //纵筋配筋率,是指从PKPM导入的面积=max(构造配筋量, 规范最小配筋量)，除以阴影区面积,或者直接导入的配筋率，用户不可修改。
 	float fRebarArea; //实际配筋量（m^2）,接口导入时按fImportRebarArea初始化, 否则为用户修改后数据，用户可交互修改
+	float fVolumeStirrupRatio; //体积配箍率
+	bool bYBZ; //是否约束边缘构件
 
 	int idWall[Sys_Max_Connect_Wall];	//墙体IDM
 	float fAng[Sys_Max_Connect_Wall];   //此点与idPoint构成的射线与X轴夹角，弧度，0-2*PI
@@ -68,6 +70,8 @@ public:
 		fImportRebarRatio=prop.fImportRebarRatio;
 		fImportRebarArea=prop.fImportRebarArea;
 		fRebarArea=prop.fRebarArea;
+		fVolumeStirrupRatio = prop.fVolumeStirrupRatio;   
+		bYBZ = prop.bYBZ;   
 
 		for(int i=0;i<nWalls;i++)
 		{
@@ -79,9 +83,9 @@ public:
 			fStirDiam[i]=prop.fStirDiam[i];
 			nStirL[i]=prop.nStirL[i];
 			nStirW[i]=prop.nStirW[i];
-            nWallBeam[i]=prop.nWallBeam[i];
-		    pWallBeamID[i]=(int *)malloc(nWallBeam[i]*sizeof(int));
-		    memcpy(pWallBeamID[i],prop.pWallBeamID[i],nWallBeam[i]*sizeof(int));
+			nWallBeam[i]=prop.nWallBeam[i];
+			pWallBeamID[i]=(int *)malloc(nWallBeam[i]*sizeof(int));
+			memcpy(pWallBeamID[i],prop.pWallBeamID[i],nWallBeam[i]*sizeof(int));
 
 			idPoint[i]=prop.idPoint[i];   
 			idFarPoint[i]=prop.idFarPoint[i];
@@ -101,6 +105,8 @@ public:
 		fImportRebarArea=0;
 		fImportRebarRatio=0;
 		fRebarArea=0;
+		fVolumeStirrupRatio = 0;
+		bYBZ = FALSE;
 
 		idPillar=-1;
 		fOverlapArea=0;
@@ -200,8 +206,8 @@ public:
 		float X2min;float X2max;float Y2min;float Y2max;float Z2min;float Z2max;
 		sWallLc(){memset(this,0,sizeof(sWallLc));};
 	} *m_pWallc;
-	 void GetWallRebarLayer(int Wallid,int iElmType,int Elmid,double *pThick,int iMaxLayers);
-	 void GetWallRebarLayer(int Wallid,int iElmType,int Elmid,float *pThick,int iMaxLayers);
+	 void GetWallRebarLayer(int Wallid,int iElmType,int Elmid,double *pThick);
+	 void GetWallRebarLayer(int Wallid,int iElmType,int Elmid,float *pThick);
 public:
 	//创建边缘构件，iRebarType--配筋计算方式,fThickPrec--厚度级差，单位：米
 	BOOL CreateConstraint(EDGE_REBAR_AREA_TYPE iRebarType,float fThickPrec,char chMothed=0,float fMinLen=1.0f);  
@@ -267,10 +273,12 @@ public:
 	BOOL Read(CASCFile &fin,int idfPoint,CSectionCollection &cSection,CArray<CBeamStruc,CBeamStruc&> &aBeam,
 		CArray<CLine,CLine&> &aLine,CArray<CVertex,CVertex&>&aVex);
 	BOOL Write(CASCFile &fout,int idfPoint);
+	BOOL Write2020(CASCFile &fout,int idfPoint);
 
 	//设计信息读写
 	BOOL ReadDesignInfo(CASCFile &fin,int idfPoint,CArray<CBeamStruc,CBeamStruc&> &aBeam);
 	BOOL WriteDesignInfo(CASCFile &fout,int idfPoint);
+	BOOL WriteDesignInfo2020(CASCFile &fout,int idfPoint);
 
 private:
 	BOOL AddPointConnect(int idVex1,int idVex2,int idWall); //登记一个墙体信息，加入双向关联关系,计算方向角，记录有效点数，若已存在则返回FALSE
