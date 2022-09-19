@@ -14,7 +14,7 @@ enum SUBSECTION_MAT_TYPE
 enum SECTION_MAT_TYPE
 {
 	//按位组合：bit0—混凝土，bit1-钢筋，bit2-钢材；
-	//名称				                         混凝土	   钢筋	   钢材
+	//名称				                           混凝土	   钢筋	   钢材
 	SECTION_MAT_TYPE_RC=3,		//钢筋混凝土，      √			√
 	SECTION_MAT_TYPE_ST=4,		//型钢，								√
 	SECTION_MAT_TYPE_SRC=7,		//钢骨混凝土，      √			√		√
@@ -124,6 +124,9 @@ enum SECTION_SHAPE
 	PILLAR_ST_L	    		=135,
 	PILLAR_ST_T	    		=136,
 
+	PILLAR_HANLINHAI		=137,	//韩林海
+
+
 	//边缘构件、虚梁、连梁纵筋截面,200-299
 	AUX_REBAR_BOX	=200,		//辅助构件，包括边缘构件,虚梁，连梁纵筋，截面类型为SECTION_MAT_TYPE_REBAR，子截面类型为SUBSECTION_MAT_TYPE_REBAR，但材料只有钢筋
 
@@ -151,8 +154,11 @@ enum SUBSECTION_SHAPE
 	SUBSHAPE_TRAPEZOID  =13,	//梯形
 	SUBSHAPE_L			=14,	//L形
 	SUBSHAPE_T			=15,	//T形
-};
 
+	SUBSHAPE_HANLINHAI_OUTER		=16,	//韩林海外截面  韩林海以材料区分
+	SUBSHAPE_HANLINHAI_INNERSTEEL	=17,	//韩林海内四个钢管截面
+	SUBSHAPE_HANLINHAI_INNERCONC	=18,	//韩林海内四个混凝土，默认为外部的混凝土
+};
 
 //截面边界点
 struct SECTION_POINT
@@ -244,6 +250,24 @@ struct GEO_T	//T形
 	float B,H,D,F;
 };
 
+struct GEO_HANLINHAI_OUTER  //韩林海 外
+{
+	//float B, H, D, d, tc, ca, a, b;    //截面宽度B、高度H、外径D、厚度d、空心外边缘到混凝土外边缘距离外面缘距离tc、钢管外边缘到混凝土外边缘距离 ca
+										//八边形空心边长 a、八边形空心边长b
+	float B, H, D, t, b1, h1, hf1, hf2, tc1, tc2, ac1, ac2, ac3, ac4;
+};
+
+struct GEO_HANLINHAI_INNERSTEEL		//韩林海四个钢管
+{
+	float B, H, D, t, ac1, ac2, ac3, ac4;
+};
+
+struct GEO_HANLINHAI_INNERCONC		//韩林海四个混凝土
+{
+//	float B, H, D, d, ca;
+	float B, H, D, t, ac1, ac2, ac3, ac4;
+};
+
 struct GEO_RECT_VAR //变截面
 {
 	//L"截面宽度(m)",L"截面高度1(m)",L"截面高度2(m)",
@@ -278,5 +302,7 @@ enum PALTESECTION_MAT_TYPE
 	PALTESECTION_MAT_TYPE_SRC=2,		//单层钢板混凝土
 	PALTESECTION_MAT_TYPE_CFT=3,		//双层钢板混凝土
 	PALTESECTION_MAT_TYPE_ST=4,			//纯钢板
+	PALTESECTION_MAT_TYPE_CONCHOLLOW=5,			//双层混凝土
+	PALTESECTION_MAT_TYPE_STHOLLOW=6,			//双层钢板
 };
 

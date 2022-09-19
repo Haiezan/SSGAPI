@@ -258,9 +258,9 @@ public:
 	
 	void Clear(void)
 	{
-		delete[] pBeamIndex; 
-		delete[] pTriIndex;
-		delete[] pQuadIndex;
+		if(pBeamIndex) delete[] pBeamIndex; 
+		if(pTriIndex) delete[] pTriIndex;
+		if(pQuadIndex) delete[] pQuadIndex;
 		pBeamIndex=NULL;
 		pTriIndex=NULL;
 		pQuadIndex=NULL;
@@ -525,7 +525,6 @@ public:
 	}
 
 	BOOL IsValid(void) {return nElms>0?TRUE:FALSE;}
-
 	BOOL ReadOneStepOneBlock(const CString &fname,CF5Header hdr,CF5ElemBlock *pblock,int istep,int iblock);
 	BOOL WriteOneStepOneBlock(const CString &fname,CF5Header hdr,CF5ElemBlock *pblock,int istep,int iblock);
 };

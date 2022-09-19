@@ -3,9 +3,10 @@
 #include "SysPara.h"
 #include "ASCFile.h"
 #include "HeadDefine.h"
+#include "PublicFunc_Cpp.h"
 
 const int SYSTEM_COLOR_NUMBER=35;	//邱海 2017年8月29日
-const int SYSTEM_SIZE_NUMBER=35;	//2016.7.12
+const int SYSTEM_SIZE_NUMBER=36;	//2016.7.12
 
 
 extern "C" _SSG_DLLIMPEXP float GetPrivateProfileFloat(LPCTSTR lpAppName,LPCTSTR lpKeyName,float fDefault,LPCTSTR lpIniFile);
@@ -112,6 +113,7 @@ public:
 			float Sys_LegendType;			//云图填充类型，0-连续，1-离散
 			float Sys_LegendBlocks;			//颜色分级数，缺省12
 			float Sys_BraceDrift;			//斜撑参与计算层间位移角[1-参与，0-不参与]
+			float Sys_LinkDrift;			//一般连接参与计算层间位移角[1-参与，0-不参与]
 			float Sys_TriInsertRatio;		//生成三角网时插入点的最小比例[0.05,0.2]，值越小网格越均匀
 			float Sys_TriInsertLoop;		//生成三角网时插入点的最大循环次数[1,10]，值越大网格越均匀
 			float Sys_SpliteConcavePoly;	//自动拆分凹多边形
@@ -162,7 +164,7 @@ public:
 		*this=para;
 	}
 
-	enum {PRJ_NUMBER=56};	//乔保娟 2015.5.7
+	enum {PRJ_NUMBER=68};	//乔保娟 2015.5.7
 
 	//以下为标准格式，在SSG文件中定义
 	/*0 */CString Prj_Name;						//项目名称
@@ -228,6 +230,20 @@ public:
 	/*53*/int	Prj_IsolatStory;//隔震层位置
 	/*54*/float	Prj_ImportanceCoef;//结构重要性系数
 	/*55*/float	Prj_BearingCoef;//承载力抗震调整系数
+
+	//2021新增参数
+	/*56*/int Prj_CodeType;//规范类型（对应关系：0-国家规范，1-广东省标准）
+	/*57*/int Prj_PerformType;//性能评价标准类型（对应关系：0-默认值，1-倒塌规范，2-RBS，3-广东）
+	/*58*/int Prj_SlabConcLayer;				//缺省的板构件混凝土层数
+	/*59*/float Prj_StructTemper;				   //环境温度
+	/*60*/float Prj_ScaleMassMinLength;
+	/*61*/float Prj_ScaleMassMinTriArea;
+	/*62*/float Prj_ScaleMassMinQuadArea;
+	/*63*/float Prj_ScaleFactor;
+	/*64*/int Prj_bScaleByFactor;   // 未初始化 -1； FALSE 1;  TRUE 0
+	/*65*/BOOL Prj_bScaleSelectedMass;
+	/*66*/float Prj_ScaleMassError;
+	/*67*/BOOL Prj_bScaleMass;
 
 	//定义的剖面或断面
 	CArray<PROFILE_PARA,PROFILE_PARA&> m_aPrj_Profile;
@@ -324,8 +340,19 @@ public:
 		/*52*/Prj_SeisDetailsGrade				=para.Prj_SeisDetailsGrade				;
 		/*53*/Prj_IsolatStory					=para.Prj_IsolatStory;			
 		/*54*/Prj_ImportanceCoef				=para.Prj_ImportanceCoef;			
-		/*55*/Prj_BearingCoef					=para.Prj_BearingCoef;			
-
+		/*55*/Prj_BearingCoef					=para.Prj_BearingCoef;	
+		/*56*/Prj_CodeType						=para.Prj_CodeType;
+		/*57*/Prj_PerformType					=para.Prj_PerformType;
+		/*58*/Prj_SlabConcLayer					=para.Prj_SlabConcLayer;
+		/*59*/Prj_StructTemper					=para.Prj_StructTemper;
+		/*60*/Prj_ScaleMassMinLength            =para.Prj_ScaleMassMinLength;
+		/*61*/Prj_ScaleMassMinTriArea           =para.Prj_ScaleMassMinTriArea;
+		/*62*/Prj_ScaleMassMinQuadArea          =para.Prj_ScaleMassMinQuadArea;
+		/*63*/Prj_ScaleFactor                   =para.Prj_ScaleFactor;
+		/*64*/Prj_bScaleByFactor                =para.Prj_bScaleByFactor;
+		/*65*/Prj_bScaleSelectedMass            =para.Prj_bScaleSelectedMass;
+		/*66*/Prj_ScaleMassError                =para.Prj_ScaleMassError;
+		/*67*/Prj_bScaleMass                    =para.Prj_bScaleMass;
 
 		m_aPrj_Profile.RemoveAll();
 		m_aPrj_Profile.Copy(para.m_aPrj_Profile);
@@ -338,6 +365,7 @@ public:
 	//从SSG文件中读入
 	BOOL Read(const CString &sPrjName);
 	BOOL Write(CFile &fout);
+	BOOL Write2020(CFile &fout);
 };
 
 class _SSG_DLLIMPEXP  CProgramControl
@@ -390,13 +418,58 @@ public:
 
 	struct
 	{
-		int Sys_PerformType;//2为RBS，0为默认，1为倒塌//2019.11.27王丹
+		int Sys_PerformType;//4为非线性规程(应变),3为广东省规程\非线性规程(位移角),2为RBS，0为默认，1为倒塌//2019.11.27王丹
 		CString Sys_PerformGradeNameRBS[5];//2019.11.27王丹
 		COLORREF Sys_PerformGradeColorRBS[5];//2019.11.27王丹
-		int Sys_bPerformDefault;//2020.4.1王丹，判断用户是否为第一次使用程序，不是为1
 	
 		float Sys_RebarSteelStrainRBS[3];//2019.12.30王丹
 		float Sys_DcRBS[3];//2019.12.30王丹
+
+		//广东省规程性能评价、非线性规程（位移角）所需内置参数 2021.1.13王丹
+		float Sys_GDNLBeam020012[6];
+		float Sys_GDNLBeam080012[6];
+		float Sys_GDNLBeam020001[6];
+		float Sys_GDNLBeam080001[6];
+
+		float Sys_GDNLBeamShear050008[6];
+		float Sys_GDNLBeamShear250008[6];
+		float Sys_GDNLBeamShear0500005[6];
+		float Sys_GDNLBeamShear2500005[6];
+
+		float Sys_GDNLPillar010021[6];
+		float Sys_GDNLPillar060021[6];
+		float Sys_GDNLPillar010001[6];
+		float Sys_GDNLPillar060001[6];
+
+		float Sys_GDNLPillarShear0106[6];
+		float Sys_GDNLPillarShear0606[6];
+		float Sys_GDNLPillarShear0110[6];
+		float Sys_GDNLPillarShear0610[6];
+
+		float Sys_GDNLWall010025[6];
+		float Sys_GDNLWall040025[6];
+		float Sys_GDNLWall010004[6];
+		float Sys_GDNLWall040004[6];
+
+		float Sys_GDNLWallShear0105[6];
+		float Sys_GDNLWallShear0305[6];
+		float Sys_GDNLWallShear0120[6];
+		float Sys_GDNLWallShear0320[6];
+
+		//抗倒塌规程所需参数【CECS 392： 2014】
+		CString Sys_PerformGradeNameCollapse[Sys_MaxPerformGrade];
+		float Sys_PerformCollapseConcrete[6];
+		float Sys_PerformCollapseRebar[6];
+
+		//应力标准
+		CString Sys_PerformGradeNameStress[6];
+		float Sys_PerformStressConcrete[6];
+		float Sys_PerformStressRebar[6];
+
+		//非线性规程所需参数
+		CString Sys_PerformGradeNameNonlinear[Sys_MaxPerformGrade];
+		float Sys_PerformNonlinearConcrete[6];
+		float Sys_PerformNonlinearRebar[6];
 
 		int Sys_PerformGradeNum;
 		CString Sys_PerformGradeName[Sys_MaxPerformGrade];
@@ -417,6 +490,12 @@ public:
 		float Sys_WallDamageGradeDefault[Sys_MaxPerformGrade];
 		float Sys_WallDtGradeDefault[Sys_MaxPerformGrade];
 		COLORREF Sys_PerformGradeColorDefault[Sys_MaxPerformGrade];	
+
+		int Sys_DamperPerformGradeNum; //2020.6.4王丹，暂时用不到，为整体性能评价阻尼器部分开发备用
+		
+		float Sys_DamperGradeDefault[6];//2020.7.10王丹
+		float Sys_DamperGrade_n[6];//2020.6.4王丹，暂时用不到，为整体性能评价阻尼器部分开发备用
+		float Sys_DamperGrade_t[6];//2020.6.15王丹，暂时用不到，为整体性能评价阻尼器部分开发备用
 	};
 };
 
@@ -442,7 +521,7 @@ public:
 	};
 };
 
-#define Sys_ComponentNum 188 //分量名称
+#define Sys_ComponentNum 258 //分量名称
 struct _SSG_DLLIMPEXP COMPONENT_COMMENT_TABLE
 {
 	CString sName;				//分量名称

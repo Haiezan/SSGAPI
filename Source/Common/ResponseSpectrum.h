@@ -17,6 +17,15 @@ extern "C" _SSG_DLLIMPEXP float GetEQMainAmp(float fGrade,int iProbability);
 //iMethod -- 超过6秒时的计算方法，0--直接沿用直线下降段公式，1--取6秒时的恒定值
 extern "C" _SSG_DLLIMPEXP float DesignSpectrum(float fAmax,float fTg,float fKsi,float fTerm,int iMethod);
 
+//隔震设计反应谱的计算,返回地震影响系数alfa(长周期采用曲线下降段)  林思齐 20210531
+//输入：
+//fAmax -- 地震影响系数最大值
+//fTg   -- 地震的特征周期(秒)
+//fKsi  -- 阻尼比
+//fTerm -- 周期(秒)
+//iMethod -- 超过6秒时的计算方法，0--直接沿用曲线下降段公式，1--取6秒时的恒定值
+extern "C" _SSG_DLLIMPEXP float DesignSpectrumIso(float fAmax,float fTg,float fKsi,float fTerm,int iMethod);
+
 
 class _SSG_DLLIMPEXP CSpectrum
 {

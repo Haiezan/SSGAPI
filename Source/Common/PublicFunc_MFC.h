@@ -2,19 +2,20 @@
 #include "HeadDefine.h"
 #include "Vector4.h"
 #include <vector>
+#include <string>
 using namespace std;
 
 extern "C" _SSG_DLLIMPEXP BOOL DeleteDirectory(const CString &sDirName); //É¾³ıÎÄ¼ş¼ĞÄ¿Â¼(·Ç¿Õ)
 extern "C" _SSG_DLLIMPEXP BOOL DeleteFiles(const CString &sName);  //É¾³ı¶à¸öÎÄ¼ş£¬²»É¾³ıÄ¿Â¼£¬¿ÉÒÔ²ÉÓÃÆ¥Åä·û*
+extern "C" _SSG_DLLIMPEXP BOOL DeleteFilesExcept(const CString &sName, const CString &sExt);  //É¾³ı¶à¸öÎÄ¼ş£¬²»É¾³ıÄ¿Â¼£¬¿ÉÒÔ²ÉÓÃÆ¥Åä·û*
 
 extern "C" _SSG_DLLIMPEXP BOOL IsDirectoryExists(const CString &path); //Ä¿Â¼ÊÇ·ñ´æÔÚ
 extern "C" _SSG_DLLIMPEXP BOOL IsFileExists(const CString &sFile); //ÎÄ¼şÊÇ·ñ´æÔÚ
-extern "C" _SSG_DLLIMPEXP int  CopyDirectoryFiles(const CString &sourceDir,const CString &destDir);  //¸´ÖÆÄ¿Â¼ÏÂµÄËùÓĞÎÄ¼ş
+extern "C" _SSG_DLLIMPEXP int  CopyDirectoryFiles(const CString &sourceDir,const CString &destDir,BOOL bFailIfExists);  //¸´ÖÆÄ¿Â¼ÏÂµÄËùÓĞÎÄ¼ş
 extern "C" _SSG_DLLIMPEXP BOOL CreateFullDirectory(LPCWSTR lpPathName,LPSECURITY_ATTRIBUTES lpSecurityAttributes);
 //¸´ÖÆÏîÄ¿¸ùÄ¿Â¼ÏÂµÄËùÓĞÎÄ¼ş
 //sPrjPath,sNewPrjPath: °üº¬È«Â·¾¶ºÍÏîÄ¿Ãû£¬²»º¬À©Õ¹Ãû£¬×îºó×Ö·ûÎª"."
 extern "C" _SSG_DLLIMPEXP int CopyPrjFiles(CString sPrjPath, CString sNewPrjPath);
-
 
 
 //×ª»»ÎªÎÄ¼ş¸ñÊ½×Ö·û´®
@@ -60,3 +61,9 @@ extern "C" _SSG_DLLIMPEXP BOOL CompareFile(string file1, string file2);  //±È½ÏÁ
 
 
 extern "C" _SSG_DLLIMPEXP void GetDirectory(const CString &sDirName,vector<CString> &vDirectory);  //µÃµ½ÎÄ¼ş¼ĞÖĞËùÓĞÎÄ¼ş¼Ğ
+
+//extern _SSG_DLLIMPEXP int global_language;
+extern std::wstring global_plugin1[5];
+
+extern _SSG_DLLIMPEXP void SetPlugin(int i, const std::wstring splugin);
+extern _SSG_DLLIMPEXP std::wstring GetPlugin(int i);

@@ -123,6 +123,7 @@ public:
 	}
 	BOOL Read(CASCFile &fin);
 	void Write(CASCFile &fout);
+	void Write2020(CASCFile &fout);
 };
 
 
@@ -154,6 +155,7 @@ public:
 	//数据读写
 	BOOL Read(CASCFile &fin);
 	void Write(CASCFile &fout);
+	void Write2020(CASCFile &fout);
 	//建模警告
 	CString BuildWarning(int iStory,int iType=0);
 	//数据自检
@@ -198,4 +200,5 @@ public:
 	void Clear();
 	void Read(CASCFile &fin);
 	void Write(CASCFile &fout);
+	void Write2020(CASCFile &fout);
 };

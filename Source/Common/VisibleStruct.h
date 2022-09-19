@@ -142,6 +142,7 @@ public:
 
 	BOOL Read(void);
 	BOOL Write(void);
+	BOOL Write2020(void);
 };
 
 

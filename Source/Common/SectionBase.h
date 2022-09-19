@@ -71,7 +71,20 @@ public:
 	static float DrawT(CDC *pdc,float B=0.1f,float H=0.4f,float D=0.4f,float F=0.1f,float maxsize=0.6f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); 
 	static float DrawL(CDC *pdc,float B=0.1f,float H=0.4f,float D=0.2f,float F=0.1f,float maxsize=0.6f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); 
 	static float DrawTrapezoid(CDC *pdc,float B=0.4f,float H=0.8f,float T=0.1f,float F=0.1f,float maxsize=0.8f,BOOL bShowCoorAxis=TRUE,SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC); 
-	static float DrawArbitrary(CDC *pDC, float *fValue, int num, float p2,float p3, float fWidth, float fHeight, float maxsize=1.0f, BOOL bShowCoorAxis=TRUE, SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC);
+	static float DrawArbitrary(CDC *pDC, float *fValue, int num, BOOL clockwise, float p2, float p3, float fWidth, float fHeight, float maxsize=1.0f, BOOL bShowCoorAxis=TRUE, SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC);
+
+	static float DrawHanOuter(CDC *pDC, float B=2.0f, float H=2.0f, float D=0.4f, float t=0.08f,
+		float b1=0.4f, float h1=0.4f, float hf1=0.15f, float hf2=0.15f,
+		float tc1=0.15f, float tc2=0.15f, float ac1=0.04f, float ac2=0.04f, float ac3=0.04f, float ac4=0.04f,
+		float maxsize=0.8f,BOOL bShowCoorAxis=TRUE, SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC);
+
+	static float DrawHanInnerConc(CDC *pDC, float B=2.0f, float H=2.0f, float D=0.4f, float t=0.08f,
+		float ac1=0.04f, float ac2=0.04f, float ac3=0.04f, float ac4=0.04f,
+		float maxsize=0.8f,BOOL bShowCoorAxis=TRUE, SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC);
+
+	static float DrawHanInnerPipe(CDC *pDC, float B=2.0f, float H=2.0f, float D=0.4f, float t=0.08f,
+		float ac1=0.04f, float ac2=0.04f, float ac3=0.04f, float ac4=0.04f,
+		float maxsize=0.8f,BOOL bShowCoorAxis=TRUE, SUBSECTION_MAT_TYPE iMatType=SUBSECTION_MAT_TYPE_CONC);
 
 	//绘制标注线和标注符号,x1,y1,x2,y2--首末点逻辑坐标,str-字符串,为空时只画线
 	//Pos=文字位置，0-线间，1-右端，2-左端

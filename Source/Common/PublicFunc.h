@@ -71,6 +71,8 @@ public:
 	//打印千位符,返回buf地址，buf须事先创建
 	static char *FormatK(char *buf,unsigned int len, __int64 d);
 	static int GetLegendGrade(float v,int nGrade,float* fGrade);
+	static int GetLegendGradeCollapseDc(float v, int nGrade, float *fGrade);
+	static float GetLegendGradeGDNL(float v, int nGrade, int nGroup, float *fGrade1, float ntime = 1.0f, float *fGrade2 = NULL,  float limit_result0 = 0.0f,float *fGrade3 = NULL, float *fGrade4 = NULL, float limit_result1 = 0.0f);
 
 	//由物理值计算标准颜色：fmin对应(0,0,255)，中值对应(0,255,0)，fmax对应(255,0,0)，之间线性插值
 	static COLORREF GetColor(float v,float fMin,float fMax,BOOL bRedOnly);
@@ -165,5 +167,5 @@ public:
 
 void LastErrorMessage_Debug(LPTSTR lpszFunction);  //获取并显示最后的错误
 
-extern "C" _SSG_DLLIMPEXP  char* _CHS(const char* chs, const char* eng="");
-extern "C" _SSG_DLLIMPEXP  wchar_t* _CHSL(const wchar_t* chs, const wchar_t* eng=L"");
+//extern "C" _SSG_DLLIMPEXP  char* _CHS(const char* chs, const char* eng="");
+//extern "C" _SSG_DLLIMPEXP  wchar_t* _CHSL(const wchar_t* chs, const wchar_t* eng=L"");

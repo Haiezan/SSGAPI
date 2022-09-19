@@ -13,6 +13,21 @@
 #include "GeneralLoad.h"
 #include "Load.h"
 #include "WindLoad.h"
+#include "NonISOModel.h"
+#include "RSfunction.h"
+#include "RSLoadCase.h"
+#include "StaticLoadCase.h"
+
+#include "DataSolidStruc.h"
+
+#define ID_TEST_FUNC1					60001
+#define ID_TEST_FUNC2					60002
+#define ID_TEST_FUNC3					60003
+#define ID_PLUGIN_FUNC1					60004
+#define ID_PLUGIN_FUNC2					60005
+#define ID_PLUGIN_FUNC3					60006
+#define ID_PLUGIN_FUNC4					60007
+#define ID_PLUGIN_FUNC5					60008
 
 //延长线交点类型
 enum EXT_TYPE
@@ -45,23 +60,30 @@ public:
 
 public:
 	float m_fVer;  //版本号,合法值1.1,2.0，此版本号为读入的数据文件版本号，写出文件后将被改变
+	float m_fExeVer; //2021版630临时判断版本
 
 	//几何数据
 	CArray<CVertex,CVertex&> m_aVex;   //点数组,所有框架图元顶点共用该数组，包括线条、多边形面、轴网、辅助线
 	CArray<CLine,CLine&>  m_aLine;     //结构线数组
 
 	//结构数据
-	CArray<CBeamStruc,CBeamStruc&>  m_aBeam;    //梁和柱数组
-	CArray<CLine,CLine&> m_aGuides; //辅助线数组
-	CArray<CPlateStruc,CPlateStruc&> m_aPlate; //板和墙数组，存储楼板、墙面结构
-	
-	CSectionCollection m_cSection; //截面信息
-	CDamperSectionCollection m_cDamperSection; //一般连接截面信息	//乔保娟 2015.5.19
-	CDamperGroupSecCollection  m_cDamperGroupSec;//减震构件组  邱海 2016年10月27日
-	CPlateSectionCollection m_cPlateSection; //面构件截面信息
-	CMaterialCollection m_cMaterial; //材料信息
-	CEdgeStrucCollection m_cEdgeCollection; //边缘构件信息,为了显示边缘构件的墙构成关系用
-	CBoundaryCollection m_cBoundary;  //边界条件信息
+	CArray<CBeamStruc,CBeamStruc&>  m_aBeam;    //梁和柱和斜撑的数组
+	CArray<CLine,CLine&> m_aGuides;				//辅助线数组
+	CArray<CPlateStruc,CPlateStruc&> m_aPlate;	//板和墙数组，存储楼板、墙面结构
+
+	//Sigma 1.0
+	std::vector<CSolidStruc> m_vSolid;				//实体
+
+	CSectionCollection m_cSection;					//截面信息
+	CDamperSectionCollection m_cDamperSection;		//一般连接截面信息	//乔保娟 2015.5.19
+	CDamperGroupSecCollection  m_cDamperGroupSec;	//减震构件组  邱海 2016年10月27日
+	CPlateSectionCollection m_cPlateSection;		//面构件截面信息
+	CMaterialCollection m_cMaterial;				//材料信息
+	//临时使用：tendon使用及添加vector
+	vector<int> m_cMaterialTendon;
+	CEdgeStrucCollection m_cEdgeCollection;			//边缘构件信息,为了显示边缘构件的墙构成关系用
+	CBoundaryCollection m_cBoundary;				//边界条件信息
+	CNonISOModel m_cNonISOModel;					//非隔震模型参数
 
 	//分组信息
 	CStageCollection m_cStage;   //分步模型信息，将模型按照建设过程分成若干部分，逐次提交计算
@@ -78,17 +100,20 @@ public:
 	BOOL m_bAntiBeamPillarAsOne;
 	BOOL m_bAlongBraceAsOne;
 
+	//分析控制参数
+	BOOL m_bScaleIrrMass;
+	BOOL m_bScaleSelectedMass;
+	BOOL m_bScaleIrrByFactor;
+
+	float m_fScaleFactor;	//暂时没存
+	float m_fMinTriAngle;	//没用
+	float m_fMinQuadAngle;	//没用
+	float m_fMinLength;
+	float m_fMinTriArea;
+	float m_fMinQuadArea;
+
 	//项目通用参数
 	CString m_sCurCase;  //当前工况(组合)名称
-
-	//竖向载荷工况信息
-	//int m_nStaticLoadCase;	//工况数量
-	//struct LOAD_CASE
-	//{
-	//	int id;				//编号
-	//	CString name;		//工况关键字
-	//	BOOL bSelfWeight;	//是否计入自重
-	//}m_cGenLoadCase[2];
 
 	//刚性隔板信息
 	int m_nRigidBody;	//隔板数
@@ -130,7 +155,8 @@ public:
 	int				m_nLancSteps;		////lanczos过程的迭代步数;500
 	BOOL	  		m_bEvalVec;     //是否计算特征向量;false
 	BOOL			m_bFilterLocal;		//地震作用方向
-
+	BOOL      m_bCalcuNonIso;//隐式分析同时计算非隔震模型 V2021
+	BOOL        m_bCalSubStru; //  隐式分析同时计算层间隔震结构下部结构  用于复模态分析组装非比例阻尼矩阵  林思齐 20210602
 	//整体缺陷
 	float m_fOverallImperfect;	//缺陷最大值
 	float m_fImperfectAngle;//缺陷角度
@@ -140,7 +166,11 @@ public:
 	CLoadCollection m_cLoad; //荷载工况组合集合
 	CLoadCollection m_cLoadDesign; //荷载工况组合集合,用于设计
 	CLoadCollection m_cLoadStatic; //非线性静力分析
+	CLoadCollection m_cLoadElastic; //等效弹性分析
+	//CLoadCollection m_cLoadGenTH; //通用时程分析
+	//CLoadCollection m_cLoadPush; //显式静力推覆
 	CWaveCollection m_cWave; //荷已选地震波集合
+	CFunctionCollection m_cFunc;//时程函数
 	//CLoadSet m_cLoadSet;//荷载集合
 
 	int   nModalDamage;       //进行实时模态分析的次数 //乔保娟2015.12.25
@@ -151,19 +181,37 @@ public:
 	float fDisStep,fForceStep,fGroupStep;
 
 
-	CGeneralCollection m_cGenLoad; //荷载工况集合:1恒1活1风1地震n*自定义
-	int m_nComb;
-	//float m_fLoadCaseComb[Sys_MaxLoadcaseComb][Sys_MaxLoadcase]; //荷载组合
+	CGeneralCollection m_cGenLoad; //荷载工况集合:1恒1活1风1地震
+
+	//2020年11月6日 静力荷载工况及工况组合
+	CStaticLoadCaseCollection m_cStaticLoad;
+	CDynamicLoadCaseCollection m_cDynaLoad;
+	CLoadCaseCombCollection m_cLoadComb;
 
 	CWindCollection m_cWindLoad; //风荷载工况集合
+	CRSFunctionCollection m_cRSFunction;
+	CRSLoadCaseCollection m_cRSLoadCase;
 
 	//屈曲分析
 	UINT m_nBucklingModes;		//振型数
 	BOOL m_bBucklingOverallDefect;
-	BOOL m_bBucklingMemberDefect;	
-	//float m_fBucklingLoad[Sys_MaxLoadcase]; //荷载组合
+	BOOL m_bBucklingMemberDefect;
 
-
+	// 复模态分析控制参数  林思齐 20210526
+	BOOL m_bParaInput;
+	BOOL m_bParaIter;
+	BOOL m_bParaTHA;
+	BOOL m_bDireComb;
+	int  m_iCModeNum;
+	int m_iCalcMethod;
+	int m_iDampType;
+	float m_fPeriodGround;
+	float m_fAlphaMax;
+	float m_fStruDampRatio;
+	vector<CString> m_vSpectCase;
+	int m_iAngleNum;
+	vector<float> m_vAngle;
+	int m_iCaseNum;
 	//其它控制参数
 
 	//按位控制参数
@@ -219,10 +267,13 @@ public:
 	int m_nBeam,m_nPillar,m_nBrace,m_nEdge;
 	int m_nLink;	//乔保娟 2015.5.19
 	int m_nPlate,m_nWallCol,m_nWallBeam;
-	int m_nTowers; //分塔数=最大塔号+1，要求塔号连续
 	
-public:
+	int m_nTowers; //分塔数=最大塔号+1，要求塔号连续
 
+	int m_nSolid;	//sigma 1.0实体
+	bool AddSolidByFaceVertex(const int *vex, int nvex, const int *face, int nface, int iStory, const CStory *pStory);
+	bool AddSolid(CSolidStruc &newsolid, int *nNewSolid = NULL, int *pNewSolidID = NULL);
+public:
 	////////////////基础函数////////////////
 
 	CFrame & operator=(const CFrame &frame);
@@ -244,6 +295,14 @@ public:
 	BOOL IsVersion2019() {return (m_fVer>2019.0f-0.01f&&m_fVer<2019.0f+0.01f);}
 	BOOL IsVersionBigEqual2020() {return (m_fVer>2020.0f-0.01f);} 
 	BOOL IsVersionBigEqual20202() {return (m_fVer>2020.2f-0.01f);} 
+	BOOL IsVersionBigEqual20203() {return (m_fVer>2020.3f-0.01f);} 
+	BOOL IsVersionBigEqual20204() {return (m_fVer>2020.4f-0.01f);} 
+	BOOL IsVersionBigEqual20205(){return (m_fVer > 2020.5f - 0.01f);}
+	BOOL IsVersionBigEqual20206(){return (m_fVer > 2020.6f - 0.01f);}
+	BOOL IsVersionBigEqual20207(){return (m_fVer > 2020.7f - 0.01f);}
+	BOOL IsVersionBigEqual2021(){return (m_fVer > 2021.0f - 0.01f);}
+	BOOL IsVersionBigEqual2022630(){return m_fExeVer > 2022.0f - 0.01f;}
+	BOOL IsVersionBigEqual2022(){return m_fVer > 2022.0f - 0.01f;}
 	////////////////建模函数////////////////
 
 	//增加线段,计算与交叉点和分割线
@@ -291,7 +350,7 @@ public:
 	void MergeVertex(int discard_vex,int reserve_vex); //将旧点与新点合并，保留新点，完成点编号替换，处理拓扑关系的变化，处理退化的线和面、以及相关构件
 	void SpliteBeam(int nSel,const int *pSelNames, int nSegments);  //对所选线构件拆分，用到选择集
 
-	
+	BOOL MergeCoinVertex(float fError = g_cSysSizePara.Sys_PointError); //有合并返回TRUE
 
 	void RearrangeID();  //清理无效图元	
 	void RearrangeBeam(); //需要重新整理线构件顺序：梁(包括虚梁、纵筋)---柱---撑---边缘构件
@@ -341,7 +400,7 @@ public:
 	float BeamLength(CBeamStruc &beam);  //计算线构件长度
 	float PlateArea(int id);   //计算面构件面积
 	float PlateArea(CPlateStruc &plate);   //计算面构件面积
-	float GetMinMax(CVertex &MinCoor,CVertex &MaxCoor); //返回外包直径
+	float GetMinMax(Vector4 &MinCoor,Vector4 &MaxCoor); //返回外包直径
 	//搜索面构件坐标范围，返回最小楼层号
 	int GetPlateMinMax(int plateid,CVertex &MinCoor,CVertex &MaxCoor);
 	int GetPlateMinMax(CPlateStruc &plate,CVertex &MinCoor,CVertex &MaxCoor);
@@ -421,7 +480,11 @@ public:
 
 	BOOL Read(CString fname,CProjectPara cPrjPara,BOOL bOnlyModel=FALSE);
 	BOOL Write(void);
+	BOOL Write2020(void);
+protected:
+	
 
+public:
 	BOOL MergeSSG(CString fname, float dx, float dy, float dz, float angle);
 
 	//按照约定规则改变线段方向，水平线向右为正，竖向线向上为正，返回：TRUE-修改，FALSE-未修改
@@ -455,7 +518,7 @@ public:
 	LINE_CROSS_POLY LineCrossPolygon3D(int lineid, int idPlate,int *nNewPlate=NULL,int *pNewPlateID=NULL);
 
 	//给定首末点以及目标线段，返回延长线交点与末点的距离（负值表示交点在延长线的相反方向），交点坐标放在ext_point中
-	float GetExtendCrossPoint(const CVertex &start_point,const CVertex &end_point,const CLine &line,CVertex &ext_point,EXT_TYPE &iType);
+	float GetExtendCrossPoint(const CVertex &start_point,const CVertex &end_point,const CLine &line,Vector4 &ext_point,EXT_TYPE &iType);
 
 
 	//根据构件信息计算点和线的阶段、塔号、楼层
@@ -470,5 +533,28 @@ public:
 	//用阶段数据更新构件的阶段号，设置阶段和读入数据时使用
 	void UpdateStage(int nStory);
 
+	//根据地震动信息更新工况对应地震动信息
+	BOOL UpdateLoadCaseWaveData(CArray<int,int> &aRunCase,CLoadCollection &cLoads,bool bCheckWave=false);
+
+	//根据Static名称得到对应的Id号
+	int GetStaticCaseIdByName(CString sName);
+	//根据Static类型得到类型名称
+	CString GetStaticCaseTypeName(STCASE_TYPE nType);
+	//根据Static类型名称得到类型
+	STCASE_TYPE GetStaticCaseType(CString sName);
+	//计算动力荷载工况总时长
+	float GetDynamicCaseAllTime(int iDynaCase);
+	//根据Dynamic名称得到对应的Id号
+	int GetDynamicCaseIdByName(CString sName);
+	//根据Function名称得到对应的Id号
+	int GetFunctionIdByName(CString sName);
+	//删除重编静力荷载工况
+	void ReorderStaticLoadCase(int *pMap);
+	//删除重编动力荷载工况
+	void ReorderDynaLoadCase(int *pMap);
+	//检查网格与几何模型是否对应
+	void CheckMesh() const;
+	//点共线
+	bool IsVertexColline(const CVertex &va, const CVertex &vb, const CVertex &v);
 };
 

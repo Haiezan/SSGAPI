@@ -176,9 +176,6 @@
     <ClCompile Include="ReadSSGDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="..\Common\MatPara.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="DlgReadDispRatio.cpp">
       <Filter>源文件</Filter>
     </ClCompile>

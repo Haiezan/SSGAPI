@@ -13,9 +13,9 @@
 
 //预定义的截面形状个数
 //去掉任意截面BEAM_ARBITRARY、PILLAR_ARBITRARY和变截面梁和柱BEAM_RC_VAR、PILLAR_RC_VAR
-#define gSectionShapeNum 72  //71   
+#define gSectionShapeNum 73 // 2021/12/21 修改增加韩林海 72  //71
 
-#define Sys_SubSectionShapeNum 16 //预定义的子截面形状个数
+#define Sys_SubSectionShapeNum 19 //16 //预定义的子截面形状个数
 
 //计算矩形截面的扭转惯性矩J1，自动判断B,H大小
 extern "C" _SSG_DLLIMPEXP float J1_Rect(float B,float H);
@@ -84,27 +84,27 @@ static SECTION_SHAPE_PROP_TABLE gSectionShapeTable[gSectionShapeNum]=
 
 	BEAM_RC_RECT		,	L"混凝土梁",SECTION_MAT_TYPE_RC,				SUBSHAPE_RECT,		SUBSHAPE_UNKNOWN,	
 	BEAM_ST_BOX			,	L"方钢管梁",SECTION_MAT_TYPE_ST,				SUBSHAPE_BOX,		SUBSHAPE_UNKNOWN,	
-	BEAM_ST_I			,	L"工字型钢梁",SECTION_MAT_TYPE_ST,			SUBSHAPE_I,			SUBSHAPE_UNKNOWN,
-	BEAM_CFT_BOX_RECT	,	L"方钢管混凝土梁",SECTION_MAT_TYPE_CFT,		SUBSHAPE_BOX,		SUBSHAPE_RECT,
+	BEAM_ST_I			,	L"工字型钢梁",SECTION_MAT_TYPE_ST,				SUBSHAPE_I,			SUBSHAPE_UNKNOWN,
+	BEAM_CFT_BOX_RECT	,	L"方钢管混凝土梁",SECTION_MAT_TYPE_CFT,			SUBSHAPE_BOX,		SUBSHAPE_RECT,
 	BEAM_SRC_RECT_I		,	L"工字型-钢骨混凝土梁",SECTION_MAT_TYPE_SRC,	SUBSHAPE_RECT,		SUBSHAPE_I,
-	BEAM_RC_CRISS		,	L"十字型混凝土梁",SECTION_MAT_TYPE_RC,		SUBSHAPE_CRISS,		SUBSHAPE_UNKNOWN,
+	BEAM_RC_CRISS		,	L"十字型混凝土梁",SECTION_MAT_TYPE_RC,			SUBSHAPE_CRISS,		SUBSHAPE_UNKNOWN,
 	
-	BEAM_RC_I			,	L"工字型混凝土梁",SECTION_MAT_TYPE_RC,		SUBSHAPE_I,			SUBSHAPE_UNKNOWN,
+	BEAM_RC_I			,	L"工字型混凝土梁",SECTION_MAT_TYPE_RC,			SUBSHAPE_I,			SUBSHAPE_UNKNOWN,
 	BEAM_RC_CIRC		,	L"圆形混凝土梁",SECTION_MAT_TYPE_RC,			SUBSHAPE_CIRC,		SUBSHAPE_UNKNOWN,
 	BEAM_RC_REGPOLY		,	L"正多边形混凝土梁",SECTION_MAT_TYPE_RC,		SUBSHAPE_REGPOLY,	SUBSHAPE_UNKNOWN,
 	BEAM_RC_CHANNEL		,	L"槽型混凝土梁",SECTION_MAT_TYPE_RC,			SUBSHAPE_CHANNEL,	SUBSHAPE_UNKNOWN,
-	BEAM_RC_BOX			,	L"矩形管混凝土梁",SECTION_MAT_TYPE_RC,		SUBSHAPE_BOX,		SUBSHAPE_UNKNOWN,
-	BEAM_RC_DBLCHANNEL	,	L"双槽型混凝土梁",SECTION_MAT_TYPE_RC,		SUBSHAPE_DBLCHANNEL,SUBSHAPE_UNKNOWN,
+	BEAM_RC_BOX			,	L"矩形管混凝土梁",SECTION_MAT_TYPE_RC,			SUBSHAPE_BOX,		SUBSHAPE_UNKNOWN,
+	BEAM_RC_DBLCHANNEL	,	L"双槽型混凝土梁",SECTION_MAT_TYPE_RC,			SUBSHAPE_DBLCHANNEL,SUBSHAPE_UNKNOWN,
 	BEAM_RC_CROSS		,	L"十字工型混凝土梁",SECTION_MAT_TYPE_RC,		SUBSHAPE_CROSS,		SUBSHAPE_UNKNOWN,
 	BEAM_RC_TRAP		,	L"梯形混凝土梁",SECTION_MAT_TYPE_RC,			SUBSHAPE_TRAPEZOID,	SUBSHAPE_UNKNOWN,
 
-	BEAM_CFT_PIPE_CIRC	,	L"圆钢管混凝土梁",SECTION_MAT_TYPE_CFT,		SUBSHAPE_PIPE,		SUBSHAPE_CIRC,
+	BEAM_CFT_PIPE_CIRC	,	L"圆钢管混凝土梁",SECTION_MAT_TYPE_CFT,			SUBSHAPE_PIPE,		SUBSHAPE_CIRC,
 
 	BEAM_SRC_RECT_BOX	,	L"方钢管-钢骨混凝土方梁",SECTION_MAT_TYPE_SRC,	SUBSHAPE_RECT,		SUBSHAPE_BOX,
 	BEAM_SRC_RECT_CROSS	,	L"十字工型-钢骨混凝土方梁",SECTION_MAT_TYPE_SRC,SUBSHAPE_RECT,		SUBSHAPE_CROSS,
 
 	//BEAM_RC_VAR		,	L"变截面混凝土方梁",SECTION_MAT_TYPE_RC,
-	BEAM_RC_L			,	L"L型混凝土梁",SECTION_MAT_TYPE_RC,			SUBSHAPE_L,			SUBSHAPE_UNKNOWN,
+	BEAM_RC_L			,	L"L型混凝土梁",SECTION_MAT_TYPE_RC,				SUBSHAPE_L,			SUBSHAPE_UNKNOWN,
 
 	BEAM_SRC_RECT_PIPE	,	L"圆型钢管-钢骨混凝土方梁",SECTION_MAT_TYPE_SRC,SUBSHAPE_RECT,		SUBSHAPE_PIPE,
 
@@ -112,66 +112,68 @@ static SECTION_SHAPE_PROP_TABLE gSectionShapeTable[gSectionShapeNum]=
 	BEAM_SRC_CIRC_PIPE	,	L"圆钢管-钢骨混凝土圆梁",SECTION_MAT_TYPE_SRC,	SUBSHAPE_CIRC,		SUBSHAPE_PIPE,
 	BEAM_SRC_CIRC_CROSS	,	L"十字工型-钢骨混凝土圆梁",SECTION_MAT_TYPE_SRC,SUBSHAPE_CIRC,		SUBSHAPE_CROSS,
 
-	BEAM_RC_T			,	L"T型混凝土梁",SECTION_MAT_TYPE_RC,			SUBSHAPE_T,			SUBSHAPE_UNKNOWN,
+	BEAM_RC_T			,	L"T型混凝土梁",SECTION_MAT_TYPE_RC,				SUBSHAPE_T,			SUBSHAPE_UNKNOWN,
 	BEAM_RC_PIPE		,	L"混凝土圆管梁",SECTION_MAT_TYPE_RC,			SUBSHAPE_PIPE,		SUBSHAPE_UNKNOWN,
 	BEAM_ST_PIPE		,	L"圆钢管梁",SECTION_MAT_TYPE_ST,				SUBSHAPE_PIPE,		SUBSHAPE_UNKNOWN,
 	BEAM_ST_RECT		,	L"矩形钢梁",SECTION_MAT_TYPE_ST,				SUBSHAPE_RECT,		SUBSHAPE_UNKNOWN,  //乔保娟 2015.5.5
 	BEAM_ST_CIRC		,	L"圆形钢梁",SECTION_MAT_TYPE_ST,				SUBSHAPE_CIRC,		SUBSHAPE_UNKNOWN,  //乔保娟 2015.5.5
 
 	BEAM_ST_CROSS	    ,	L"十字工型钢梁",SECTION_MAT_TYPE_ST,			SUBSHAPE_CROSS,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
-	BEAM_ST_CRISS	    ,	L"十字型钢梁",SECTION_MAT_TYPE_ST,			SUBSHAPE_CRISS,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
+	BEAM_ST_CRISS	    ,	L"十字型钢梁",SECTION_MAT_TYPE_ST,				SUBSHAPE_CRISS,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
 	BEAM_ST_REGPOLY		,	L"正多边形钢梁",SECTION_MAT_TYPE_ST,			SUBSHAPE_REGPOLY,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
 	BEAM_ST_CHANNEL		,	L"槽型钢梁",SECTION_MAT_TYPE_ST,				SUBSHAPE_CHANNEL,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
-	BEAM_ST_DBLCHANNEL	,	L"双槽型钢梁",SECTION_MAT_TYPE_ST,			SUBSHAPE_DBLCHANNEL,	SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
+	BEAM_ST_DBLCHANNEL	,	L"双槽型钢梁",SECTION_MAT_TYPE_ST,				SUBSHAPE_DBLCHANNEL,	SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
 	BEAM_ST_TRAP	    ,	L"梯形钢梁",SECTION_MAT_TYPE_ST,				SUBSHAPE_TRAPEZOID,	SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
-	BEAM_ST_L			,	L"L型钢梁",SECTION_MAT_TYPE_ST,				SUBSHAPE_L,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6	
-	BEAM_ST_T			,	L"T型钢梁",SECTION_MAT_TYPE_ST,				SUBSHAPE_T,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
-
+	BEAM_ST_L			,	L"L型钢梁",SECTION_MAT_TYPE_ST,					SUBSHAPE_L,			SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6	
+	BEAM_ST_T			,	L"T型钢梁",SECTION_MAT_TYPE_ST,					SUBSHAPE_T,			SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
+//以上36个
 
 //柱截面,100-199
-	PILLAR_RC_RECT		,	L"混凝土方柱",SECTION_MAT_TYPE_RC,			SUBSHAPE_RECT,		SUBSHAPE_UNKNOWN,
-	PILLAR_RC_CIRC		,	L"混凝土圆柱",SECTION_MAT_TYPE_RC,			SUBSHAPE_CIRC,		SUBSHAPE_UNKNOWN,
+	PILLAR_RC_RECT		,	L"混凝土方柱",SECTION_MAT_TYPE_RC,				SUBSHAPE_RECT,		SUBSHAPE_UNKNOWN,
+	PILLAR_RC_CIRC		,	L"混凝土圆柱",SECTION_MAT_TYPE_RC,				SUBSHAPE_CIRC,		SUBSHAPE_UNKNOWN,
 
 	PILLAR_ST_BOX		,	L"方钢管柱",SECTION_MAT_TYPE_ST,				SUBSHAPE_BOX,		SUBSHAPE_UNKNOWN,
 	PILLAR_ST_PIPE		,	L"圆钢管柱",SECTION_MAT_TYPE_ST,				SUBSHAPE_PIPE,		SUBSHAPE_UNKNOWN,
-	PILLAR_ST_I			,	L"工字型钢柱",SECTION_MAT_TYPE_ST,			SUBSHAPE_I,			SUBSHAPE_UNKNOWN,
+	PILLAR_ST_I			,	L"工字型钢柱",SECTION_MAT_TYPE_ST,				SUBSHAPE_I,			SUBSHAPE_UNKNOWN,
 	PILLAR_ST_CROSS		,	L"十字工型钢柱",SECTION_MAT_TYPE_ST,			SUBSHAPE_CROSS,		SUBSHAPE_UNKNOWN,
 
-	PILLAR_CFT_BOX_RECT ,	L"方钢管混凝土柱",SECTION_MAT_TYPE_CFT,		SUBSHAPE_BOX,		SUBSHAPE_RECT,
-	PILLAR_CFT_PIPE_CIRC,	L"圆钢管混凝土柱",SECTION_MAT_TYPE_CFT,		SUBSHAPE_PIPE,		SUBSHAPE_CIRC,
+	PILLAR_CFT_BOX_RECT ,	L"方钢管混凝土柱",SECTION_MAT_TYPE_CFT,			SUBSHAPE_BOX,		SUBSHAPE_RECT,
+	PILLAR_CFT_PIPE_CIRC,	L"圆钢管混凝土柱",SECTION_MAT_TYPE_CFT,			SUBSHAPE_PIPE,		SUBSHAPE_CIRC,
 
 	PILLAR_SRC_RECT_BOX		,L"方钢管-钢骨混凝土柱",SECTION_MAT_TYPE_SRC,	SUBSHAPE_RECT,		SUBSHAPE_BOX,
-	PILLAR_SRC_RECT_I		,L"工字型-钢骨混凝土方柱",SECTION_MAT_TYPE_SRC,SUBSHAPE_RECT,		SUBSHAPE_I,
+	PILLAR_SRC_RECT_I		,L"工字型-钢骨混凝土方柱",SECTION_MAT_TYPE_SRC,	SUBSHAPE_RECT,		SUBSHAPE_I,
 	PILLAR_SRC_RECT_CROSS	,L"十字工型-钢骨混凝土方柱",SECTION_MAT_TYPE_SRC,SUBSHAPE_RECT,		SUBSHAPE_CROSS,
 
 	PILLAR_SRC_CIRC_PIPE,	L"圆钢管-钢骨混凝土柱",SECTION_MAT_TYPE_SRC,	SUBSHAPE_CIRC,		SUBSHAPE_PIPE,
 	PILLAR_SRC_CIRC_I	,	L"工字型-钢骨混凝土圆柱",SECTION_MAT_TYPE_SRC,	SUBSHAPE_CIRC,		SUBSHAPE_I,
 	PILLAR_SRC_CIRC_CROSS,	L"十字工型-钢骨混凝土圆柱",SECTION_MAT_TYPE_SRC,SUBSHAPE_CIRC,		SUBSHAPE_CROSS,
-	PILLAR_RC_CRISS	    ,	L"十字型混凝土柱",SECTION_MAT_TYPE_RC,		SUBSHAPE_CRISS,		SUBSHAPE_UNKNOWN,
+	PILLAR_RC_CRISS	    ,	L"十字型混凝土柱",SECTION_MAT_TYPE_RC,			SUBSHAPE_CRISS,		SUBSHAPE_UNKNOWN,
 
-	PILLAR_RC_I			,	L"工字型混凝土柱",SECTION_MAT_TYPE_RC,		SUBSHAPE_I,			SUBSHAPE_UNKNOWN,
+	PILLAR_RC_I			,	L"工字型混凝土柱",SECTION_MAT_TYPE_RC,			SUBSHAPE_I,			SUBSHAPE_UNKNOWN,
 	PILLAR_RC_REGPOLY	,	L"正多边形混凝土柱",SECTION_MAT_TYPE_RC,		SUBSHAPE_REGPOLY,	SUBSHAPE_UNKNOWN,
 	PILLAR_RC_CHANNEL	,	L"槽型混凝土柱",SECTION_MAT_TYPE_RC,			SUBSHAPE_CHANNEL,	SUBSHAPE_UNKNOWN,
-	PILLAR_RC_BOX		,	L"矩形管混凝土柱",SECTION_MAT_TYPE_RC,		SUBSHAPE_BOX,		SUBSHAPE_UNKNOWN,
-	PILLAR_RC_DBLCHANNEL,	L"双槽型混凝土柱",SECTION_MAT_TYPE_RC,		SUBSHAPE_DBLCHANNEL,SUBSHAPE_UNKNOWN,
+	PILLAR_RC_BOX		,	L"矩形管混凝土柱",SECTION_MAT_TYPE_RC,			SUBSHAPE_BOX,		SUBSHAPE_UNKNOWN,
+	PILLAR_RC_DBLCHANNEL,	L"双槽型混凝土柱",SECTION_MAT_TYPE_RC,			SUBSHAPE_DBLCHANNEL,SUBSHAPE_UNKNOWN,
 	PILLAR_RC_CROSS		,	L"十字工型混凝土柱",SECTION_MAT_TYPE_RC,		SUBSHAPE_CROSS,		SUBSHAPE_UNKNOWN,
 	PILLAR_RC_TRAP		,	L"梯形混凝土柱",SECTION_MAT_TYPE_RC,			SUBSHAPE_TRAPEZOID,	SUBSHAPE_UNKNOWN,
 
 	//PILLAR_RC_VAR		,	L"变截面混凝土方柱",SECTION_MAT_TYPE_RC,
-	PILLAR_RC_L			,	L"L型混凝土柱",SECTION_MAT_TYPE_RC,			SUBSHAPE_L,			SUBSHAPE_UNKNOWN,
+	PILLAR_RC_L			,	L"L型混凝土柱",SECTION_MAT_TYPE_RC,				SUBSHAPE_L,			SUBSHAPE_UNKNOWN,
 	PILLAR_RC_PIPE		,	L"混凝土圆管柱",SECTION_MAT_TYPE_RC,			SUBSHAPE_PIPE,		SUBSHAPE_UNKNOWN,
-	PILLAR_SRC_RECT_PIPE,		L"圆钢管-钢骨混凝土方柱",SECTION_MAT_TYPE_SRC,	SUBSHAPE_RECT,		SUBSHAPE_PIPE,
-	PILLAR_RC_T			,	L"T型混凝土柱",SECTION_MAT_TYPE_RC,			SUBSHAPE_T,			SUBSHAPE_UNKNOWN,  //乔保娟 2015.5.5
+	PILLAR_SRC_RECT_PIPE,	L"圆钢管-钢骨混凝土方柱",SECTION_MAT_TYPE_SRC,	SUBSHAPE_RECT,		SUBSHAPE_PIPE,
+	PILLAR_RC_T			,	L"T型混凝土柱",SECTION_MAT_TYPE_RC,				SUBSHAPE_T,			SUBSHAPE_UNKNOWN,  //乔保娟 2015.5.5
 	PILLAR_ST_RECT		,	L"矩形钢柱",SECTION_MAT_TYPE_ST,				SUBSHAPE_RECT,		SUBSHAPE_UNKNOWN,  //乔保娟 2015.5.5
 	PILLAR_ST_CIRC		,	L"圆形钢柱",SECTION_MAT_TYPE_ST,				SUBSHAPE_CIRC,		SUBSHAPE_UNKNOWN,  //乔保娟 2015.5.5
 
-	PILLAR_ST_CRISS	    ,	L"十字型钢柱",SECTION_MAT_TYPE_ST,			SUBSHAPE_CRISS,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
+	PILLAR_ST_CRISS	    ,	L"十字型钢柱",SECTION_MAT_TYPE_ST,				SUBSHAPE_CRISS,			SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
 	PILLAR_ST_REGPOLY	    ,	L"正多边形钢柱",SECTION_MAT_TYPE_ST,		SUBSHAPE_REGPOLY,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
 	PILLAR_ST_CHANNEL	    ,	L"槽型钢柱",SECTION_MAT_TYPE_ST,			SUBSHAPE_CHANNEL,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
-	PILLAR_ST_DBLCHANNEL    ,	L"双槽型钢柱",SECTION_MAT_TYPE_ST,		SUBSHAPE_DBLCHANNEL,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
+	PILLAR_ST_DBLCHANNEL    ,	L"双槽型钢柱",SECTION_MAT_TYPE_ST,			SUBSHAPE_DBLCHANNEL,	SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
 	PILLAR_ST_TRAP	    ,	L"梯形钢柱",SECTION_MAT_TYPE_ST,				SUBSHAPE_TRAPEZOID,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
-	PILLAR_ST_L	    ,		L"L型钢柱",SECTION_MAT_TYPE_ST,				SUBSHAPE_L,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6	
-	PILLAR_ST_T	    ,		L"T型钢柱",SECTION_MAT_TYPE_ST,				SUBSHAPE_T,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
+	PILLAR_ST_L			,		L"L型钢柱",SECTION_MAT_TYPE_ST,					SUBSHAPE_L,				SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6	
+	PILLAR_ST_T			,		L"T型钢柱",SECTION_MAT_TYPE_ST,					SUBSHAPE_T,				SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
+
+//	PILLAR_HANLINHAI,		L"组合截面", SECTION_MAT_TYPE_SRC,	SUBSHAPE_ARBITRARY, SUBSHAPE_ARBITRARY,
 
 	PILLAR_ARBITRARY	,	L"任意组合截面混凝土柱",SECTION_MAT_TYPE_SRC,	SUBSHAPE_ARBITRARY, SUBSHAPE_ARBITRARY,
 
@@ -225,10 +227,7 @@ static SECTION_SHAPE_PROP_TABLE gSectionShapeTable[gSectionShapeNum]=
 	BEAM_ST_L	    ,	L"Steel L-shaped Beam",SECTION_MAT_TYPE_ST,			SUBSHAPE_L,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6	
 	BEAM_ST_T	    ,	L"Steel T-shaped Beam",SECTION_MAT_TYPE_ST,			SUBSHAPE_T,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
 
-
 //柱截面,100-199
-	
-
 	PILLAR_RC_RECT		,	L"Concrete Rectangular Column",SECTION_MAT_TYPE_RC,				SUBSHAPE_RECT,		SUBSHAPE_UNKNOWN,
 	PILLAR_RC_CIRC		,	L"Concrete Circular Column",SECTION_MAT_TYPE_RC,				SUBSHAPE_CIRC,		SUBSHAPE_UNKNOWN,
 
@@ -272,6 +271,8 @@ static SECTION_SHAPE_PROP_TABLE gSectionShapeTable[gSectionShapeNum]=
 	PILLAR_ST_TRAP	    ,	L"Steel Trapezoidal Column",SECTION_MAT_TYPE_ST,			SUBSHAPE_TRAPEZOID,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
 	PILLAR_ST_L	    ,		L"Steel L-shaped Column",SECTION_MAT_TYPE_ST,			SUBSHAPE_L,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6	
 	PILLAR_ST_T	    ,		L"Steel T-shaped Column",SECTION_MAT_TYPE_ST,			SUBSHAPE_T,		SUBSHAPE_UNKNOWN,	//乔保娟 2015.7.6
+
+	PILLAR_HANLINHAI,		L"Combined Column", SECTION_MAT_TYPE_SRC,	SUBSHAPE_ARBITRARY, SUBSHAPE_ARBITRARY,
 
 	PILLAR_ARBITRARY	,	L"任意组合截面混凝土柱", SECTION_MAT_TYPE_SRC, SUBSHAPE_ARBITRARY, SUBSHAPE_ARBITRARY,
 
@@ -323,8 +324,8 @@ public:
 		m_I2=0;
 		m_I3=0;
 		m_J1=0;
-		angle=0;
-		nValue=12;
+		//angle=0;
+		//nValue=12;
 	}  //复制构造函数
 	~CSubSection(void) { Clear(); }
 
@@ -351,10 +352,13 @@ public:
 		struct GEO_L L;
 		struct GEO_T T;
 		struct GEO_RECT_VAR rect_var;
+		struct GEO_HANLINHAI_OUTER han_outer;
+		struct GEO_HANLINHAI_INNERSTEEL	han_innersteel;
+		struct GEO_HANLINHAI_INNERCONC han_innerconc;
 		float fValue[Sys_SubSectionParaNum];  //单位：米
 	};
 	int nValue;		//2020版本 增加 nPara数
-	float p2,p3; //子截面2和3方向的偏心距（m），子截面形心到组合截面局部坐标原点的距离，组合截面坐标原点选在外包矩形的中心点
+	float p2,p3;	//子截面2和3方向的偏心距（m），子截面形心到组合截面局部坐标原点的距离，组合截面坐标原点选在外包矩形的中心点
 
 	//自定义形状几何参数
 	int nPoint;  //边界点数
@@ -379,7 +383,9 @@ public:
 	SECTION_POINT *GetNextBoundary(const SECTION_POINT *p0,int &n);  //返回下一个边界点首地址和边界点数,p0为当前边界首地址
 
 	//剖分纤维单元,返回纤维数及动态数组,不包括钢筋
-	BEAM_FIBRE_GEO *FibreMesh(int nFibre);
+	//BEAM_FIBRE_GEO *FibreMesh(int nFibre);
+	BEAM_FIBRE_GEO *FibreMesh(int nFibre, XYSect& mesh);
+
 	//根据三角网计算纤维参数，结果放在返回的动态创建的pmesh数组中，适用于不规则截面
 	//BEAM_FIBRE_GEO *GetFibrePara(int nFibre,POINT_LIST *PointCoor,ELEM_LIST *Tri);
 
@@ -403,12 +409,10 @@ public:
 	BOOL operator==(const CSubSection &sec) const;
 	BOOL operator!=(const CSubSection &sec) const;
 
-
 	void Clear(void); //清除数据
-
 	void Read(CASCFile &fin);
 	void Write(CASCFile &fout);
-
+	void Write2020(CASCFile &fout);
 };
 
 enum STEEL_SEC_TYPE
@@ -428,10 +432,19 @@ class _SSG_DLLIMPEXP CBeamSection
 {
 public:
 	//构造与析构函数
-	CBeamSection(void) {pConcFibreBuf=pSteelFibreBuf=NULL; Clear();}
+	CBeamSection(void) {
+		pConcFibreBuf=pSteelFibreBuf=NULL; 
+		pConcFibre2Buf = NULL;
+		Clear();
+	}
 	//CBeamSection(CString &sName) {pConcFibreBuf=pSteelFibreBuf=NULL; Clear(); this->sName=sName;}
 
-	CBeamSection(const CBeamSection &sec)	{ pConcFibreBuf=pSteelFibreBuf=NULL;numConcSect=0;numSteelSect=0;nUsedCount=0; *this=sec; }
+	CBeamSection(const CBeamSection &sec) { 
+		pConcFibreBuf=pSteelFibreBuf=NULL;numConcSect=0;numSteelSect=0;nUsedCount=0; 
+		pConcFibre2Buf=NULL;
+		*this=sec; 
+		m_bMergeSub = true;		
+	}
 
 	~CBeamSection(void) { Clear(); }
 
@@ -466,6 +479,10 @@ public:
 	float fWidth,fHeight; //宽度范围,高度范围，用于轮廓显示及范围测定，未考虑转角，因为转角是构件属性，不是截面属性
 	int nConcFibre,nStructSteelFibre;  //混凝土纤维数量，钢纤维数量（不包括钢筋）
 	BEAM_FIBRE_GEO *pConcFibreBuf,*pSteelFibreBuf;   //混凝土纤维数组，钢纤维数组（不包括分布钢筋，但包括边缘构件的钢筋柱）
+	
+	bool m_bMergeSub;					//合并子截面纤维
+	int nConcFibre2;					//后续有时间重新整理统一
+	BEAM_FIBRE_GEO *pConcFibre2Buf;		//暂时使用这种方式。
 
 	//自定义截面临时数据
 	int numConcSect;
@@ -513,9 +530,13 @@ public:
 	//配筋，ratioB--B方向配筋率,ratioH--H方向配筋率，圆截面只用第一个配筋率,单位1
 	BEAM_FIBRE_GEO *CreatePillarRebar(float ratioB,float ratioH,float &fCorner);
 
+	BEAM_FIBRE_GEO *CreateEdgeRebar(float fArea);
+
 	//判断是不是某类型结构的可用截面
 	int IsUsable(STRUCT_TYPE iType);
 	STRUCT_TYPE GetType(); //得到该截面的结构类型
+	//根据构件类型创建截面
+	BOOL CreateSectionByStructType(STRUCT_TYPE iType, CBeamSection *&pSec);
 
 	//规格化边缘构件方钢管截面的尺寸
 	//area--给定的截面面积，ref_width--给定的截面宽度，sec_width--返回的规格化截面宽度，sec_t--返回的规格化壁厚
@@ -532,9 +553,10 @@ public:
 
 	BOOL Read(CASCFile &fin);
 	void Write(CASCFile &fout);
+	void Write2020(CASCFile &fout);
 
 	//检查截面参数是否正常
-	BOOL CheckSectParameter(float fMin=0.f);
+	BOOL CheckSectParameter(float fMin=1.e-4);
 
 	//得到钢材厚度或直径 //GB50017-2017 4.4章 表4.4.1 
 	int GetSteelSecThick();//单位mm
@@ -562,6 +584,7 @@ public:
 	//设计信息读写
 	BOOL ReadDesignInfo(CASCFile &fin);
 	void WriteDesignInfo(CASCFile &fout);
+	void WriteDesignInfo2020(CASCFile &fout);
 };
 
 
@@ -590,6 +613,7 @@ public:
 	//CBeamSection *GetBeamSection(const CString &SecName);  //根据给定的梁截面名称返回截面指针
 	//int GetAvailableID(void);  //得到有效的新增ID
 	int *CreateIndex(void);  //创建ID-->序号的索引数组，调用程序需要删除它，数组长度为iMaxID+1
+	int GetSecID(const CBeamSection *pSec);//查找截面ID 找不到返回-1
 
 	void AppendSection(CBeamSection *psec);  //增加新截面，自动获取ID
 
@@ -617,6 +641,7 @@ public:
 
 	void Read(CASCFile &fin);
 	void Write(CASCFile &fout);
+	void Write2020(CASCFile &fout);
 	void LoadDefaultLib(void);  //加载系统库
 
 };
