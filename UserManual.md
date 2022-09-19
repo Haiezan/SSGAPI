@@ -6,6 +6,17 @@ SSG-API可用于SAUSG系列软件模型的前后处理数据读取和编辑。
 
 * 1 【2022版本】使用之前调用 theData.InitialAPI();
 
+```C++
+//清除所有数据
+theData.Clear();
+theData.InitialAPI(); //2022版本修改
+theData.m_sPrjFile=fname;
+```
+
+* 2 【2022版本】材料类有改动;
+
+* 3 【2022版本】需要调用SSGPub64_D.dll(Debug版本）或SSGPub64.dll（Release版本）;
+
 # 数据结构
 
 ## 模型数据
