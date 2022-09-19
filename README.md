@@ -8,6 +8,8 @@
 
 20200423 发布2020版本
 
+20220919 发布2022版本API
+
 ## 环境搭建
 
 安装visual studio 2010版，若采用高版本软件也必须要安装visual studio 2010工具集。
@@ -28,3 +30,4 @@
 
 * branch master 用于SAUSG2020版本
 * branch SSGAPI2019 用于SAUSG2019版本
+* branch  SSGAPI2022 用于SAUSG2022版本
