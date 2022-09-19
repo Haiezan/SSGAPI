@@ -87,6 +87,7 @@ void CDlgReadDispRatio::OnBnClickedButtonDispratio()
 
 	//清除所有数据
 	theData.Clear();
+	theData.InitialAPI(); //2022版本修改
 	theData.m_sPrjFile = fname;
 	BOOL bSuccess = TRUE;
 
