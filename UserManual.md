@@ -295,6 +295,373 @@ printf("读取数据成功\r\n\r\n");
 
 ### 构件内力数据
 
+```C++
+// 统计竖向构件的内力
+BOOL AddForceUser(const CString &fname,CF15Header &hdrRead, CF15StruBlock *pblock,float* pData, int nComp) 
+{
+	// 读入第一个时刻的数据，iType类单元的所有分块
+	CStruFieldOneStepOneBlock *pStruFieldSet = new CStruFieldOneStepOneBlock[hdrRead.FileInfo.type_num]; // 一维构件和二维构件，总2块
+
+	for(int i = 0; i < hdrRead.FileInfo.type_num; i++) // 分2块，一维构件和二维构件
+	{
+		if(!pStruFieldSet[i].ReadOneStepOneType(fname,hdrRead, pblock, 0, i))
+		{
+			for(int j = 0; j < i; j++)
+			{
+				pStruFieldSet[j].Clear();
+			}
+			delete[]pStruFieldSet;pStruFieldSet = NULL;
+			return FALSE;
+		}
+	}
+
+	// 定义一维构件和二维构件的数组
+	int *BeamIndex;	// 一维构件
+	int *PlateIndex; // 二维构件
+
+	// 过滤掉不满足条件的构件（例如：水平构件框架梁等），将满足条件的一维构件（竖向构件）和二维构件（竖向构件）分别记录到BeamIndex和PlateIndex中
+	for (int itype = 0; itype < hdrRead.FileInfo.type_num; itype++)
+	{
+		if (CString(pblock[itype].pBlockName) == L"一维构件")
+		{
+			BeamIndex = new int[pStruFieldSet[itype].nStrus];	// 一维构件数量（含框架梁、柱、斜撑、边缘构件、暗梁（虚梁）、连梁纵筋和一般连接）
+
+			int m = 0;
+			for (int i = 0; i < pStruFieldSet[itype].nStrus; i++)
+			{
+				BeamIndex[i] = -1;
+				int iStruId = -1;
+				iStruId = pblock[itype].pStruID[i]; // 获取构件的ID
+				if(iStruId < 0 ||iStruId > pStruFieldSet[itype].nStrus ) continue;
+				CBeamStruc *beam = &theData.m_cFrame.m_aBeam[iStruId];
+				if (beam->iStrucType == STRUCT_BEAM || beam->iStrucType == STRUCT_LONGIREBAR)continue; // 剔除框架梁和连梁纵筋
+
+				// 20220929修改，考虑竖向的一维构件（竖向构件）出现被节点分割为多段构件的情况
+				int iStory = beam->idmStory - 1;
+				if(iStory < 0) continue;
+
+				int iVertex1 = theData.m_cFrame.m_aLine[beam->LineIDM].VexIDM1; // 取构件端点id号
+				int iVertex2 = theData.m_cFrame.m_aLine[beam->LineIDM].VexIDM2; // 取构件端点id号
+
+				// 判断构件节点是否是跨层点，如果是，则统计该构件
+				if (theData.m_cFrame.m_aVex[iVertex1].IsCrossStory() && theData.m_cFrame.m_aVex[iVertex1].idmStory == iStory) 
+				{
+					BeamIndex[m++] = i;
+				}
+				else if(theData.m_cFrame.m_aVex[iVertex2].IsCrossStory() && theData.m_cFrame.m_aVex[iVertex2].idmStory == iStory)
+				{
+					BeamIndex[m++] = i;
+				}
+			}
+		}
+
+		else if(CString(pblock[itype].pBlockName) == L"二维构件")
+		{
+			PlateIndex =  new int[pStruFieldSet[itype].nStrus]; // 二维构件数量（只含有墙柱和墙梁，不包含楼板）
+
+			int m = 0;
+			for (int i = 0; i < pStruFieldSet[itype].nStrus; i++)
+			{
+				PlateIndex[i] = -1;
+				int iStruId = -1;
+				iStruId = pblock[itype].pStruID[i];
+				if(iStruId < 0 ||iStruId > theData.m_cFrame.m_aPlate.GetCount()) continue;
+				CPlateStruc *Plate  = &theData.m_cFrame.m_aPlate[iStruId];
+
+				// 统计墙柱的数量
+				if(Plate->iSubType == 0) // 子类型 0-墙柱，1-墙梁，
+				{
+					int iStory = Plate->idmStory - 1;
+					if (iStory < 0) continue;
+					int iCornerPoint[4]; // 墙柱有4个角点
+					Plate->GetCornerPoint(iCornerPoint[0], iCornerPoint[1], iCornerPoint[2], iCornerPoint[3]); // 获取墙柱4个角点的id
+
+
+					int k = 0;
+					for (int j = 0; j < 4; j++)
+					{
+						if (theData.m_cFrame.m_aVex[iCornerPoint[j]].IsCrossStory() && 
+							theData.m_cFrame.m_aVex[iCornerPoint[j]].idmStory == iStory) // 墙柱的节点是否是跨层点
+						{
+							k++;				
+						}	
+					}
+
+					if (k == 1 || k == 2)
+					{
+						PlateIndex[m++] = i;
+					}
+				}	
+			}
+		}			
+	}
+
+	int nOffset =0;
+	int nstory1 = theData.m_nStory + 1;
+	int nsteps  = pStruFieldSet[0].nMaxSteps; // 总时间步数
+
+	// 对一维构件和二维构件进行构件内力统计
+	for(int k = 0; k < nsteps; k++)
+	{
+		float *p = pData + k * nstory1 * nComp;
+
+		for(int itype = 0; itype < hdrRead.FileInfo.type_num; itype++) // 按一维构件和二维构件统计
+		{	
+			if(!pStruFieldSet[itype].ReadOneStepOneType(fname, hdrRead, pblock, k, itype))
+				break;
+
+			if( CString(pblock[itype].pBlockName) == L"一维构件")
+			{
+				int nBeamOffset = nOffset;
+				for(int i = 0; i < pStruFieldSet[itype].nStrus; i++)
+				{
+					if (BeamIndex[i] == -1) continue;					
+					int m = BeamIndex[i];
+					int iStruId = pblock[itype].pStruID[m]; // 获取构件的ID
+					int iStroy = theData.m_cFrame.m_aBeam[iStruId].idmStory; // 获取构件的楼层号
+					int n =theData.m_nStory - iStroy;
+
+					CBeamStruc &beam = theData.m_cFrame.m_aBeam[iStruId]; 
+					if(beam.iStrucType & STRUCT_ALL_PILLAR) // 非水平构件
+					{
+						if(beam.u.z < 0) // 局部坐标系相反
+						{
+							nBeamOffset = 6;
+						}
+					}
+
+					Vector4 f0;
+					// 局部坐标系下的X向、Y向和Z向的力
+					f0.x = pStruFieldSet[itype].cData.GetItemData(BeamIndex[i],0 + nBeamOffset, pStruFieldSet[itype].nStrus); 
+					f0.y = pStruFieldSet[itype].cData.GetItemData(BeamIndex[i],1 + nBeamOffset, pStruFieldSet[itype].nStrus); 
+					f0.z = pStruFieldSet[itype].cData.GetItemData(BeamIndex[i],2 + nBeamOffset, pStruFieldSet[itype].nStrus); 
+
+					// 将局部坐标系转为整体坐标系
+					Vector4 u, v, w;
+
+					u.x = beam.u.x;
+					u.y = beam.v.x;
+					u.z = beam.w.x;
+
+					v.x = beam.u.y;
+					v.y = beam.v.y;
+					v.z = beam.w.y;
+
+					w.x = beam.u.z;
+					w.y = beam.v.z;
+					w.z = beam.w.z;
+
+
+					Vector4 f;
+					f.x = Vector3Dotf(f0, u); // 得到整体坐标系下的X向的力
+					f.y = Vector3Dotf(f0, v); // 得到整体坐标系下的Y向的力
+					f.z = Vector3Dotf(f0, w); // 得到整体坐标系下的Z向的力
+
+					if( beam.iStrucType == STRUCT_PILLAR ) // 柱子的统计
+					{
+						p[n + 0 * nstory1] += f.x;
+						p[n + 9 * nstory1] += f.y;
+					}
+					else if(beam.iStrucType == STRUCT_BRACING) // 斜撑的统计
+					{
+						CLine &line = theData.m_cFrame.m_aLine[beam.LineIDM]; // 结构线数组
+						if(line.Angle(theData.m_cFrame.m_aVex.GetData()) < Sys_MinBraceAngle * MATH_PI / 180.) // 角度小于20度统计为撑
+						{
+							p[n + 0 * nstory1] += f.x;
+							p[n + 9 * nstory1] += f.y;
+						}
+						else // 角度大于20度统计为柱子 
+						{
+							p[n + 2 * nstory1] += f.x;
+							p[n + 11 * nstory1] += f.y;
+						}
+					}
+					else if(beam.iStrucType == STRUCT_LINK) // 一般连接的统计
+					{
+						p[n + 4 * nstory1] += f.x;
+						p[n + 13 * nstory1] += f.y;
+
+					}
+					else if(beam.iStrucType == STRUCT_EDGE ) // 边缘构件的统计
+					{
+						p[n + 6 * nstory1] += f.x;
+						p[n + 15 * nstory1] += f.y;
+					}
+
+					//楼层剪力Vx、Vy、Fz统计
+					p[n + 8 * nstory1] += f.x;
+					p[n + 17 * nstory1] += f.y;
+					p[n + 18 * nstory1] += f.z;
+				}
+			}
+
+			else if(CString(pblock[itype].pBlockName) == L"二维构件") 
+			{
+				for(int j = 0; j < pStruFieldSet[itype].nStrus; j++) 
+				{
+					if (PlateIndex[j] == -1) continue; 
+
+					int m = PlateIndex[j];
+					int iStruId = pblock[itype].pStruID[m];
+
+					CPlateStruc &Plate = theData.m_cFrame.m_aPlate[iStruId]; 
+					int iStroy = theData.m_cFrame.m_aPlate[iStruId].idmStory;
+					int n =theData.m_nStory - iStroy;
+
+					Vector4 f0;
+					// 局部坐标系下的X向、Y向和Z向的力
+					f0.x = pStruFieldSet[itype].cData.GetItemData(PlateIndex[j],0+ nOffset , pStruFieldSet[itype].nStrus);
+					f0.y = pStruFieldSet[itype].cData.GetItemData(PlateIndex[j],1+ nOffset , pStruFieldSet[itype].nStrus);
+					f0.z = pStruFieldSet[itype].cData.GetItemData(PlateIndex[j],2+ nOffset , pStruFieldSet[itype].nStrus);
+
+
+					//转换到整体坐标系
+					Vector4 c0,u, v, w;
+					u.x = Plate.u.x;
+					u.y = Plate.v.x;
+					u.z = Plate.w.x;
+
+					v.x = Plate.u.y;
+					v.y = Plate.v.y;
+					v.z = Plate.w.y;
+
+					w.x = Plate.u.z;
+					w.y = Plate.v.z;
+					w.z = Plate.w.z;
+
+					Vector4 f;
+					f.x = Vector3Dotf(f0, u); 
+					f.y = Vector3Dotf(f0, v); 
+					f.z = Vector3Dotf(f0, w); 
+
+					// 墙的统计
+					p[n + 6 * nstory1] += f.x;
+					p[n + 15 * nstory1] += f.y;
+
+
+					//楼层剪力Vx、Vy、Fz统计
+					p[n + 8 * nstory1] += f.x;
+					p[n + 17 * nstory1] += f.y;
+					p[n + 18 * nstory1] += f.z;
+
+				}
+			}		
+		}
+	}
+
+	for(int i = 0; i < hdrRead.FileInfo.type_num; i++)
+	{
+		pStruFieldSet[i].Clear();
+	}
+
+	// 释放内存
+	if ( NULL != pStruFieldSet)
+	{
+		delete[] pStruFieldSet; pStruFieldSet = NULL;
+	}
+	else if (NULL != BeamIndex)
+	{
+		delete[] BeamIndex; BeamIndex = NULL;
+	}
+	else if (NULL != PlateIndex)
+	{
+		delete[] PlateIndex; PlateIndex = NULL;
+	}
+
+	return TRUE;
+
+}
+
+// 统计层间剪力
+BOOL CalcStoryShearUser(CArray<int, int> &aRunCase,CLoadCollection &cLoads )
+{
+	if (aRunCase.GetCount() < 1) return FALSE;
+
+	int nComp = 19; // sComp: 总共19个分量
+	char *sTitle = _CHS("层间剪力", "Story Shear");
+	char *sComp = _CHS("柱子Vx % 斜撑Vx % 一般连接Vx % 剪力墙Vx % 楼层剪力Vx 柱子Vy % 斜撑Vy % 一般连接Vy % 剪力墙Vy % 楼层剪力Vy Fz ");
+
+	for (int iCase = 0; iCase < aRunCase.GetCount(); iCase++)
+	{
+		CString sLoadCase = cLoads[aRunCase[iCase]]->sCaseName;
+
+		// 读取构件内力结果文件
+		CString sInternalForceFName = theData.GetFilePath(FILE_STRU_FORCE_BIN,sLoadCase,L"All"); 
+
+		if(!IsFileExists(sInternalForceFName)) continue;
+
+		// 读取构件内力文件数据文件
+		CF15Header hdrRead; // 文件头
+		CF15StruBlock *pblockRead = NULL; // 分块数组
+		hdrRead.Clear();
+
+		if(!ReadF15Header(sInternalForceFName, hdrRead, pblockRead)) continue;
+
+		int nsteps = hdrRead.FileInfo.ntimes; // 输出时刻的数量（行数的数量）
+		if(nsteps < 1) continue;
+
+		int nstory1 = theData.m_nStory + 1;
+		float *pData = new float[nsteps * nstory1 * nComp];
+
+		for(int i = 0; i < nsteps * nstory1 * nComp; i++)
+		{
+			pData[i] = 0;
+		}
+
+
+		// 统计竖向构件的内力
+		AddForceUser(sInternalForceFName, hdrRead, pblockRead, pData, nComp);
+		
+		CString sOutFileName = theData.GetFilePath(FILE_STORY_SHEAR_BIN,sLoadCase,L"User");
+
+		// 写入和保存层间剪力文件
+		CFile fout;
+		if (fout.Open(sOutFileName, CFile::modeCreate | CFile::modeWrite | CFile::shareDenyWrite))
+		{
+			float dt = hdrRead.FileInfo.dtime * hdrRead.FileInfo.dsteps; // dsteps:相邻时刻所间隔的步数。
+			int neib = 1;
+			fout.Write(&nComp, 4);
+			fout.Write(sTitle, 256);
+			fout.Write(sComp, 256);
+			fout.Write(&dt, 4);
+			fout.Write(&neib, 4);
+			fout.Write(&nsteps, 4);
+			fout.Write(&nstory1, 4);
+			fout.Write(pData, nsteps * nstory1 * nComp * 4);
+			fout.Close();
+		}
+
+		if (NULL != pData)
+		{
+			delete[] pData; pData = NULL;
+		}
+		else if (NULL != pblockRead)
+		{
+			delete[] pblockRead; pblockRead = NULL;
+		}
+	}
+
+	return TRUE;
+}
+
+CLoadCollection *lc = theData.GetLoadCollecton();
+
+CArray<int, int> aRunCase;
+for (int i = 0; i < lc->GetCount(); i++)
+{
+	aRunCase.Add(i);
+}
+
+// 统计层间剪力
+CalcStoryShearUser(aRunCase, theData.m_cFrame.m_cLoad);
+
+
+
+
+```
+
+
+
 ### 构件设计数据
 
 ### 构件性能数据
