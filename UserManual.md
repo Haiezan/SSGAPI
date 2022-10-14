@@ -376,7 +376,6 @@ BOOL AddForceUser(const CString &fname,CF15Header &hdrRead, CF15StruBlock *pbloc
 					int iCornerPoint[4]; // 墙柱有4个角点
 					Plate->GetCornerPoint(iCornerPoint[0], iCornerPoint[1], iCornerPoint[2], iCornerPoint[3]); // 获取墙柱4个角点的id
 
-
 					int k = 0;
 					for (int j = 0; j < 4; j++)
 					{
