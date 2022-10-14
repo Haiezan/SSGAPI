@@ -294,10 +294,16 @@ printf("读取数据成功\r\n\r\n");
 获取构件计算结果。
 
 ### 构件内力数据
-
+#### 1.获取构件内力数据函数实现
 ```C++
-// 统计竖向构件的内力
-BOOL AddForceUser(const CString &fname,CF15Header &hdrRead, CF15StruBlock *pblock,float* pData, int nComp) 
+/*
+注释：
+模型中构件包含了水平构件和竖向构件。此外，构件的内力分为 1 端内力和 2 端内力。
+本小节仅仅介绍竖向构件1端（整体坐标系下，竖向构件底部的称为1端，顶部称为2端）的内力数据获取，
+其他情况的构件内力可按照类似的方法获得相应的构件内力。
+*/
+
+BOOL AddForceUser(const CString &fname,CF15Header &hdrRead, CF15StruBlock *pblock) 
 {
 	// 读入第一个时刻的数据，iType类单元的所有分块
 	CStruFieldOneStepOneBlock *pStruFieldSet = new CStruFieldOneStepOneBlock[hdrRead.FileInfo.type_num]; // 一维构件和二维构件，总2块
@@ -315,112 +321,31 @@ BOOL AddForceUser(const CString &fname,CF15Header &hdrRead, CF15StruBlock *pbloc
 		}
 	}
 
-	// 定义一维构件和二维构件的数组
-	int *BeamIndex;	// 一维构件
-	int *PlateIndex; // 二维构件
 
-	// 过滤掉不满足条件的构件（例如：水平构件框架梁等），将满足条件的一维构件（竖向构件）和二维构件（竖向构件）分别记录到BeamIndex和PlateIndex中
-	for (int itype = 0; itype < hdrRead.FileInfo.type_num; itype++)
-	{
-		if (CString(pblock[itype].pBlockName) == L"一维构件")
-		{
-			BeamIndex = new int[pStruFieldSet[itype].nStrus];	// 一维构件数量（含框架梁、柱、斜撑、边缘构件、暗梁（虚梁）、连梁纵筋和一般连接）
-
-			int m = 0;
-			for (int i = 0; i < pStruFieldSet[itype].nStrus; i++)
-			{
-				BeamIndex[i] = -1;
-				int iStruId = -1;
-				iStruId = pblock[itype].pStruID[i]; // 获取构件的ID
-				if(iStruId < 0 ||iStruId > pStruFieldSet[itype].nStrus ) continue;
-				CBeamStruc *beam = &theData.m_cFrame.m_aBeam[iStruId];
-				if (beam->iStrucType == STRUCT_BEAM || beam->iStrucType == STRUCT_LONGIREBAR)continue; // 剔除框架梁和连梁纵筋
-
-				// 20220929修改，考虑竖向的一维构件（竖向构件）出现被节点分割为多段构件的情况
-				int iStory = beam->idmStory - 1;
-				if(iStory < 0) continue;
-
-				int iVertex1 = theData.m_cFrame.m_aLine[beam->LineIDM].VexIDM1; // 取构件端点id号
-				int iVertex2 = theData.m_cFrame.m_aLine[beam->LineIDM].VexIDM2; // 取构件端点id号
-
-				// 判断构件节点是否是跨层点，如果是，则统计该构件
-				if (theData.m_cFrame.m_aVex[iVertex1].IsCrossStory() && theData.m_cFrame.m_aVex[iVertex1].idmStory == iStory) 
-				{
-					BeamIndex[m++] = i;
-				}
-				else if(theData.m_cFrame.m_aVex[iVertex2].IsCrossStory() && theData.m_cFrame.m_aVex[iVertex2].idmStory == iStory)
-				{
-					BeamIndex[m++] = i;
-				}
-			}
-		}
-
-		else if(CString(pblock[itype].pBlockName) == L"二维构件")
-		{
-			PlateIndex =  new int[pStruFieldSet[itype].nStrus]; // 二维构件数量（只含有墙柱和墙梁，不包含楼板）
-
-			int m = 0;
-			for (int i = 0; i < pStruFieldSet[itype].nStrus; i++)
-			{
-				PlateIndex[i] = -1;
-				int iStruId = -1;
-				iStruId = pblock[itype].pStruID[i];
-				if(iStruId < 0 ||iStruId > theData.m_cFrame.m_aPlate.GetCount()) continue;
-				CPlateStruc *Plate  = &theData.m_cFrame.m_aPlate[iStruId];
-
-				// 统计墙柱的数量
-				if(Plate->iSubType == 0) // 子类型 0-墙柱，1-墙梁，
-				{
-					int iStory = Plate->idmStory - 1;
-					if (iStory < 0) continue;
-					int iCornerPoint[4]; // 墙柱有4个角点
-					Plate->GetCornerPoint(iCornerPoint[0], iCornerPoint[1], iCornerPoint[2], iCornerPoint[3]); // 获取墙柱4个角点的id
-
-					int k = 0;
-					for (int j = 0; j < 4; j++)
-					{
-						if (theData.m_cFrame.m_aVex[iCornerPoint[j]].IsCrossStory() && 
-							theData.m_cFrame.m_aVex[iCornerPoint[j]].idmStory == iStory) // 墙柱的节点是否是跨层点
-						{
-							k++;				
-						}	
-					}
-
-					if (k == 1 || k == 2)
-					{
-						PlateIndex[m++] = i;
-					}
-				}	
-			}
-		}			
-	}
-
-	int nOffset =0;
-	int nstory1 = theData.m_nStory + 1;
+	int nOffset = 0;
 	int nsteps  = pStruFieldSet[0].nMaxSteps; // 总时间步数
 
 	// 对一维构件和二维构件进行构件内力统计
-	for(int k = 0; k < nsteps; k++)
+	for(int k = 0; k < nsteps; k++)   // 遍历总的时间步数
 	{
-		float *p = pData + k * nstory1 * nComp;
-
-		for(int itype = 0; itype < hdrRead.FileInfo.type_num; itype++) // 按一维构件和二维构件统计
+		for(int itype = 0; itype < hdrRead.FileInfo.type_num; itype++) // 按一维构件和二维构件进行遍历
 		{	
 			if(!pStruFieldSet[itype].ReadOneStepOneType(fname, hdrRead, pblock, k, itype))
 				break;
 
 			if( CString(pblock[itype].pBlockName) == L"一维构件")
 			{
-				int nBeamOffset = nOffset;
-				for(int i = 0; i < pStruFieldSet[itype].nStrus; i++)
+				/*
+				注释：
+				通过索引构件的ID，可以得到每个构件在整体坐标系下的内力。
+				需要注意一维构件包含：框架梁、柱、斜撑、边缘构件、暗梁（虚梁）、连梁纵筋和一般连接
+				*/
+				int nBeamOffset = nOffset;				
+				for(int i = 0; i < pStruFieldSet[itype].nStrus; i++) 
 				{
-					if (BeamIndex[i] == -1) continue;					
-					int m = BeamIndex[i];
-					int iStruId = pblock[itype].pStruID[m]; // 获取构件的ID
-					int iStroy = theData.m_cFrame.m_aBeam[iStruId].idmStory; // 获取构件的楼层号
-					int n =theData.m_nStory - iStroy;
-
+					int iStruId = pblock[itype].pStruID[i]; // 获取构件的ID
 					CBeamStruc &beam = theData.m_cFrame.m_aBeam[iStruId]; 
+
 					if(beam.iStrucType & STRUCT_ALL_PILLAR) // 非水平构件
 					{
 						if(beam.u.z < 0) // 局部坐标系相反
@@ -429,11 +354,16 @@ BOOL AddForceUser(const CString &fname,CF15Header &hdrRead, CF15StruBlock *pbloc
 						}
 					}
 
-					Vector4 f0;
+					Vector4 f0, m0;
 					// 局部坐标系下的X向、Y向和Z向的力
-					f0.x = pStruFieldSet[itype].cData.GetItemData(BeamIndex[i],0 + nBeamOffset, pStruFieldSet[itype].nStrus); 
-					f0.y = pStruFieldSet[itype].cData.GetItemData(BeamIndex[i],1 + nBeamOffset, pStruFieldSet[itype].nStrus); 
-					f0.z = pStruFieldSet[itype].cData.GetItemData(BeamIndex[i],2 + nBeamOffset, pStruFieldSet[itype].nStrus); 
+					f0.x = pStruFieldSet[itype].cData.GetItemData(i, 0 + nBeamOffset, pStruFieldSet[itype].nStrus); 
+					f0.y = pStruFieldSet[itype].cData.GetItemData(i, 1 + nBeamOffset, pStruFieldSet[itype].nStrus); 
+					f0.z = pStruFieldSet[itype].cData.GetItemData(i, 2 + nBeamOffset, pStruFieldSet[itype].nStrus); 
+
+					// 局部坐标系下的X向、Y向和Z向的弯矩
+					m0.x = pStruFieldSet[itype].cData.GetItemData(i, 3 + nBeamOffset, pStruFieldSet[itype].nStrus); 
+					m0.y = pStruFieldSet[itype].cData.GetItemData(i, 4 + nBeamOffset, pStruFieldSet[itype].nStrus); 
+					m0.z = pStruFieldSet[itype].cData.GetItemData(i, 5 + nBeamOffset, pStruFieldSet[itype].nStrus); 
 
 					// 将局部坐标系转为整体坐标系
 					Vector4 u, v, w;
@@ -452,45 +382,16 @@ BOOL AddForceUser(const CString &fname,CF15Header &hdrRead, CF15StruBlock *pbloc
 
 
 					Vector4 f;
-					f.x = Vector3Dotf(f0, u); // 得到整体坐标系下的X向的力
-					f.y = Vector3Dotf(f0, v); // 得到整体坐标系下的Y向的力
-					f.z = Vector3Dotf(f0, w); // 得到整体坐标系下的Z向的力
+					f.x = Vector3Dotf(f0, u); // 得到构件在整体坐标系下的 X 向的力
+					f.y = Vector3Dotf(f0, v); // 得到构件在整体坐标系下的 Y 向的力
+					f.z = Vector3Dotf(f0, w); // 得到构件在整体坐标系下的 Z 向的力
 
-					if( beam.iStrucType == STRUCT_PILLAR ) // 柱子的统计
+					// 例如，如果想得到柱子的内力，通过构件类型来判断，可以得到柱子的内力；同样，其他构件可以按照类似的方式得到
+					if( beam.iStrucType == STRUCT_PILLAR )  // 判断是否是柱子
 					{
-						p[n + 0 * nstory1] += f.x;
-						p[n + 9 * nstory1] += f.y;
+						float pillar_Fx = f.x; // 得到柱子在整体坐标系下的 X 向的力
+						float pillar_Fy = f.y; // 得到柱子在整体坐标系下的 X 向的力
 					}
-					else if(beam.iStrucType == STRUCT_BRACING) // 斜撑的统计
-					{
-						CLine &line = theData.m_cFrame.m_aLine[beam.LineIDM]; // 结构线数组
-						if(line.Angle(theData.m_cFrame.m_aVex.GetData()) < Sys_MinBraceAngle * MATH_PI / 180.) // 角度小于20度统计为撑
-						{
-							p[n + 0 * nstory1] += f.x;
-							p[n + 9 * nstory1] += f.y;
-						}
-						else // 角度大于20度统计为柱子 
-						{
-							p[n + 2 * nstory1] += f.x;
-							p[n + 11 * nstory1] += f.y;
-						}
-					}
-					else if(beam.iStrucType == STRUCT_LINK) // 一般连接的统计
-					{
-						p[n + 4 * nstory1] += f.x;
-						p[n + 13 * nstory1] += f.y;
-
-					}
-					else if(beam.iStrucType == STRUCT_EDGE ) // 边缘构件的统计
-					{
-						p[n + 6 * nstory1] += f.x;
-						p[n + 15 * nstory1] += f.y;
-					}
-
-					//楼层剪力Vx、Vy、Fz统计
-					p[n + 8 * nstory1] += f.x;
-					p[n + 17 * nstory1] += f.y;
-					p[n + 18 * nstory1] += f.z;
 				}
 			}
 
@@ -498,21 +399,25 @@ BOOL AddForceUser(const CString &fname,CF15Header &hdrRead, CF15StruBlock *pbloc
 			{
 				for(int j = 0; j < pStruFieldSet[itype].nStrus; j++) 
 				{
-					if (PlateIndex[j] == -1) continue; 
-
-					int m = PlateIndex[j];
-					int iStruId = pblock[itype].pStruID[m];
-
+					/*
+					注释：
+					通过索引构件的ID，可以得到每个构件在整体坐标系下的内力
+					需要注意二维构件包含：墙梁和墙柱，不包括楼板。
+					*/
+					int iStruId = pblock[itype].pStruID[j];  // 获取构件的ID
 					CPlateStruc &Plate = theData.m_cFrame.m_aPlate[iStruId]; 
-					int iStroy = theData.m_cFrame.m_aPlate[iStruId].idmStory;
-					int n =theData.m_nStory - iStroy;
 
-					Vector4 f0;
+
+					Vector4 f0，m0;
 					// 局部坐标系下的X向、Y向和Z向的力
-					f0.x = pStruFieldSet[itype].cData.GetItemData(PlateIndex[j],0+ nOffset , pStruFieldSet[itype].nStrus);
-					f0.y = pStruFieldSet[itype].cData.GetItemData(PlateIndex[j],1+ nOffset , pStruFieldSet[itype].nStrus);
-					f0.z = pStruFieldSet[itype].cData.GetItemData(PlateIndex[j],2+ nOffset , pStruFieldSet[itype].nStrus);
+					f0.x = pStruFieldSet[itype].cData.GetItemData(j, 0 + nOffset , pStruFieldSet[itype].nStrus);
+					f0.y = pStruFieldSet[itype].cData.GetItemData(j, 1 + nOffset , pStruFieldSet[itype].nStrus);
+					f0.z = pStruFieldSet[itype].cData.GetItemData(j, 2 + nOffset , pStruFieldSet[itype].nStrus);
 
+					// 局部坐标系下的X向、Y向和Z向的弯矩
+					m0.x = pStruFieldSet[itype].cData.GetItemData(j, 3 + nOffset , pStruFieldSet[itype].nStrus);
+					m0.y = pStruFieldSet[itype].cData.GetItemData(j, 4 + nOffset , pStruFieldSet[itype].nStrus);
+					m0.z = pStruFieldSet[itype].cData.GetItemData(j, 5 + nOffset , pStruFieldSet[itype].nStrus);
 
 					//转换到整体坐标系
 					Vector4 c0,u, v, w;
@@ -529,133 +434,68 @@ BOOL AddForceUser(const CString &fname,CF15Header &hdrRead, CF15StruBlock *pbloc
 					w.z = Plate.w.z;
 
 					Vector4 f;
-					f.x = Vector3Dotf(f0, u); 
-					f.y = Vector3Dotf(f0, v); 
-					f.z = Vector3Dotf(f0, w); 
+					f.x = Vector3Dotf(f0, u);  // 得到构件在整体坐标系下的 X 向的力
+					f.y = Vector3Dotf(f0, v);  // 得到构件在整体坐标系下的 Y 向的力
+					f.z = Vector3Dotf(f0, w);  // 得到构件在整体坐标系下的 Z 向的力
 
-					// 墙的统计
-					p[n + 6 * nstory1] += f.x;
-					p[n + 15 * nstory1] += f.y;
-
-
-					//楼层剪力Vx、Vy、Fz统计
-					p[n + 8 * nstory1] += f.x;
-					p[n + 17 * nstory1] += f.y;
-					p[n + 18 * nstory1] += f.z;
-
+					
+					// 如果想得到剪力墙构件内力，通过构件类型来判断，可得到构件内力；同样，墙梁可以按照类似的方式得到
+					if( Plate->iSubType == 0 )  // 判断是否是墙柱。子类型 0-墙柱，1-墙梁，
+					{
+						float wall_Fx = f.x; // 得到墙柱在整体坐标系下的 X 向的力
+						float wall_Fy = f.y; // 得到墙柱在整体坐标系下的 Y 向的力
+					}
 				}
 			}		
 		}
 	}
 
-	for(int i = 0; i < hdrRead.FileInfo.type_num; i++)
-	{
-		pStruFieldSet[i].Clear();
-	}
-
-	// 释放内存
-	if ( NULL != pStruFieldSet)
-	{
-		delete[] pStruFieldSet; pStruFieldSet = NULL;
-	}
-	else if (NULL != BeamIndex)
-	{
-		delete[] BeamIndex; BeamIndex = NULL;
-	}
-	else if (NULL != PlateIndex)
-	{
-		delete[] PlateIndex; PlateIndex = NULL;
-	}
-
 	return TRUE;
 
 }
 
-// 统计层间剪力
-BOOL CalcStoryShearUser(CArray<int, int> &aRunCase,CLoadCollection &cLoads )
+```
+
+#### 2.构件内力数据获取
+```C++
+
+BOOL  InternalForces(CArray<int, int> &aRunCase,CLoadCollection &cLoads )
 {
-	if (aRunCase.GetCount() < 1) return FALSE;
+	if (aRunCase.GetCount() < 1) return FALSE;  // 小于1，说明没有工况
 
-	int nComp = 19; // sComp: 总共19个分量
-	char *sTitle = _CHS("层间剪力", "Story Shear");
-	char *sComp = _CHS("柱子Vx % 斜撑Vx % 一般连接Vx % 剪力墙Vx % 楼层剪力Vx 柱子Vy % 斜撑Vy % 一般连接Vy % 剪力墙Vy % 楼层剪力Vy Fz ");
+	CString sLoadCase = cLoads[aRunCase[iCase]]->sCaseName;   
 
-	for (int iCase = 0; iCase < aRunCase.GetCount(); iCase++)
-	{
-		CString sLoadCase = cLoads[aRunCase[iCase]]->sCaseName;
+	// 读取构件内力结果文件
+	CString sInternalForceFName = theData.GetFilePath(FILE_STRU_FORCE_BIN,sLoadCase,L"All"); 
 
-		// 读取构件内力结果文件
-		CString sInternalForceFName = theData.GetFilePath(FILE_STRU_FORCE_BIN,sLoadCase,L"All"); 
+	if(!IsFileExists(sInternalForceFName)) continue;
 
-		if(!IsFileExists(sInternalForceFName)) continue;
+	// 读取构件内力文件数据文件
+	CF15Header hdrRead; // 文件头
+	CF15StruBlock *pblockRead = NULL; // 分块数组
+	hdrRead.Clear();
 
-		// 读取构件内力文件数据文件
-		CF15Header hdrRead; // 文件头
-		CF15StruBlock *pblockRead = NULL; // 分块数组
-		hdrRead.Clear();
+	if(!ReadF15Header(sInternalForceFName, hdrRead, pblockRead)) continue;
 
-		if(!ReadF15Header(sInternalForceFName, hdrRead, pblockRead)) continue;
+	int nsteps = hdrRead.FileInfo.ntimes; // 输出时刻的数量（行数的数量）
+	if(nsteps < 1) continue; // 步长小于1，下个循环
 
-		int nsteps = hdrRead.FileInfo.ntimes; // 输出时刻的数量（行数的数量）
-		if(nsteps < 1) continue;
-
-		int nstory1 = theData.m_nStory + 1;
-		float *pData = new float[nsteps * nstory1 * nComp];
-
-		for(int i = 0; i < nsteps * nstory1 * nComp; i++)
-		{
-			pData[i] = 0;
-		}
-
-
-		// 统计竖向构件的内力
-		AddForceUser(sInternalForceFName, hdrRead, pblockRead, pData, nComp);
-		
-		CString sOutFileName = theData.GetFilePath(FILE_STORY_SHEAR_BIN,sLoadCase,L"User");
-
-		// 写入和保存层间剪力文件
-		CFile fout;
-		if (fout.Open(sOutFileName, CFile::modeCreate | CFile::modeWrite | CFile::shareDenyWrite))
-		{
-			float dt = hdrRead.FileInfo.dtime * hdrRead.FileInfo.dsteps; // dsteps:相邻时刻所间隔的步数。
-			int neib = 1;
-			fout.Write(&nComp, 4);
-			fout.Write(sTitle, 256);
-			fout.Write(sComp, 256);
-			fout.Write(&dt, 4);
-			fout.Write(&neib, 4);
-			fout.Write(&nsteps, 4);
-			fout.Write(&nstory1, 4);
-			fout.Write(pData, nsteps * nstory1 * nComp * 4);
-			fout.Close();
-		}
-
-		if (NULL != pData)
-		{
-			delete[] pData; pData = NULL;
-		}
-		else if (NULL != pblockRead)
-		{
-			delete[] pblockRead; pblockRead = NULL;
-		}
-	}
+	// 统计构件的内力
+	AddForceUser(sInternalForceFName, hdrRead, pblockRead);
 
 	return TRUE;
 }
 
+// 遍历所有的工况
 CLoadCollection *lc = theData.GetLoadCollecton();
-
 CArray<int, int> aRunCase;
 for (int i = 0; i < lc->GetCount(); i++)
 {
 	aRunCase.Add(i);
 }
 
-// 统计层间剪力
-CalcStoryShearUser(aRunCase, theData.m_cFrame.m_cLoad);
-
-
-
+// 构件内力数据获取
+InternalForces(aRunCase, theData.m_cFrame.m_cLoad);
 
 ```
 
