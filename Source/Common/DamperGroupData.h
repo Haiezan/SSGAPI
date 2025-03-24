@@ -30,7 +30,20 @@ public:
 	CPlateStruc *Plates;
 	int nPara;
 	float *fPara;
-	GROUP_DATA(){	memset(this,0,sizeof(GROUP_DATA));}
+
+	GROUP_DATA()
+		: nLink(0)
+		, LinkIDs(NULL)
+		, nBeam(0)
+		, BeamIDs(NULL)
+		, BeamMats(NULL)
+		, nPlate(0)
+		, Plates(NULL)
+		, nPara(0)
+		, fPara(NULL)
+	{
+	}
+
 	void InitData(int LinkNum,int BeamNum,int DataNum,int PlateNum=0)
 	{		
 		nLink=LinkNum;
@@ -69,7 +82,7 @@ public:
 
 		if(BeamIDs) delete[] BeamIDs; 
 		BeamIDs=NULL;
-		if(BeamMats) delete[] BeamMats; 
+		if(BeamMats)delete[] BeamMats;
 		BeamMats=NULL;
 
 		if(Plates) delete[] Plates; 
@@ -95,6 +108,7 @@ public:
 
 		nBeam=gdata.nBeam;
 		if(BeamIDs) delete[] BeamIDs; 
+		if (BeamMats) delete[] BeamMats; //20250304 内存泄漏
 		if (nBeam>0)
 		{
 			BeamIDs=new int[nBeam];
@@ -131,7 +145,13 @@ class  _SSG_DLLIMPEXP CDamperGroupSec
 {
 public:
 	//构造与析构函数
-	CDamperGroupSec(void) {Clear();}
+	CDamperGroupSec(void)
+		: id(-1)
+		, sName(L"")
+		, iStyle(STYLE_BEAM)
+		, nUsedCount(0)
+	{
+	}
 	CDamperGroupSec(const CDamperGroupSec &Grp)	{nUsedCount=0; *this=Grp; }
 	~CDamperGroupSec(void) { Clear();}
 
@@ -149,7 +169,7 @@ public:
 	//获得样式名称
 	CString GetStyleName(void);
 	//显示组图像
-	void ShowDamperGroupPic(CDC *pDC,const CRect &re);
+	void ShowDamperGroupPic(CDC *pDC,const CRect &re,bool modify = false);
     //清除数据
 	void Clear(void);
 	//数据读写

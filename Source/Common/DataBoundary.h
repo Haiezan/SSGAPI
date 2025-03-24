@@ -9,8 +9,9 @@ class _SSG_DLLIMPEXP CBoundary
 {
 public:
 	CBoundary(void)
+		: Type(0)
+		, Value()
 	{
-		Clear();
 	}
 
 	unsigned short Type;  //自由度类型,从低到高按位存储,每个自由度2bit,分别对应0-5自由度，0--非位移约束，1--位移约束，2--给定弹簧刚度

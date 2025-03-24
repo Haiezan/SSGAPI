@@ -1,28 +1,10 @@
 ﻿#pragma once
 
-#include "HeadDefine.h"
-#include "data.h"
-#include "UserDefine.h"
-#include "VisibleStruct.h" //定义输出分组修改 邱海 2016年7月11日
 #include "Frame.h"
 #include "Mesh.h"
-
-#include "..\Common\SSGAppInterface.h"
+#include "SSGAppInterface.h"
 
 extern _SSG_DLLIMPEXP ISSGApp* pTheApp;
-
-enum LOADCASETYPE
-{
-	STATIC=-1,
-	EARTHQUAKE=0,//大震验算，SSG默认，SSG可以打开 m_cLoad
-	DIRECTANALY=1,//设计工况 钢结构、减震、隔震 m_cLoadDesign
-	NLSTATIC=2,//静力非线性 m_cLoadStatic
-	EQELASTIC=3,//等效弹性设计 减震、隔震  m_cLoadElastic
-	TIMEHISTORY=4,//通用动力时程分析 m_cLoad
-	PUSHOVER=5,	//静力推覆结果 m_cLoadStatic
-	MULTIPTEXCITE=6,
-	SPECTRUM = 7, // 反应谱工况  林思齐 20210722
-};
 
 class _SSG_DLLIMPEXP  CSSGData 
 {
@@ -83,33 +65,39 @@ public:
 	void ClearFeaMsg(void);
 	void ClearFeaMsg(const CString &sLoadCase);
 	
-	CString GetPrjPath(void); //得到项目根目录，例："d:\exam_path\"
+	CString GetPrjPath(void) const; //得到项目根目录，例："d:\exam_path\"
 	CString GetPrjPath2020(void);
-	CString GetPrjName(void); //得到项目名，例："exam"
+	CString GetPrjName(void) const; //得到项目名，例："exam"
 	CString GetPrjName2020(void); //得到项目名，例："exam"
-	CString GetPrjBucklingPath(void); //得到项目临时目录，例："d:\exam_path\Buckling\"
+	CString GetPrjBucklingRoot(void)const; //得到屈曲工况根目录，例："d:\exam_path\BucklingResult\"
+	CString GetPrjBucklingPath(const CString& sLoadCase)const; //得到屈曲工况子目录，例："d:\exam_path\BucklingResult\BucklingCase\"
 	CString GetUserDataPath(void); //得到用户数据目录，例："d:\exam_path\UserData\"
 	CString GetStaticPath(void); //得到静力工况根目录，例："d:\exam_path\StaticResult\"
-	CString GetEarthQuakeRoot(void); //得到地震工况根目录，例："d:\exam_path\EarthQuakeResult\"
-	CString GetEarthQuakePath(const CString &sLoadCase); //得到任意工况子目录，例："d:\exam_path\EarthQuakeResult\case_n\"
+	CString GetEarthQuakeRoot(void)const; //得到地震工况根目录，例："d:\exam_path\EarthQuakeResult\"
+	CString GetDefectPath(void)const; //得到初始缺陷根目录，例："d:\exam_path\DefectResult\"
+	CString GetEarthQuakePath(const CString &sLoadCase)const; //得到任意工况子目录，例："d:\exam_path\EarthQuakeResult\case_n\"
 	CString GetCurCaseFilePath(const CString &sExt,const CString &sGroupName=L"");  //得到当前工况文件全路径，根据扩展名不同辨认不同的子目录,sGroupName为选择集名称
-	CString GetFilePath(const CString &sExt,const CString &sLoadCase=L"",const CString &sGroupName=L"");  //得到任意工况文件全路径，根据扩展名不同辨认不同的子目录,sGroupName为选择集名称
-	CString GetFilePathFromNoIso(const CString &sExt,const CString &sLoadCase=L"",const CString &sGroupName=L"");
+	CString GetFilePath(const CString &sExt,const CString &sLoadCase=L"",const CString &sGroupName=L"")const;  //得到任意工况文件全路径，根据扩展名不同辨认不同的子目录,sGroupName为选择集名称
+	CString GetNoDmpPath()const;
 
-	CString GetCModePath(void); //得到复模态分析根目录，例："d:\exam_path\CModalResult\"
-	CString GetCModalSpectCasePath(const CString &sLoadCase); //得到复模态反应谱工况子目录，例："d:\exam_path\CModalResult\case_n\"
+	//删除所有依赖于SSG的中间文件
+	void RemoveAllIntFile(void);
+	//删除所有计算结果文件
+	void RemoveAllResultFile(void);
+
+	CString GetCModePath(void)const; //得到复模态分析根目录，例："d:\exam_path\CModalResult\"
+	CString GetCModalSpectCasePath(const CString &sLoadCase)const; //得到复模态反应谱工况子目录，例："d:\exam_path\CModalResult\case_n\"
 
 	int GetStoryByZ(float z);		//根据标高得到实际楼层号，采用楼层面包络计算
 	void InitialApp(ISSGApp* theExeApp);
 	//For API 邱海 2022年9月16日
 	void InitialAPI();
-
-
+	bool ReadSSGAPI(const CString& sFile);
 
 	BOOL GetBeamStoryMat(CBeamStruc &beam);
 	BOOL GetPlateStoryMat(CPlateStruc &plate);
 
-	CString GetCaseStaticPath(const CString &sLoadCase); //得到静力工况根目录，例："d:\exam_path\StaticResult\"
+	CString GetCaseStaticPath(const CString &sLoadCase) const; //得到静力工况根目录，例："d:\exam_path\StaticResult\"
 	//
 	BOOL HasTimeHis(int iCmb);
 
@@ -117,7 +105,11 @@ public:
 	CLoadCollection *GetLoadCollecton();
 
 	//设置当前工况类型，用于读取结果文件
-	void SetLoadCollection(int iType=0){m_iLoadCaseType=(LOADCASETYPE)iType;};
+	void SetLoadCollection(int iType = 0) { m_iLoadCaseType = (LOADCASETYPE)iType;};
+	void SetNoDmpPath() { m_bNoDmpPath = true; }
+	void ResetNoDmpPath() { m_bNoDmpPath = false; }
+	bool bNoDmpPath() { return m_bNoDmpPath; }
+	void SetEnvCase(bool bEnv = true) { m_bEnvCase = bEnv; if (pDataBak) pDataBak->SetEnvCase(bEnv); }
 	LOADCASETYPE GetLoadCollectionType(){return m_iLoadCaseType;};
 	void GetCurCaseName(int id, CString &sCase);  //得到工况名称
 	// 
@@ -129,9 +121,43 @@ public:
 	int CreateMemberDefectFile();
 	int CreateSuperPosDefectFile();
 
+	//按照工况生成初始缺陷
+	int CreateDefectCaseFile();
+	int CreateMemberDefectFile(int iLC);
+	int CreateMemberDefect(int iLC, float*& coord); //iLC-工况号（从0开始）
+	int CreateFrameDefectFile(int iLC);
+	int CreateFrameDefect(int iLC, float*& coord, bool bShowMessage = false); //iLC-工况号（从0开始）
+	//获取工况数据文件，构件缺陷与结构缺陷连续编号
+	CString GetDefectFile(int iSel, CString* pCaseName = NULL);
+	CString GetMemberDefectFile(int iSel, CString* pCaseName = NULL);
+	CString GetFrameDefectFile(int iSel, CString* pCaseName = NULL);
+	//加载节点初始缺陷数据
+	BOOL LoadDefectFile(const CString& fname, float*& coord);
+	//设置重新生成初始缺陷工况文件的状态，是否重新生成缺陷文件
+	void SetDefectUpdateState(int iSel, BOOL bUpdate = TRUE);
+	
+	void GetMeshNum(int& nbeam, int& ntri, int& nquad);
+	void GetFrameNum(int& nbeam, int& nplate);
+	void GetData(const CFrame*& frame, const CMesh*& mesh, int& nStory);
+	//仅用多模型
+	bool ReadSSGAPIINSSG(const CString& sFile,BOOL bMultiplyModel = FALSE, BOOL bReadResult = TRUE); // bMultiplyModel控制是否new多个pDataBak  bReadResult是否读模型结果
+	bool bLoadOtherData()const { return m_bReadOther; }
+	void SetTheData(bool bTheData = true);
+	CString GetOtherFilePath(const CString& sExt, const CString& sLoadCase = L"", const CString& sGroupName = L"") const;
+	CLoadCollection* GetOtherLoadCollecton()const;
+	CString GetOtherPrjPath();
+	vector<CSSGData*> MultiModelTheData;
+	bool bReadMultiModel()const { return m_bReadMultiModel; }
+	bool ReadMultiplySSGAPIINSSG(const CString& m_sPrjFile_Scheme, BOOL bMultiplyModel = FALSE, BOOL bReadResult = FALSE);
 private:
 	LOADCASETYPE m_iLoadCaseType;
-	ISSGApp *pAPI;
+	bool m_bNoDmpPath;
+	bool m_bEnvCase;
+	bool m_btheData;
+	bool m_bReadOther;
+	CSSGData* pDataBak;
+	bool m_bReadMultiModel; // 判断是否读取多模型计算结果
+
 };
 
 extern "C" _SSG_DLLIMPEXP CSSGData theData;

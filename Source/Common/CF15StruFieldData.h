@@ -61,12 +61,12 @@ public:
 class _SSG_DLLIMPEXP CF15StruBlock  //与CF5ElemBlock相同
 {
 public:
-	CF15StruBlock(void) 
+	CF15StruBlock(void)
+		: pInfo()
+		, pColName(NULL)
+		, pStruID(NULL)
+		, pIndex(NULL)
 	{
-		memset(pInfo,0,44);
-		pColName=NULL;
-		pStruID=NULL;
-		pIndex=NULL;
 	}
 
 	~CF15StruBlock(void) 
@@ -96,7 +96,8 @@ public:
 
 	CF15StruBlock &operator=(const CF15StruBlock &blk)
 	{
-		if(this==&blk) return *this;
+		if(this==&blk) 
+			return *this;
 
 		Clear();
 
@@ -142,7 +143,20 @@ public:
 class _SSG_DLLIMPEXP CStruFieldOneStepOneBlock
 {
 public:
-	CStruFieldOneStepOneBlock(void) {nStrus=0;nMaxSteps=0;pStruID=NULL;pColName=NULL;}
+	CStruFieldOneStepOneBlock(void)
+		: sFilePath(L"")
+		, sTitle(L"")
+		, sBlockName(L"")
+		, nMaxSteps(0)
+		, iStep(0)
+		, iStruType(0)
+		, nStrus(0)
+		, nComponents(0)
+		, pColName(NULL)
+		, pStruID(NULL)
+	{
+	}
+
 	~CStruFieldOneStepOneBlock(void) {Clear();}
 
 	CString sFilePath;  //文件名
@@ -204,20 +218,32 @@ class _SSG_DLLIMPEXP CStruFieldOneComponent
 {
 public:
 	CStruFieldOneComponent()
+		: sFilePath(L"")
+		, sTitle(L"")
+		, sGroupName(L"")
+		, nMaxSteps(0)
+		, iStartStep(0)
+		, nBeam(0)
+		, nPlate(0)
+		, iComponent(0)
+		, nBlock(0)
+		, pBlockCol(NULL)
+		, sComponentName(L"")
+		, pBeamIndex(NULL)
+		, pPlateIndex(NULL)
+		, ppData(NULL)
+		, pTime(NULL)
+		, nBeamIndex(0)
+		, nPlateIndex(0)
 	{
-		pBeamIndex=NULL;
-		pPlateIndex=NULL;
-		ppData=NULL;
-		pTime=NULL;
-		nMaxSteps=0;
-		nBlock=0;
-		iStartStep=0;
 	}
 
 	~CStruFieldOneComponent() 
 	{
 		Clear();
 		nBlock=0;
+		delete[] pBlockCol;
+		pBlockCol = NULL;
 	}
 
 	CString sFilePath;  //文件名
@@ -234,11 +260,14 @@ public:
 
 	//这两个变量在切换新文件时需要重新初始化，切换变量时不需要初始化
 	int nBlock;  //分块数
+	int* pBlockCol;  //每个分块的分量在所有分量中的序号，长度为分块数，读文件时就是根据此变量确定的分量号进行读取
 
 	CString sComponentName;  //分量名称，若存在多种类型分量，只保存被选择的第一种类型的分量名称，此数据仅供用户参考，无实际意义
 
 	int *pBeamIndex;  //梁整体编号到局部编号的索引，值为-1时表示此单元无数据
 	int *pPlateIndex;  //二维构件整体编号到局部编号的索引，值为-1时表示此单元无数据
+	int nBeamIndex; //全局梁数
+	int nPlateIndex;//全局板数
 
 	float **ppData;  //物理量指针数组,每一个指针成员对应一个时刻的物理场,每一时刻包含nBeam+nPlate个构件的一个分量数据，先存梁数据，然后二维构件数据
 	float *pTime;  //时间数组,每一个指针成员对应一个时刻，单位：秒
@@ -312,8 +341,9 @@ public:
 	}
 
 	//读入所有时刻的二进制场函数的一个分量，F-5格式，返回分量号，-1失败
-	BOOL ReadBinStruField_AllStep(const CString &fname,CF15Header hdr,CF15StruBlock *pblock,int iComponent); 
-
+	BOOL ReadBinStruField_AllStep(const CString &fname,CF15Header hdr,CF15StruBlock *pblock);
+	//读入所有时刻的二进制场函数的一个分量，F-5格式，单独读各分块中各个构件类型的内力，为墙梁墙柱内力输出变化而修改 20231212 涂天驰
+	BOOL ReadBinStruField_AllStepOneType(const CString& fname, CF15Header hdr, CF15StruBlock* pblock, int iComponent, int iType);
 };
 
 //读入F-5文件头及分块基本信息(P1~P4)，不包括单元集，创建相应动态数组，返回分量号，-1失败

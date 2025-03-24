@@ -15,6 +15,12 @@ enum EDGE_REBAR_AREA_TYPE
 	EDGE_REBAR_AREA_MAX=2,		//取4者最大值
 };
 
+enum EDGE_REBAR_GENERATE_METHOD
+{
+	EDGE_REBAR_NONE = -1,
+	EDGE_REBAR_REGENERATE = 0,	//重新生成边缘构件
+	EDGE_REBAR_SUPPLEMENT_GENERATION = 1,	// 补充生成边缘构件
+};
 
 
 class CVertex;
@@ -147,12 +153,34 @@ public:
 			TRACE("too namy walls:  id_point=%d ,id_wall=%d\r\n",id_point,id_wall);
 			return FALSE;
 		}
-		idPoint[nWalls]=id_point;
-		idWall[nWalls]=id_wall;
-		fAng[nWalls]=angle;
-		idFarPoint[nWalls]=-1;
-		idPillar=-1;
-		nWalls++;
+		int iFind = -1;
+		for (int i = 0; i < nWalls; i++)
+		{
+			if (id_wall == idWall[i])
+			{
+				iFind = i;
+				break;
+			}
+
+		}
+		if (iFind == -1)
+		{
+			idPoint[nWalls] = id_point;
+			idWall[nWalls] = id_wall;
+			fAng[nWalls] = angle;
+			idFarPoint[nWalls] = -1;
+			idPillar = -1;
+			nWalls++;
+		}
+		else
+		{
+			idPoint[iFind] = id_point;
+			idWall[iFind] = id_wall;
+			fAng[iFind] = angle;
+			idFarPoint[iFind] = -1;
+			idPillar = -1;
+		}
+
 		return TRUE;
 	}
 
@@ -210,7 +238,10 @@ public:
 	 void GetWallRebarLayer(int Wallid,int iElmType,int Elmid,float *pThick);
 public:
 	//创建边缘构件，iRebarType--配筋计算方式,fThickPrec--厚度级差，单位：米
-	BOOL CreateConstraint(EDGE_REBAR_AREA_TYPE iRebarType,float fThickPrec,char chMothed=0,float fMinLen=1.0f);  
+	BOOL CreateConstraint(EDGE_REBAR_AREA_TYPE iRebarType,float fThickPrec,char chMothed=0,float fMinLen=1.0f, EDGE_REBAR_GENERATE_METHOD m_iReGen = EDGE_REBAR_NONE);
+	BOOL OnWallGenerateConstraint(const int nSel, const int* pSelNames);
+	//连接边缘构件和墙
+	BOOL ConnectWall();
 
 	void Clear(void);
 

@@ -103,7 +103,7 @@ using namespace std;
 //	BOOL GetCornerPoint(int &left_bottom,int &right_bottom,int &right_top,int &left_top)const;
 //};
 
-typedef shared_ptr<Vector4 *> PVector4;
+//typedef shared_ptr<Vector4 *> PVector4;
 
 class _SSG_DLLIMPEXP CSolidFace
 {

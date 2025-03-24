@@ -85,7 +85,7 @@ public:
 	//输入: nbndpoint--多边形边界点数,pBndPoint--边界点3D坐标
 	//输出: nnode--结点数,ntri--单元数，pvNode--结点坐标（调用程序维护此内存），ptri--单元结点编码（调用程序维护此内存），编码从0开始
 	BOOL AutoTriangle3D(const Vector4 &c0,const Vector4 &u,const Vector4 &v,const Vector4 &w,float MinElmSize,float alpha0,float beta0,
-		int nbndpoint,Vector4 *pBndPoint,int &nnode,Vector4 *&pvNode,int &ntri,CTriangleElm *&ptri,int id=0);
+		int nbndpoint,Vector4 *pBndPoint,int &nnode,Vector4 *&pvNode,int &ntri,CTriangleElm *&ptri, int& nquad, CQuadElm*& pquad, int id=0);
 		
 	//多连通域生成网格程序
 	//输入参数：
@@ -116,6 +116,7 @@ public:
 	BOOL StructuredTriangle3D(int n1,int n2,int nBndPoint,int iStart,Vector4 *pBndPoint,int &nnode,Vector4 *&pvNode,int &ntri,CTriangleElm *&pTriElm);
 	void LaplaceSmoothing(void);
 
+	int nIter; //优化迭代次数
 
 protected:
 	int extra; /* extra nodes to be put in case of missing edges*/ 
@@ -166,6 +167,19 @@ protected:
 	void Compute_Centroids(int tno,float *xc,float *yc,float *zc);
 	void Smooth(void);
 	void Insert_Nodes(/*float alpha,float beta*/);
+
+	//三角形网格合并
+	BOOL MergeElement(float fElmsize, int& npoint, POINT_LIST* pPointCoor, int& ntri, ELEM_LIST* ptri, int& nquad, ELEM_LIST* pquad);
+	struct ELM_AREA
+	{
+		float fArea;
+		int ID;
+		ELM_AREA(float area, int id)
+		{
+			fArea = area; ID = id;
+		}
+	};
+	BOOL Merge2TriElm(int iTri1,int iTri2, POINT_LIST* pPointCoor, int& ntri, ELEM_LIST* ptri, int& nquad, ELEM_LIST* pquad);
 };
 
 //生成四边形网格
@@ -175,7 +189,7 @@ public:
 	//ElmSize--单元特征尺寸						
 	//max_quad_angle--最大四边形单元内角（度）	
 	//max_tri_angle--最大三角形单元内角（度）	
-	CMeshingQuad(float ElmSize,float MaxQuadAngle,float MaxTriAngle,int nsmooth) 
+	CMeshingQuad(float ElmSize,float MaxQuadAngle,float MaxTriAngle,int nsmooth, int MeshOptIter)
 	{
 		fElmSize=ElmSize;
 		fMinElmSize=fElmSize*0.1f;
@@ -195,6 +209,9 @@ public:
 		pTriangle=NULL;
 		pQuad=NULL;
 		pGrid=NULL;
+
+		nIter = MeshOptIter;
+		fAreaMax = fElmSize * fElmSize * 0.5f;
 	}
 
 	~CMeshingQuad()
@@ -268,6 +285,7 @@ public:
 	int GetQuadNum(void) const {return nQuad;}
 	CQuadElm *GetQuadPtr(void) const {return pQuad;}
 
+	int plateID;
 protected:
 	//计算边界线段夹角(度)
 	//pvex2d为2D局部坐标，外边界线段方向沿逆时针方向，pAngle为结点处的线段夹角(度)
@@ -287,6 +305,7 @@ protected:
 	//返回值：0不相交，1为两线段相交于1点，11,12,21,22--两条线有一个端点重合且不共线，-1两条线完全重合，-2两条线部分重合
 	int VectorLineCross3D(const Vector4 &pa, const Vector4 &pb, const Vector4 &qa, const Vector4 &qb);
 	void LaplaceSmoothing(int nBndPoint,Vector4 *pVex,int nloop);  //用到nVex,nQuad,nTri,pQuad,pTriangle,pVex为pVex2D或pVex3D，适用于二维和三维情况
+	void LaplaceSmoothingWeight(int nBndPoint, Vector4* pVex, int nloop);  //考虑权重的Laplace算法
 
 	//拆分角度过大的四边形
 	void SplitToTriangle(int &nLine, CLine *pLine,const Vector4 *pVex,int nDim);
@@ -294,4 +313,37 @@ protected:
 	//合并共线的两个相邻三角形，nDim坐标维数
 	void MergeTriangle( int &nLine, CLine *pLine,const Vector4 *pVex,int nDim);
 
+	//合并共线的两个相邻四边形，使用XY坐标计算角度
+	void MergeQuad(int& nLine, CLine* pLine, const Vector4* pVex, int nDim);
+	int Get4thNode(int* pVex, int iNode1, int iNode2, int iNode3);
+
+	//单元循环合并优化
+	void IterMergeElmOpt(int nbndpoint, int& nLine, CLine* pLine, const Vector4* pVex);
+	vector<int> vMerge;
+	int nIter; //优化迭代次数
+	int nMaxMerge; //最大合并次数
+	float fAreaMax; //最大合并单元面积
+	float fAreaRatio; //单元面积优化系数，新生成单元最小面积与原最小单元面积之比
+	float MergeSmallElm(int nbndpoint, int& nLine, CLine* pLine, const Vector4* pVex);
+	BOOL Merge2TriElm(int iTri1, int iTri2, int& nLine, CLine* pLine, const Vector4* pVex, float arealmt = 0.02f);
+	BOOL MergeQuadTriElm(int iTri, int iQuad, int& nLine, CLine* pLine, const Vector4* pVex, float arealmt = 0.02f); // 合并内部的四边形三角形单元
+	BOOL Merge2QuadElm(int iQuad1, int iQuad2, int& nLine, CLine* pLine, const Vector4* pVex, float arealmt = 0.02f);
+	BOOL CheckPointInTriangleElm(int p0, int Node1, int Node2, int Node3,const Vector4* pNode);// 判断点是否在三角形内
+	void GenerateNewTriangleElm(int nBndPoint, vector<int> pNodeArray, int& nNewTri, CTriangleElm* pNewTriElm, const Vector4* pNode); // 生成新的三角形单元
+	void GenerateNewElm(int nBndPoint, vector<int> pNodeArray, int& nNewTri, CTriangleElm* pNewTriElm, int& nNewQuad, CQuadElm* pNewQuadElm, const Vector4* pNode); // 生成新的四边形和三角形单元
+	void CheckMesh(const Vector4* pNode); //检查网格划分异常
+	void ReplaceNode(int iDelNode, int iNewNode); //替换节点号，并处理相关单元
+	struct ELM_AREA
+	{
+		float fArea;
+		int ID;
+		int Type;
+		ELM_AREA(float area, int id, int type)
+		{
+			fArea = area; ID = id; Type = type;
+		}
+	};
+	float GetElmArea(vector<ELM_AREA> &vElm); //进行单元面积排序
+	void BackupElmData(int& nVex1, Vector4* pVexLocal1, int& nQuad1, CQuadElm* pQuad1, int& nTri1, CTriangleElm* pTriangle1); //备份网格数据
+	void UpdateElmData(int nVex1, Vector4* pVexLocal1, int nQuad1, CQuadElm* pQuad1, int nTri1, CTriangleElm* pTriangle1); //更新网格数据
 };

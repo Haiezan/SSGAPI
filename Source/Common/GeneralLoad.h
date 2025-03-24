@@ -50,15 +50,24 @@ public:
 class _SSG_DLLIMPEXP CGeneralCollection
 {
 public:
-	CGeneralCollection(){
-	m_iCode=1;
-	m_fGravPart=1.2f;
+	CGeneralCollection():m_iCode(1), m_fGravPart(1.3f)
+	{
 	}
 	CGeneralCollection(const CGeneralCollection &load) 
 	{
 		*this=load;
 	};
-	~CGeneralCollection(){RemoveAll();}
+	~CGeneralCollection()
+	{
+		clear();
+	}
+
+	void clear()
+	{
+		m_iCode = 1;
+		m_fGravPart = 1.3f;
+		RemoveAll();
+	}
 
 	int Append(CGeneralLoad *load);
 

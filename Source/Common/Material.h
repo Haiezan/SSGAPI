@@ -3,7 +3,7 @@
 #include "../Common/MatPara.h"
 #include "ASCFile.h"
 
-#define MATERIAL_TYPE_NUM 4
+#define MATERIAL_TYPE_NUM 7
 
 struct _SSG_DLLIMPEXP MATERIAL_TYPE_PROP
 {
@@ -27,6 +27,7 @@ class _SSG_DLLIMPEXP CMaterial
 {
 public:
 	CMaterial(void);
+	CMaterial(const MAT_PROP& prop);
 	//复制构造函数
 	CMaterial(const CMaterial &mat)
 	{
@@ -106,13 +107,13 @@ public:
 	int nSteelPara2D;   //pSteel2D数组的长度
 	float *pSteel2D;	//钢材、钢筋二维本构参数，2个点,每个点2个参数,分别是应力、塑性应变
 
-	void GetDefaultParaOld();
-	void GetDefaultParaNew();
+	void GetDefaultPara();
 	
 	void Read2021(CASCFile &fin);
 	void Read(CASCFile &fin);
 	void Write(CASCFile &fout);
 	void Write2020(CASCFile &fout);
+
 };
 
 class _SSG_DLLIMPEXP CMaterialCollection
@@ -145,20 +146,27 @@ public:
 	CArray<CMaterial,CMaterial&> aMaterial; 
 
 public:
-	int GetIndex(const CString &sName, int iType = MAT_CONC|MAT_REBAR|MAT_STEEL|MAT_TENDON) const; 			//根据名字查找数组索引,找不到返回-1
+	int GetIndex(const CString &sName, int iType = MAT_CONC|MAT_REBAR|MAT_STEEL|MAT_TENDON|MAT_MASONRY| MAT_ALUMINIUM | MAT_FIBRE) const; 			//根据名字查找数组索引,找不到返回-1
 	int GetIndexById(const int &id);
 
-	int GetMatID(const CString &sName, int iType = MAT_CONC|MAT_REBAR|MAT_STEEL|MAT_TENDON) const;			
+	int GetMatID(const CString &sName, int iType = MAT_CONC|MAT_REBAR|MAT_STEEL|MAT_TENDON | MAT_MASONRY| MAT_ALUMINIUM | MAT_FIBRE) const;
 	CString GetMatName(const int &id);
 	CMaterial *GetMat(const CString &sName); //根据名称查找材料地址
 
+	float GetMatfc(CString& mat);
 	float GetMatfck(CString &mat);
+	float GetMatfcm(CString& mat);
+
+	float GetMatft(CString& mat);
+	float GetMatftk(CString& mat);
+	float GetMatftm(CString& mat);
+
+	float GetMatfcu(CString& mat);
+
 	float GetMatE(CString &mat);
-	float GetMatftk(CString &mat);
-	float GetMatfcu(CString &mat);
-	float GetMatft(CString &mat);
-	float GetMatfc(CString &mat);
 	float GetDensity(CString &mat);
+	int GetMaterialType(CString& mat);
+	float GetMatG(CString& mat);
 	
 	int GetConcCount(void);   //计算混凝土材料数
 	int GetSteelCount(void);  //计算钢材材料数，包括钢筋			

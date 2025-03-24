@@ -28,6 +28,7 @@
 
 ## 版本
 
-* branch master 用于SAUSG2022版本
-* branch SSGAPI2019 用于SAUSG2019版本
-* branch  SSGAPI2020 用于SAUSG2020版本
+* master 用于SAUSG2026版本 vs2019
+* branch SSGAPI2022 用于SAUSG2022版本 vs2010
+* branch SSGAPI2019 用于SAUSG2019版本 vs2010
+* branch  SSGAPI2020 用于SAUSG2020版本 vs2010

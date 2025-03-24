@@ -9,7 +9,20 @@
 class _SSG_DLLIMPEXP CBeamElm : public CPrimitiveProp
 {
 public:
-	CBeamElm(){	Clear();}
+	CBeamElm()
+		: iBlock(0)
+		, BeamStrucIDM(-1)
+		, dwFlag(0)
+		, iArtiNode1(0)
+		, iArtiNode2(0)
+		, VexIDM1(-1)
+		, VexIDM2(-1)
+		, bHaveHinge(FALSE)
+		, offset1()
+		, offset2()
+	{
+	};
+
 
 	union
 	{
@@ -24,8 +37,8 @@ public:
 	//STRUCT_TYPE iStrucType;  //构件类型，主要用于opengl显示和属性查询
 
 	//主梁构件铰接的两端会生成次梁铰接单元，因此这里要复制一份标识。
-	DWORD dwFlag;	//按位控制，第0位：0--主梁，使用截面中的纤维，1--次梁(或剪力墙约束边缘构造柱)，不使用纤维信息。//第1位:1-延伸到墙里面的单元
-	BOOL bArtiNode1,bArtiNode2;  //false--固接，true--铰接,与VexIDM1,VexIDM2对应
+	DWORD dwFlag;	//按位控制，第0位：0--主梁，使用截面中的纤维，1--次梁(或剪力墙约束边缘构造柱)，不使用纤维信息。//第1位:1-延伸到墙里面的单元//2位1-1端半刚性3位1-2端半刚性
+	int iArtiNode1,iArtiNode2;  //false--固接，true--铰接,与VexIDM1,VexIDM2对应 //铰接标识，0~6位代表U1~U11自由度是否铰接，1代表铰接
 
 	//CFeaInterface生成接口数据时才产生，保存二进制文件
 	int iBlock;  //分块ID,注意不是序号，不连续
@@ -34,6 +47,9 @@ public:
 
 	DWORD dwHingeColor;  //塑性铰颜色  深蓝色不画
 	BOOL bHaveHinge;
+
+	Vector4 offset1;
+	Vector4 offset2;
 
 	//是否次梁单元
 	BOOL IsSecendBeam(void) { return dwFlag&0x01; };
@@ -55,10 +71,11 @@ public:
 	}
 
 
-	float Length(const CVertex *pVex);  //计算单元长度,pVex为结点坐标数组
+	float Length(const CVertex *pVex)const;  //计算单元长度,pVex为结点坐标数组
+	float GetTcr() const; //计算单元临界步长
 
 	//得到坐标范围
-	void GetRange(Vector4 &rMin,Vector4 &rMax);
+	void GetRange(const CVertex* pVexArray, Vector4 &rMin,Vector4 &rMax);
 
 	//按照构件设置属性
 	void CopyProp(const CBeamStruc &beam)
@@ -75,7 +92,7 @@ public:
 		iBlock=0;
 		BeamStrucIDM=-1;
 		dwFlag=0;
-		bArtiNode1=bArtiNode2=FALSE;
+		iArtiNode1=iArtiNode2=0;
 		VexIDM1=VexIDM2=-1;
 		bHaveHinge=FALSE;
 
@@ -101,7 +118,7 @@ public:
 	}
 
 	//计算线构件局部坐标单位基矢量，考虑了转角
-	void LocalCoorVector(Vector4 &u,Vector4 &v,Vector4 &w) const;
+	void LocalCoorVector(const CVertex* pNode, const CBeamStruc* pBeam, const CLine* pLine, const CVertex* pVexArray, Vector4 &u,Vector4 &v,Vector4 &w) const;
 
 	virtual BOOL Read(CASCFile &fin);
 	virtual BOOL Write(CASCFile &fout,int idf,int idf_Struct,STRUCT_TYPE itype);

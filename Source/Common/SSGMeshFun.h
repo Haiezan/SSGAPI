@@ -9,9 +9,9 @@
 
 //生成网格
 //iMethod={MESHING_TRI_INSERTPOINT,  MESHING_TRI_BLOCK,  MESHING_QUAD_TRI}
-extern "C" _MESH_DLLIMPEXP int MeshingStruct(MESHING_METHOD iSlabMethod,MESHING_METHOD iWallMethod,const CFrame &frame,CMesh &mesh);
+extern "C" _MESH_DLLIMPEXP int MeshingStruct(MESHING_METHOD iSlabMethod,MESHING_METHOD iWallMethod,CFrame &frame,CMesh &mesh);
 
-extern "C" _MESH_DLLIMPEXP int MeshRelatedInfo(const CFrame &frame,CMesh &mesh,CMesh::MESH_INFO &info);
+extern "C" _MESH_DLLIMPEXP int MeshRelatedInfo(CFrame &frame,CMesh &mesh,CMesh::MESH_INFO &info);
 
 void AutoDefineLinkGroup();//自动定义一般连接输出分组 邱海 2016年11月10日
 
@@ -24,7 +24,7 @@ BOOL FindLongirebarElm(const CFrame &frame,  CMesh &mesh, int nLongirebar, const
 	const CVertex * pNode,CBeamElm * pBeamElm, const CTriangleElm * pTriangleElm, const CQuadElm * pQuadElm,
 	int tri_start, int quad_start);
 
-BOOL SubdivisionBeam(const CFrame &frame,CMesh &mesh,SUB_LINE * pSubLineCollection, 
+BOOL SubdivisionBeam(const CFrame &frame,CMesh &mesh,SUB_LINE * pSubLineCollection, CVertex*& pNode,
 	CBeamElm * &pBeamElm,int &MaxBeamElm,int &nLongirebar,int * &pLongiRebar, int &MaxLongirebar, 
 	LINE_USED * pLineUsed,int beamid);
 
@@ -37,3 +37,7 @@ BOOL SubdivisionPlate(const CFrame &frame,CMesh &mesh,SUB_LINE * pSubLineCollect
 //剖分一条结构线
 BOOL SubdivisionLine (int lineid, const CFrame &frame,CMesh &mesh,SUB_LINE * pSubLineCollection, 
 	CVertex * &pNode, int &MaxNode, int nSub );
+
+//结构结构线剖分优化
+BOOL SubLineOptByPlate(int plateid, const CFrame& frame, CMesh& mesh, SUB_LINE* pSubLineCollection,
+	CVertex*& pNode, int& MaxNode);

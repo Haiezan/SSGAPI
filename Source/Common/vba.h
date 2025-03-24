@@ -115,6 +115,8 @@ enum WORD_STYLE
 	wdStyleHeading2 = -3,
 	wdStyleHeading3 = -4,
 	wdStyleHeading4 = -5,
+	wdStyleHeading5 = -6,
+	ChartHeading = -20,
 };
 
 
@@ -194,7 +196,9 @@ void SetStrValue(VARIANT *pVal,LPCTSTR pwstr);
 //sArray[iRow*nCols+iCol]--内容
 void ToExcel(int nRows,int nCols,const CString *sArray,BOOL bChart,int ChartType,const CString &sTitle,
 	const CString *pLegend,BOOL bTitleRow,BOOL bScaleLine=TRUE,int xFormat=0,int yFormat=0);
-
+//20240227 涂天驰 构件应变能生成excel
+void ToExcelS(int nRows, int nCols, const CString* sArray, BOOL bChart, int ChartType, const CString& sTitle,
+	const CString* pLegend, BOOL bTitleRow, BOOL bScaleLine = TRUE, int xFormat = 0, int yFormat = 0);
 //psArray按逐行存储，每个psArray[i]对应一个sheet
 void ToExcelM(int nRows,int nCols,const CString **psArray,const CString *pSheetName,int nSheet);
 
@@ -412,6 +416,8 @@ public:
 	BOOL InsertAt(const wchar_t *text,bool bForwardFind);
 	//合并表格中相同内容单元格
 	void MergeTable(int irow1,int icol1,int irow2,int icol2);
+	//设置表格颜色
+	void SetTableColor(int iRow1, int iCol1, int iRow2, int iCol2,COLORREF Color);
 	//表头斜线格式
 	void TableDiagonal();
 protected:

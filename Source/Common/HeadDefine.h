@@ -25,3 +25,9 @@
 #endif
 
 #define _POST_FUN extern "C" _POST_DLLIMPEXP
+
+#ifdef _SSG_FEADLLEXPORT   //不能与SSGAPI中的相同
+#define _SSG_FEADLL __declspec(dllexport)
+#else
+#define _SSG_FEADLL __declspec(dllimport)
+#endif

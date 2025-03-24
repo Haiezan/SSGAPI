@@ -1,86 +1,73 @@
 #pragma once
 #include "HeadDefine.h"
-
 #include "Vector4.h"
-#include "Matrix4x4.h"
-#include "DataPrimitive.h"
-
-////#include "SysPara.h"
-//#include "PublicFunc.h"
-//#include "PublicFunc_MFC.h"
-//#include "PublicFunc_Cpp.h"
-//
-//#include "ASCFile.h"
-//#include "UserDefine.h"
-//#include "BeamSection.h"
-//#include "Material.h"
-//#include "EdgeStruct.h"
-//#include "PlateSection.h"
-#include "Loadmap.h"
-
-#include <afxtempl.h>
-#include <vector>
-
-#include <map>
-
-class CLine;
-
-using namespace std;
+#include "DataStrucProp.h"
 
 //结点类
 class _SSG_DLLIMPEXP CVertex : public CPrimitiveProp
 {
 public:
-	CVertex(void){Clear();}
+	CVertex(void)
+		: x(0.0f)
+		, y(0.0f)
+		, z(0.0f)
+		, fDeadLoad()
+		, fLiveLoad()
+		, idRigidBody(-1)
+		, idmBoundary(-1)
+		, iGeoType(0)
+	{
+	}
 
 	//仅用作点计算
 	CVertex(float x1,float y1,float z1)
+		: x(x1)
+		, y(y1)
+		, z(z1)
+		, fDeadLoad()
+		, fLiveLoad()
+		, idRigidBody(-1)
+		, idmBoundary(-1)
+		, iGeoType(0)
 	{
-		Clear();
-		x=x1;y=y1;z=z1;
 	} 
 
 	//仅用作点计算
 	CVertex(const Vector4 &v)
+		: x(v.x)
+		, y(v.y)
+		, z(v.z)
+		, fDeadLoad()
+		, fLiveLoad()
+		, idRigidBody(-1)
+		, idmBoundary(-1)
+		, iGeoType(0)
 	{
-		Clear();
-		x=v.x;y=v.y;z=v.z;
 	} 
 
 	CVertex(float x1,float y1,float z1,int istory,BOOL bCrossStory)
+		: CPrimitiveProp(g_cSysColorPara.Sys_VexColor, istory)
+		, x(x1)
+		, y(y1)
+		, z(z1)
+		, fDeadLoad()
+		, fLiveLoad()
+		, idRigidBody(-1)
+		, idmBoundary(-1)
+		, iGeoType(bCrossStory? 0x01:0)
 	{
-		Clear();
-		x=x1;y=y1;z=z1;
-		idmStory=istory;
-		SetCrossStory(bCrossStory);
-		memset(fDeadLoad,0,sizeof(fDeadLoad));
-		memset(fLiveLoad,0,sizeof(fLiveLoad));
-		idRigidBody=-1;
-		idmBoundary=-1;
 	} //构造点图元
 
 	//复制构造函数,该构造函数造成CVector使用不正常
-	CVertex(const CVertex &v) 
+	CVertex(const CVertex& v)
 	{
-		//*this=v;
-		*(CPrimitiveProp *)this=(CPrimitiveProp &)v;
-
-		x=v.x;y=v.y;z=v.z;
-		idRigidBody=v.idRigidBody;
-		idmBoundary=v.idmBoundary;
-		iGeoType=v.iGeoType;
-		aload=v.aload;
-		aDyload = v.aDyload;
-		for (int i=0;i<6;i++)
-		{
-			fDeadLoad[i]=v.fDeadLoad[i];
-			fLiveLoad[i]=v.fLiveLoad[i];
-		}
+		*this = v;
 	}
 
-	CVertex & operator=(const CVertex &v)
+	CVertex& operator=(const CVertex& v)
 	{
-		if(this==&v && idmStory==v.idmBoundary) return *this;
+		if (this == &v)
+			return *this;
 
 		*(CPrimitiveProp *)this=(CPrimitiveProp &)v;
 
@@ -90,6 +77,7 @@ public:
 		iGeoType=v.iGeoType;
 		aload=v.aload;
 		aDyload = v.aDyload;
+		aPin = v.aPin;
 		for (int i=0;i<6;i++)
 		{
 			fDeadLoad[i]=v.fDeadLoad[i];
@@ -109,13 +97,13 @@ public:
 
 	float fDeadLoad[6]; //恒荷载集中力,fx,fy,fz,mx,my,mz,KN,KN.M,按整体坐标方向定义
 	float fLiveLoad[6]; //活荷载集中力
-	int	  idRigidBody;	//刚性隔板编号,-1时无效
-
+	int idRigidBody;	//刚性隔板编号,-1时无效
 	int idmBoundary;	//边界条件ID。框架数据在*BOUNDARY中读写，不参与类读写；网格数据在类中读取ReadBin/WriteBin，并借此生成mesh.m_pBoundary
 	int iGeoType;		//类型,按位定义，0x01--跨层。框架数据在*POINTPROP段中读取，不参与类读写；网格数据在类中读取ReadBin/WriteBin
 	//LOADMAP mapload;//对应荷载工况的荷载
 	LOADASSIGN aload;//对应荷载工况的荷载
 	LOADASSIGN aDyload;//对应荷载工况的动荷载
+	CPinData aPin;
 
 	CVertex & operator=(const Vector4 &v)
 	{
@@ -126,24 +114,19 @@ public:
 	BOOL IsCrossStory(void) const {return iGeoType & 0x01;}
 	void SetCrossStory(BOOL bCrossStory=TRUE) {if(bCrossStory) iGeoType |= 0x01;else iGeoType &= ~0x01;}
 
-	BOOL IsOnFloor(void);//在楼面
-
-	BOOL IsCrossTower(void) const {return iGeoType & 0x02;}
-	void SetCrossTower(BOOL bCrossTower=TRUE) {if(bCrossTower) iGeoType |= 0x02;else iGeoType &= ~0x02;}
-
 	//按照线段设置属性
-	void CopyProp(const CLine &line);
+	void CopyProp(const CLine &line, const CVertex* v);
 
 	//近似相等，允许微小误差
 	BOOL operator==(const CVertex &v) const
 	{
-		return fabs(x-v.x)<g_cSysSizePara.Sys_PointError && fabs(y-v.y)<g_cSysSizePara.Sys_PointError && fabs(z-v.z)<g_cSysSizePara.Sys_PointError;
+		return abs(x-v.x)<g_cSysSizePara.Sys_PointError && abs(y-v.y)<g_cSysSizePara.Sys_PointError && abs(z-v.z)<g_cSysSizePara.Sys_PointError;
 	}
 
 	//不相等，允许微小误差
 	BOOL operator!=(const CVertex &v) const
 	{
-		return fabs(x-v.x)>=g_cSysSizePara.Sys_PointError || fabs(y-v.y)>=g_cSysSizePara.Sys_PointError || fabs(z-v.z)>=g_cSysSizePara.Sys_PointError;
+		return abs(x-v.x)>=g_cSysSizePara.Sys_PointError || abs(y-v.y)>=g_cSysSizePara.Sys_PointError || abs(z-v.z)>=g_cSysSizePara.Sys_PointError;
 	}
 
 	//精确相等
@@ -184,10 +167,14 @@ public:
 	void Normalize(void)
 	{
 		float len = Length();
-		if(len==0) return;
-		x/=len;
-		y/=len;
-		z/=len;
+
+		if(abs(len) < ZEROTOL)
+			return;
+
+		float fLen = 1.f / len;
+		x*= fLen;
+		y*= fLen;
+		z*= fLen;
 	}
 
 	//计算矢径长度
@@ -209,6 +196,7 @@ public:
 		iGeoType=0;
 		aload.clear();
 		aDyload.clear();
+		aPin.clear();
 	}
 
 	//重新创建内存，复制原来数据，释放原来的内存。若新旧指针不是同一个变量时，调用程序应设置旧指针为NULL

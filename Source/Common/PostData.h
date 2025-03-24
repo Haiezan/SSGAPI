@@ -26,6 +26,7 @@ public:
 		nDataNum=DataNum;
 		delete[] pData;
 		pData=new float[nDataNum];
+		memset(pData, 0, nDataNum * sizeof(float)); //增加初始化20240830贾苏
 		return pData;
 	}
 
@@ -159,6 +160,7 @@ public:
 
 	BOOL Disp2Speed(); //由位移计算速度
 	BOOL Disp2Acce();  //由位移计算加速度
+	BOOL RelAcce2Abs(int iLoadCase);  //由相对加速度计算绝对加速度
 
 private:
 	BOOL DispDiff(int order); //对位移进行微分,order=1得到速度，order=2得到加速度
@@ -172,9 +174,14 @@ class _SSG_DLLIMPEXP CStoryDataSet
 {
 public:
 	CStoryDataSet()
+		: nItems(0)
+		, nComponents(0)
+		, sTitle(L"")
+		, pComponentName()
+		, fMin()
+		, nMaxSteps(0)
+		, fStoryMax(NULL)
 	{
-		nMaxSteps=0;
-		fStoryMax = NULL;
 	}
 
 	~CStoryDataSet() {Clear();}
@@ -194,9 +201,28 @@ public:
 
 	CStoryDataSet &operator=(const CStoryDataSet &s)
 	{
-		if(this==&s) return *this;
+		if(this==&s) 
+			return *this;
 
-		ASSERT(FALSE);
+		//ASSERT(FALSE);
+		Clear();
+		nItems = s.nItems;
+		sTitle = s.sTitle;
+		for (int i = 0; i < Sys_Max_Story_Components; i++)
+		{
+			pComponentName[i] = s.pComponentName[i];
+		}
+		memcpy(fMin, s.fMin, sizeof(float) * Sys_Max_Story_Components);
+		memcpy(fMax, s.fMax, sizeof(float) * Sys_Max_Story_Components);
+		nMaxSteps = s.nMaxSteps;
+		fStoryMax = new float[nItems * nComponents];
+		memcpy(fStoryMax, s.fStoryMax, sizeof(float) * nItems * nComponents);
+		for (int i = 0, n = s.aFieldsPtr.GetCount(); i < n; i++)
+		{
+			CFieldOneStep* p = new CFieldOneStep;
+			*p = *(s.aFieldsPtr[i]);
+			aFieldsPtr.Add(p);
+		}
 
 		return *this;
 	}
@@ -213,7 +239,7 @@ public:
 		return aFieldsPtr[1]->GetTime()-aFieldsPtr[0]->GetTime();
 	}
 
-	int GetStepNumber(){return (int)aFieldsPtr.GetSize();}  //已经读入的时间步
+	int GetStepNumber()const{return (int)aFieldsPtr.GetSize();}  //已经读入的时间步
 	void Clear();  //清除所有数据，释放所有内存
 	void GetMaxMin();  //计算最大最小值点
 

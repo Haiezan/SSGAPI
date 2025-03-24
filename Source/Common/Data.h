@@ -61,6 +61,10 @@ _SSG_DLLIMPEXP STRUCT_TYPE GetStructType(const CBeamElm &elm);
 _SSG_DLLIMPEXP STRUCT_TYPE GetStructType(const CTriangleElm &elm);
 _SSG_DLLIMPEXP STRUCT_TYPE GetStructType(const CQuadElm &elm);
 
+_SSG_DLLIMPEXP int GetStructSubType(const CBeamElm& elm);
+_SSG_DLLIMPEXP int GetStructSubType(const CTriangleElm& elm);
+_SSG_DLLIMPEXP int GetStructSubType(const CQuadElm& elm);
+
 //得到g_StructKeyword中的的结构类型索引号
 //int GetStructKeywordIndex(STRUCT_TYPE itype);
 int _SSG_DLLIMPEXP GetStructKeywordIndex(STRUCT_TYPE itype);

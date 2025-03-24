@@ -34,7 +34,7 @@ struct DATA_SEQUENCE2
 class _SSG_DLLIMPEXP CDataSequence2
 {
 public:
-	CDataSequence2(void){fname=L"";iWaveLibIndex=-1; iWaveLib=0; pData=NULL; nPoints=0; 
+	CDataSequence2(void){fname=L"";iWaveLibIndex=-1; iWaveLib=0; iType = 0; pData=NULL; nPoints=0;
 	fMinValue=fMaxValue=0;fMinValueTime=fMaxValueTime=0;fMaxFileTime=0;}
 
 	CDataSequence2(const CDataSequence2 &ds)
@@ -50,6 +50,7 @@ public:
 	CString fname; //文件名
 	int iWaveLibIndex; //乔保娟 2015.6.11
 	int iWaveLib;	//0----SSG地震波库， 1-----用户自定义波
+	int iType; //0为天然波，1为人工波 20240708 涂天驰
 	int nPoints;  //数据点数
 
 	//以下为临时数据
@@ -77,6 +78,7 @@ public:
 		fname=data.fname;
 		iWaveLibIndex = data.iWaveLibIndex;
 		iWaveLib =data.iWaveLib;
+		iType = data.iType;
 		nPoints=data.nPoints;
 		pData=new DATA_SEQUENCE2[nPoints];
 		ASSERT(pData);
@@ -122,6 +124,7 @@ public:
 	void ReadData();  //读取三个方向的地震波数据
 	int CreateData(float *&ax,float *&ay,float *&az);  //创建数组，插值计算当前组的所有地震荷载点
 	void  GetRealPeakAccValue(); //求fMainAmp
+	BOOL CheckWaveData(); //检查地震波数据是否正常 贾苏2023.2.27
 	CEarthQuake & operator=(const CEarthQuake &eq);
 	BOOL  operator==(const CEarthQuake &eq);//邱海 2018年3月2日
 
@@ -259,7 +262,9 @@ public:
 	float fDynaTime;//时变力加载时长：静力非线性加载时长、地震动、多点激励共用
 	float fVarLoadAmpCoef;//静力非线性荷载放大系数
 	BOOL m_bOverallDefect;
-	BOOL m_bMemberDefect;	
+	int m_iOverallDefect; //结构初始缺陷编号 2022.12.07贾苏添加
+	BOOL m_bMemberDefect;
+	int m_iMemberDefect; //构件初始缺陷编号 2022.12.07贾苏添加
 	float fStaticExpTime;//初始分析考虑非线性时长 与 bStaticExp 及bStaticResult 对应
 	BOOL bInitAnaly;//是否进行初始分析：如静力非线性直接竖向加载的情况
 	float fHorzEarthquakeCoef;//水平地震系数 暂时不用 2021年1月7日
@@ -272,6 +277,8 @@ public:
 	float fStopDisp;		//最大位移
 	BOOL bRelativeVelo;//是否采用相对速度计算阻尼力
 	int iRelativeNode;//相对速度计算参考点
+
+	BOOL bDynMat; //是否考虑材料动强度 贾苏20230613
 	//
 	CPushLoad cPushLoad;//静力推覆荷载
 	CEarthQuake cEarchQuake;  //地震波信息
@@ -293,8 +300,9 @@ public:
 	void Write2020(CFile &fout);
 
 	float GetProgress();
+	float GetMultiplyModelProgress(const CString& m_sPrjFile);
 	void SetLoadCoef(int iComb);
-	float GetStep(BOOL bNoIso =FALSE);
+	float GetStep();
 	//自动施加1恒+0.5活
 	void AutoAddGravity();
 	//直接分析设计是否有地震
@@ -303,12 +311,72 @@ public:
 	int GetLoadCaseType();
 	//是否是1D+0.5L
 	BOOL bAutoAddGravity();
+	//多工况包络临时变量 不需要参与重载运算符
+	std::vector<int> vEnves;
+};
+
+class _SSG_DLLIMPEXP CEnvelope
+{
+public:
+	CEnvelope()
+		: sName(L"")
+		, nType(ENVE_ENV)
+		, nResults(-1)
+	{
+	}
+	BOOL operator==(const CEnvelope& env)const;
+	BOOL bDataEqual(const CEnvelope& env)const;
+public:
+	CString sName;
+	ENVE_TYPE nType;
+	int nResults;
+	std::vector<int> vCase;
+	void Read(CASCFile& fin);
+	void Write(CFile& fout);
+};
+
+class _SSG_DLLIMPEXP CEnvelopeCollection
+{
+public:
+	CEnvelopeCollection() {};
+	CEnvelopeCollection(const CEnvelopeCollection& enve)
+	{
+		*this = enve;
+	};
+	~CEnvelopeCollection() { RemoveAll(); }
+
+	int Append(CEnvelope* enve);
+
+	void RemoveAt(int index);
+
+	void RemoveAll();
+
+	INT_PTR GetCount() const { return aEnvelopePtr.GetCount(); }
+
+	CEnvelope* GetAt(int i) { return aEnvelopePtr.GetAt(i); }
+
+	CEnvelope* operator[](int i)const { return aEnvelopePtr[i]; }
+
+	void SetAt(int i, CEnvelope* load) { delete aEnvelopePtr[i]; aEnvelopePtr[i] = load; }
+
+	CEnvelopeCollection& operator=(const CEnvelopeCollection& load);
+
+	void Write(CFile& fout)
+	{
+		for (int i = 0; i < aEnvelopePtr.GetCount(); i++)
+			aEnvelopePtr[i]->Write(fout);
+	}
+	void WriteAnnotation(int iType, CFile& fout);
+	int Find(const CEnvelope* load);
+	int FindSameData(const CEnvelope* load);
+private:
+	CArray<CEnvelope*, CEnvelope*> aEnvelopePtr; //荷载工况组合集合
 };
 
 class _SSG_DLLIMPEXP CLoadCollection
 {
 public:
-	CLoadCollection(){sOutputFile=L"EarthQuakeResult\\";}
+	CLoadCollection():sOutputFile(L"EarthQuakeResult\\"){}
 	CLoadCollection(const CLoadCollection &load) 
 	{
 		*this=load;
@@ -323,9 +391,9 @@ public:
 
 	INT_PTR GetCount() const {return aLoadCasePtr.GetCount();}
 
-	CLoadCase *GetAt(int i) {return aLoadCasePtr.GetAt(i);}
+	CLoadCase *GetAt(int i)const {return aLoadCasePtr.GetAt(i);}
 
-	CLoadCase *operator[](int i) {return aLoadCasePtr[i];}
+	CLoadCase *operator[](int i)const {return aLoadCasePtr[i];}
 
 	void SetAt(int i,CLoadCase *load) {aLoadCasePtr[i]=load;}
 
@@ -337,12 +405,27 @@ public:
 			aLoadCasePtr[i]->Write(fout);
 	}
 	void	SetOutputfile(CString sOut){sOutputFile=sOut;}
-	CString	Outputfile(){return sOutputFile;}
+	CString	Outputfile()const {return sOutputFile;}
 	void WriteAnnotation(int iType, CFile &fout);
+
+	//Envelope Case
+	void UpdateEnvelope();
+	const CEnvelopeCollection& GetEnvelope()const { return cEnvelopes; }
+	void SetEnvelope(const CEnvelopeCollection& cEnve);
+	void AutoAddEnvelopes(std::vector<int>&vEnv, const CEnvelopeCollection& cEnve);
+	bool HaveDefault();
+	int GetEnveCount() const{ return cEnvelopes.GetCount();}
+	CEnvelope* GetEnveAt(int i) const { return cEnvelopes[i];}
+	bool bEnvelopeChanged(const CEnvelopeCollection& envs);
+	void ReadEnvelope(CASCFile& fin, int iType);
+	void WriteEnvelope(CFile& fout, int iType);
 private:
 	CArray<CLoadCase*,CLoadCase*> aLoadCasePtr; //荷载工况组合集合
 	CString sOutputFile;
+	CEnvelopeCollection cEnvelopes;
 };
+
+void _SSG_DLLIMPEXP AutoEnvelope(const CLoadCollection& cLoads, CEnvelopeCollection& cEnvelopes, bool bPI = false);
 
 //已选地震动
 class _SSG_DLLIMPEXP CWaveCollection
@@ -388,8 +471,9 @@ enum HISTYPE
 	HIS_SINE,		//正弦曲线
 	HIS_COSINE,	//余弦曲线
 	HIS_STEP,		//步行荷载
-	HIS_RAMP		//斜坡
-	
+	HIS_RAMP,		//斜坡
+	HIS_BLAST,		//爆炸荷载
+	HIS_BLAST_FREE		//远距离自由场爆炸荷载
 };
 
 struct FUN_SINE
@@ -423,6 +507,43 @@ struct FUN_FILE
 	float	fDtime;
 };
 
+struct FUN_BLAST
+{
+	int iType;
+	float fPs0;
+	float ftd;
+	float fB;
+	float fL;
+	float fH;
+
+	float fL1;
+
+	float ft0;
+
+	void SetData(int Type, float Ps0, float td, float B, float L, float H, float L1, float t0)
+	{
+		iType = Type;
+		fPs0 = Ps0;
+		ftd = td;
+		fB = B;
+		fL = L;
+		fH = H;
+		fL1 = L1;
+		ft0 = t0;
+	}
+};
+
+struct FUN_BLAST_FREE
+{
+	float fR;
+	float fM;
+	float fP0;
+	float ft0;
+
+	BOOL bNegative; // 是否考虑负压作用
+	BOOL bRefect; // 是否考虑荷载反射作用
+};
+
 
 
 class _SSG_DLLIMPEXP CTimeFunction
@@ -450,6 +571,8 @@ public:
 		FUN_SINE cSine;
 		FUN_STEP cStep;
 		FUN_FILE cFile;
+		FUN_BLAST cBlast;
+		FUN_BLAST_FREE cBlastFree;
 	}cData;
 	//缩放
 	int iScale;
@@ -518,6 +641,9 @@ public:
 	void GetEqualStepData(unsigned int &nPts, float *&pVal, float fStep=0.01f);
 	void IntegralData(const unsigned int nPts, float *&pVal, float fStep=0.01f);
 	void ConvertToUser();
+	float GetBlastCe(float lengthRatio); //计算等效峰值压力系数
+	float BlastFreeFunc(float p10, float td, float alpha, float cr, float cr_minus, float t); //自由场爆炸荷载函数
+	float GetMinStep(); //计算最小步长
 
 	void Read(CASCFile &fin);
 	void Write(CFile &fout);

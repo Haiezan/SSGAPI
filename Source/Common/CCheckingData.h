@@ -5,7 +5,7 @@
 #define IsoChkNum 5
 #define GrvChkNum 1
 #define DynChkNum 4
-#define StyChkNum 5
+#define StyChkNum 7
 #define StlChkNum 2
 #define DmpChkNum 3
 
@@ -156,6 +156,8 @@ enum STYCHECKING_TYPE
 	ANTIWINDFORCE,	//抗风
 	YIELDGRAVRATIO,	//屈重比	
 	ELASTICFORCE	,		//弹性恢复力	
+	DYNELASRESI,     //罕遇地震弹性恢复力
+	DYNANTIOVERTURN  //罕遇地震抗倾覆
 };
 
 //验算数据类：对应一个构件一组验算
@@ -330,7 +332,7 @@ public:
 	//读取重力荷载代表值结果
 	BOOL ReadStaticCheckingData(CArray<float, float > &aIsoN, int iCheckType,BOOL bExactGetResult=FALSE,bool bShowError=false);
 	//读取动力时程结果
-	BOOL ReadDynaCheckingData(int iCheckType,BOOL bExactGetResult=FALSE,CString sDirName=L"",bool bShowError=false);
+	BOOL ReadDynaCheckingData(int iCheckType, BOOL bExactGetResult = FALSE, CString sDirName = L"", bool bShowError = false, bool AveP = false);
 };
 
 //模型验算数据
@@ -338,9 +340,10 @@ class  _SSG_DLLIMPEXP CStoryCheckingData
 {
 public:
 	CStoryCheckingData()
+		: cData(NULL)
+		, fmt(NULL)	
+		, iCase(0)
 	{
-		cData=NULL;
-		fmt=NULL;
 		Clear();
 	};
 	CStoryCheckingData(int iChkType)
@@ -356,6 +359,8 @@ public:
 	LinkDataFormat *fmt;		//数据的输出格式
 	BOOL bInit;						//数据是否初始化
 	BOOL bGetData;				//数据是否已读入
+	int iCase;
+
 	 //初始化数据
 	BOOL InitStoryCheckData(int iChkType);
 	 //读取数据
@@ -368,6 +373,7 @@ public:
 	static CArray<float,float> m_aIsoN;
 	static vector<vector<int>> m_vIsoTowerData;
 	static CISOCheckingDataCollection m_cIsolatorData;
+	static CArray<float, float> m_aYieldForce;
 private:
 	//求偏心率
 	void	GetEccentricityData();
@@ -379,6 +385,10 @@ private:
 	void	GetHorizForceData();
 	//弹性恢复力
 	void	GetElasticForceData();
+	//时程弹塑性恢复力
+	void ReadDynaElasticResiData(int iCase = ENVSTART);
+	//时程抗倾覆验算
+	void ReadDynaAntioverturningData(int iCase = ENVSTART);
 }; 
 
 //钢结构验算数据
@@ -495,6 +505,7 @@ public:
 	CArray<int,int>m_aIsoTower;
 	CArray<float,float>m_aIsoN;
 	vector<vector<int>> m_vIsoTowerData;
+	CArray<float, float> m_aYieldForce;
 	//钢结构截面承载力验算数据
 	CSTLCheckingDataCollection m_cSteelData;
 	BOOL InitSteelCheckingData();
@@ -507,4 +518,6 @@ public:
 private:
 	//得到支座轴力
 	void GetAllIsoForce();
+	//计算隔震屈服力
+	void GetYieldForce();
 }; 

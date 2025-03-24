@@ -21,6 +21,7 @@ extern "C" _PUB_DLLIMPEXP void  MySetPaneText(int pos, LPCTSTR str);
 extern "C" _PUB_DLLIMPEXP void  MySetOutputText(LPCTSTR str);
 
 extern _PUB_DLLIMPEXP void SplitCString(CString sInput, CString sDelim, CString& sLeft, CString& sRight);
+extern _PUB_DLLIMPEXP void SplitCString(CString str, CStringArray* sArr);
 extern "C" _PUB_DLLIMPEXP BOOL DivideCmdLine(CString strCmd,CString& sPath,CString& sProName,CString& sType,CString& sEvent);
 int DivideCmd(CStringArray &arCmd);
 
@@ -30,4 +31,4 @@ int DivideCmd(CStringArray &arCmd);
 extern _PUB_DLLIMPEXP std::vector<std::wstring> TokenString(wchar_t* string1, wchar_t *seps=L" ,");//\t\n");
 
 extern "C" _PUB_DLLIMPEXP void BeginWaitCursor();
-extern "C"_PUB_DLLIMPEXP void EndWaitCursor();
+extern "C" _PUB_DLLIMPEXP void EndWaitCursor();

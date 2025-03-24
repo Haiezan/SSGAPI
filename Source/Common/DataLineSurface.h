@@ -1,32 +1,6 @@
 #pragma once
 #include "HeadDefine.h"
-#include "Vector4.h"
-#include "Matrix4x4.h"
-//#include "SysPara.h"
-//#include "PublicFunc.h"
-//#include "PublicFunc_MFC.h"
-//#include "PublicFunc_Cpp.h"
-//
-//#include "ASCFile.h"
-//#include "UserDefine.h"
-//#include "BeamSection.h"
-//#include "Material.h"
-//#include "EdgeStruct.h"
-//#include "PlateSection.h"
-//#include "Loadmap.h"
-
-#include "DataPrimitive.h"
-#include "Loadmap.h"
 #include "DataVertex.h"
-
-#include <afxtempl.h>
-#include <vector>
-#include <map>
-
-class CVertex;
-
-using namespace std;
-
 
 //线段类
 class _SSG_DLLIMPEXP CLine : public CPrimitiveProp
@@ -36,10 +10,10 @@ public:
 	CLine(int i1,int i2,int istory);
 	~CLine()
 	{
-		if(pNodes)
+		if (pNodes != nullptr)
 		{
-			delete []pNodes;
-			pNodes=NULL;
+			delete[]pNodes;
+			pNodes = nullptr;
 		}
 	};
 
@@ -49,41 +23,49 @@ public:
 	LOADASSIGN aload;  //对应荷载工况的荷载 
 	int *pNodes;//临时数据  //节点集合,生成全部网格以及读入网格后形成
 	int nNodes;
+	CPinData aPin;
 
 	//判断编码相同
-	BOOL operator==(const CLine &line) const
+	BOOL operator==(const CLine& line) const
 	{
-		if(line.VexIDM1==VexIDM1 && line.VexIDM2==VexIDM2) return TRUE;
-		if(line.VexIDM1==VexIDM2 && line.VexIDM2==VexIDM1) return TRUE;
+		if (line.VexIDM1 == VexIDM1 && line.VexIDM2 == VexIDM2)
+			return TRUE;
+
+		if (line.VexIDM1 == VexIDM2 && line.VexIDM2 == VexIDM1)
+			return TRUE;
+
 		return FALSE;
 	}
 
 	//复制构造函数
-	CLine(const CLine &line) 
+	CLine(const CLine& line)
 	{
-		pNodes=NULL;
-		*this=line;
+		pNodes = nullptr;
+		*this = line;
 	}
 
 	//判断编码相同: pNodes
-	CLine & operator=(const CLine &line) 
+	CLine& operator=(const CLine& line)
 	{
-		if(this==&line) return *this;
+		if (this == &line)
+			return *this;
 
-		if(pNodes)
+		if (pNodes != nullptr)
 		{
-			delete []pNodes;
-			pNodes=NULL;
-			nNodes=0;
+			delete[]pNodes;
+			pNodes = nullptr;
+			nNodes = 0;
 		}
-		*(CPrimitiveProp *)this=(CPrimitiveProp &)line;
 
-		VexIDM1=line.VexIDM1;
-		VexIDM2=line.VexIDM2;
-		fDeadLoad=line.fDeadLoad;
-		fLiveLoad=line.fLiveLoad;
-		idmBoundary=line.idmBoundary;
-		aload=line.aload;
+		*(CPrimitiveProp*)this = (CPrimitiveProp&)line;
+
+		VexIDM1 = line.VexIDM1;
+		VexIDM2 = line.VexIDM2;
+		fDeadLoad = line.fDeadLoad;
+		fLiveLoad = line.fLiveLoad;
+		idmBoundary = line.idmBoundary;
+		aload = line.aload;
+		aPin = line.aPin;
 		//nNodes=line.nNodes;
 		//if(line.pNodes)
 		//{
@@ -95,24 +77,31 @@ public:
 		return *this;
 	}
 
-	BOOL IsCrossStory(void) const;
+	BOOL IsCrossStory(const CVertex* vex) const;
 	//void SetCrossStory(BOOL bCrossStory=TRUE);  //实际上是设置线的端点，线数据被有跨层属性，应避免使用点属性带入
-
-	BOOL IsOnFloor(void);//在楼面
-
-	BOOL IsCrossTower(void) const;
-	//void SetCrossTower(BOOL bCrossTower=TRUE);  //实际上是设置线的端点，线数据被有跨塔属性，应避免使用点属性带入
 
 	inline float Length(const CVertex *vex) const //vex为顶点坐标数组
 	{
-		return (vex[VexIDM1]-vex[VexIDM2]).Length();
+		float x = vex[VexIDM1].x - vex[VexIDM2].x;
+		float y = vex[VexIDM1].y - vex[VexIDM2].y;
+		float z = vex[VexIDM1].z - vex[VexIDM2].z;
+
+		return sqrtf(x * x + y * y + z * z);
 	}
+
 	inline float Angle(const CVertex *vex) const //vex为顶点坐标数组
 	{
-		float length= (vex[VexIDM1]-vex[VexIDM2]).Length();
-		float high=abs(vex[VexIDM1].z-vex[VexIDM2].z);
+		float x = vex[VexIDM1].x - vex[VexIDM2].x;
+		float y = vex[VexIDM1].y - vex[VexIDM2].y;
+		float z = vex[VexIDM1].z - vex[VexIDM2].z;
+
+		float length= sqrtf(x * x + y * y + z * z);
+
+		float high=abs(z);
+
 		return acos(high/length);
 	}
+
 	inline BOOL InRectXY(const CVertex &vMin,const CVertex &vMax,const CVertex *vex)  //正选，线段是否完全在矩形范围内，包括边界重合
 	{
 		const CVertex &vex1=vex[VexIDM1];
@@ -184,4 +173,23 @@ public:
 	Vector4 a1,b1,c1,d1; //第一个面的顶点
 	Vector4 a2,b2,c2,d2; //第二个面的顶点
 	float fColor1,fColor2,fColor3; //a1-a2光照系数，a1-b1光照系数，a1-d1光照系数
+};
+
+
+class _SSG_DLLIMPEXP CStraightLine
+{
+public:
+	int N;
+	int Line[100];
+	int Node[100];
+	CStraightLine()
+	{
+		N = 0;
+		memset(Line, 0, 100 * sizeof(int));
+		memset(Node, 0, 100 * sizeof(int));
+	}
+	void AddLine(int iLine)
+	{
+		Line[N++] = iLine;
+	}
 };

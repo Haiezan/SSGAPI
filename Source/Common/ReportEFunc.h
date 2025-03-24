@@ -44,7 +44,7 @@ namespace sd{
 
 	bool InsertChart(IGenerateText *pGenerateText, CString sFileName, string sTitle, string sXTitle, string sYTitle, 
 		int nWidth, int nHeight, vector<string>& sNames, vector<vector<float>> &xSeries, vector<vector<float>> &ySeries, 
-		SdChartType type, SdChartSubType subtype, int option = 0, int nSpace = 5, float fLineWidth = 0.75f); 
+		SdChartType type, SdChartSubType subtype, int option = 0, int nSpace = 5, float fLineWidth = 0.75f, vector<string> sYAxisNames = {});
 		//bool bXInteger=false, bool bYInteger=false, 
 		//int type=0, int subtype=0, int gridStyle=0, int legendPosition=0, int nSpace=0);
 
@@ -60,10 +60,10 @@ namespace sd{
 	};
 }
 
-IGenerateText * getTextGenerater();
-void ReleaseTextGenerator(IGenerateText *pGenerateText);
+_POST_DLLIMPEXP IGenerateText * getTextGenerater();
+_POST_DLLIMPEXP void ReleaseTextGenerator(IGenerateText *pGenerateText);
 
-void ReportAllWeight(float& fSumDead, float& fSumLive, float& fSumTotal);
+void ReportAllWeight(float& fSumDead, float& fSumLive, float& fSumTotal, BOOL bIsReinforced = TRUE);  // bIsReinforced：是否考虑加固部分的质量 辛业文 2024年3月13日
 
 #define IS_ZERO(a) ((abs(a)< 1.0e-8))
 #define IS_EQUAL(a,b) ((abs((a)-(b))< 1.0e-8))

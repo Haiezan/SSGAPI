@@ -4,9 +4,12 @@
 #include "ASCFile.h"
 #include "HeadDefine.h"
 #include "PublicFunc_Cpp.h"
+#include "SectionBaseHead.h"
+#include "StructFunc.h"
 
-const int SYSTEM_COLOR_NUMBER=35;	//邱海 2017年8月29日
+const int SYSTEM_COLOR_NUMBER=42;	//邱海 2017年8月29日 贾苏2023.5.17 贾苏2023.9.20 贾苏20231213 辛业文 2024年2月21日
 const int SYSTEM_SIZE_NUMBER=36;	//2016.7.12
+const int SYSTEM_STRUCTURAL_MEMBER_COLOR_NUMBER = 132;	// 用来显示不同的结构构件的颜色 辛业文 2024年2月21日
 
 
 extern "C" _SSG_DLLIMPEXP float GetPrivateProfileFloat(LPCTSTR lpAppName,LPCTSTR lpKeyName,float fDefault,LPCTSTR lpIniFile);
@@ -20,6 +23,12 @@ struct _SSG_DLLIMPEXP PROFILE_PARA
 	int prof_type;  //剖面类型,0-剖面，1-断面
 	float vEyex,vEyey,vEyez,vLookatx,vLookaty,vLookatz,vUpx,vUpy,vUpz;
 	float fNear;
+};
+
+//自定义用户视角
+struct _SSG_DLLIMPEXP USER_VIEW
+{
+	float vEyex, vEyey, vEyez, vLookatx, vLookaty, vLookatz, vUpx, vUpy, vUpz;
 };
 
 class _SSG_DLLIMPEXP  CSystemColor
@@ -49,6 +58,7 @@ public:
 			COLORREF Sys_WallColor;  //墙颜色
 			COLORREF Sys_BeamWallColor;  //墙梁颜色
 			COLORREF Sys_LinkColor;  //阻尼器线条颜色	//乔保娟 2015.5.19
+			COLORREF Sys_RigidColor; //刚性楼板颜色 贾苏20231213
 
 			COLORREF Sys_LineLoadColor;  //荷载线颜色
 			COLORREF Sys_AxisColor;  //坐标轴颜色,分量最大值为
@@ -74,7 +84,14 @@ public:
 			COLORREF Sys_MinValueColor; //显示数值中最小值颜色
 			COLORREF Sys_WarningColor; //显示数值不满足要求的颜色
 
-			
+			COLORREF Sys_BlastFrontWallColor; //爆炸分析中前墙标注颜色
+			COLORREF Sys_BlastSideWallColor; //爆炸分析中侧墙标注颜色
+			COLORREF Sys_BlastRoofWallColor; //爆炸分析中侧墙标注颜色
+			COLORREF Sys_BlastBackWallColor; //爆炸分析中后墙标注颜色
+
+			COLORREF Sys_PartitionWallColor; //隔墙颜色
+			COLORREF Sys_ReinforcedColor; // 梁柱、墙板加固颜色
+
 		};
 		COLORREF Sys_ColorArray[SYSTEM_COLOR_NUMBER];
 	};
@@ -164,7 +181,7 @@ public:
 		*this=para;
 	}
 
-	enum {PRJ_NUMBER=68};	//乔保娟 2015.5.7
+	enum {PRJ_NUMBER=72};	//乔保娟 2015.5.7
 
 	//以下为标准格式，在SSG文件中定义
 	/*0 */CString Prj_Name;						//项目名称
@@ -232,7 +249,7 @@ public:
 	/*55*/float	Prj_BearingCoef;//承载力抗震调整系数
 
 	//2021新增参数
-	/*56*/int Prj_CodeType;//规范类型（对应关系：0-国家规范，1-广东省标准）
+	/*56*/int Prj_CodeType;//规范类型（对应关系：0-国家规范，1-广东性能规程，2-隔标，3-广东高规,4-消能减震,5-上海标准）
 	/*57*/int Prj_PerformType;//性能评价标准类型（对应关系：0-默认值，1-倒塌规范，2-RBS，3-广东）
 	/*58*/int Prj_SlabConcLayer;				//缺省的板构件混凝土层数
 	/*59*/float Prj_StructTemper;				   //环境温度
@@ -241,12 +258,34 @@ public:
 	/*62*/float Prj_ScaleMassMinQuadArea;
 	/*63*/float Prj_ScaleFactor;
 	/*64*/int Prj_bScaleByFactor;   // 未初始化 -1； FALSE 1;  TRUE 0
-	/*65*/BOOL Prj_bScaleSelectedMass;
-	/*66*/float Prj_ScaleMassError;
+	/*65*/float Prj_fTotalMassRatio;
+	/*66*/BOOL Prj_bAutoScaleMass;
 	/*67*/BOOL Prj_bScaleMass;
+	/*68*/float Prj_DriftLmt; //层间位移角限值 贾苏20230310
+	/*69*/int Prj_JGCodeType;//鉴定加固标准
+
+	//2024新增参数
+	/*70*/int Prj_MeshOptIter;//网格优化迭代测试
+
+	//2025新增参数
+	/*71*/int Prj_DZPerformanceGradeGJ;//罕遇地震下关键构件的抗震性能水准
+	/*72*/int Prj_DZPerformanceGradeNM;//罕遇地震下普通竖向构件的抗震性能水准
+	/*73*/int Prj_DZPerformanceGradeHN;//罕遇地震下耗能构件的抗震性能水准
+
+	/*74*/int Prj_ZZPerformanceGradeGJ;//设防地震下关键构件的抗震性能水准
+	/*75*/int Prj_ZZPerformanceGradeNM;//设防地震下普通竖向构件的抗震性能水准
+	/*76*/int Prj_ZZPerformanceGradeHN;//设防地震下耗能构件的抗震性能水准
+
+	/*77*/int Prj_XZPerformanceGradeGJ;//多遇地震下关键构件的抗震性能水准
+	/*78*/int Prj_XZPerformanceGradeNM;//多遇地震下普通竖向构件的抗震性能水准
+	/*79*/int Prj_XZPerformanceGradeHN;//多遇地震下耗能构件的抗震性能水准
+	
+	//2026新增参数
+	/*80*/float Prj_SoilkhRatio;//土层水平抗力系数的比例系数
 
 	//定义的剖面或断面
 	CArray<PROFILE_PARA,PROFILE_PARA&> m_aPrj_Profile;
+	USER_VIEW m_UserView;
 
 	//临时数据
 	enum PRJ_TYPE
@@ -350,14 +389,124 @@ public:
 		/*62*/Prj_ScaleMassMinQuadArea          =para.Prj_ScaleMassMinQuadArea;
 		/*63*/Prj_ScaleFactor                   =para.Prj_ScaleFactor;
 		/*64*/Prj_bScaleByFactor                =para.Prj_bScaleByFactor;
-		/*65*/Prj_bScaleSelectedMass            =para.Prj_bScaleSelectedMass;
-		/*66*/Prj_ScaleMassError                =para.Prj_ScaleMassError;
+		/*65*/Prj_fTotalMassRatio				=para.Prj_fTotalMassRatio;
+		/*66*/Prj_bAutoScaleMass				=para.Prj_bAutoScaleMass;
 		/*67*/Prj_bScaleMass                    =para.Prj_bScaleMass;
+		/*68*/Prj_DriftLmt						=para.Prj_DriftLmt;
+		/*69*/Prj_JGCodeType					=para.Prj_JGCodeType;
 
+		/*70*/Prj_MeshOptIter					=para.Prj_MeshOptIter;
+
+		/*71*/Prj_DZPerformanceGradeGJ			=para.Prj_DZPerformanceGradeGJ;
+		/*72*/Prj_DZPerformanceGradeNM			=para.Prj_DZPerformanceGradeNM;
+		/*73*/Prj_DZPerformanceGradeHN			=para.Prj_DZPerformanceGradeHN;
+
+		/*74*/Prj_ZZPerformanceGradeGJ			=para.Prj_ZZPerformanceGradeGJ;
+		/*75*/Prj_ZZPerformanceGradeGJ			=para.Prj_ZZPerformanceGradeGJ;
+		/*76*/Prj_ZZPerformanceGradeGJ			=para.Prj_ZZPerformanceGradeGJ;
+
+		/*77*/Prj_XZPerformanceGradeGJ			=para.Prj_XZPerformanceGradeGJ;
+		/*78*/Prj_XZPerformanceGradeGJ			=para.Prj_XZPerformanceGradeGJ;
+		/*79*/Prj_XZPerformanceGradeGJ			=para.Prj_XZPerformanceGradeGJ;
+		/*80*/Prj_SoilkhRatio                   =para.Prj_SoilkhRatio;
 		m_aPrj_Profile.RemoveAll();
 		m_aPrj_Profile.Copy(para.m_aPrj_Profile);
 
 		return *this;
+	}
+
+	BOOL operator==(const CProjectPara& para) const
+	{
+		/*0 */if (Prj_Name != para.Prj_Name) return FALSE;
+		/*1 */if (Prj_BeamProtectLayerThick != para.Prj_BeamProtectLayerThick) return FALSE;
+		/*2 */if (Prj_PillarProtectLayerThick != para.Prj_PillarProtectLayerThick) return FALSE;
+		/*3 */if (Prj_PlateProtectLayerThick != para.Prj_PlateProtectLayerThick) return FALSE;
+		/*4 */if (Prj_WallProtectLayerThick != para.Prj_WallProtectLayerThick) return FALSE;
+		/*5 */if (Prj_Nsty != para.Prj_Nsty) return FALSE;
+		/*6 */if (Prj_BaseStoryNum != para.Prj_BaseStoryNum) return FALSE;
+		/*7 */if (Prj_OldBaseStoryNum != para.Prj_OldBaseStoryNum) return FALSE;
+		/*8 */if (Prj_ConcDensity != para.Prj_ConcDensity) return FALSE;
+		/*9 */if(Prj_SteelDensity != para.Prj_SteelDensity) return FALSE;
+		/*10*/if (Prj_GravityAcce != para.Prj_GravityAcce) return FALSE;
+		/*11*/if (Prj_EdgeRebar != para.Prj_EdgeRebar) return FALSE;
+		/*12*/if (Prj_LinkRebar != para.Prj_LinkRebar) return FALSE;
+		/*13*/if (Prj_BeamStirrup != para.Prj_BeamStirrup) return FALSE;
+		/*14*/if (Prj_ColumnStirrup != para.Prj_ColumnStirrup) return FALSE;
+		/*15*/if (Prj_BeamLinkSpace != para.Prj_BeamLinkSpace) return FALSE;
+		/*16*/if (Prj_ColumnLinkSpace != para.Prj_ColumnLinkSpace) return FALSE;
+		/*17*/if (Prj_WallHoriRebarSpace != para.Prj_WallHoriRebarSpace) return FALSE;
+		/*18*/if (Prj_WallVertRebarSpace != para.Prj_WallVertRebarSpace) return FALSE;
+		/*19*/if (Prj_WallSeisGrade != para.Prj_WallSeisGrade) return FALSE;
+		/*20*/if (Prj_FrameSeisGrade != para.Prj_FrameSeisGrade) return FALSE;
+		/*21*/if (Prj_ConsEdgeSty != para.Prj_ConsEdgeSty) return FALSE;
+		/*22*/if (Prj_SlabSelfWeight != para.Prj_SlabSelfWeight) return FALSE;
+		/*23*/if (Prj_BraceBool != para.Prj_BraceBool) return FALSE;
+		/*24*/if (Prj_StructSystem != para.Prj_StructSystem) return FALSE;
+
+		//2.0新增参数
+		/*25*/if (Prj_FieldClass != para.Prj_FieldClass) return FALSE;
+		/*26*/if (Prj_FieldGroup != para.Prj_FieldGroup) return FALSE;
+		/*27*/if (Prj_EarthQuakeGrade != para.Prj_EarthQuakeGrade) return FALSE;
+		/*28*/if (Prj_EarthQuakeProbility != para.Prj_EarthQuakeProbility) return FALSE;
+		/*29*/if (Prj_ExtendMethod != para.Prj_ExtendMethod) return FALSE;
+		/*30*/if (Prj_PerformanceDesignGrade != para.Prj_PerformanceDesignGrade) return FALSE;
+
+		/*31*/if (Prj_BeamRebarDiameter != para.Prj_BeamRebarDiameter) return FALSE;
+		/*32*/if (Prj_PillarRebarDiameter != para.Prj_PillarRebarDiameter) return FALSE;
+		/*33*/if (Prj_PlateRebarDiameter != para.Prj_PlateRebarDiameter) return FALSE;
+		/*34*/if (Prj_BeamRebarRatio != para.Prj_BeamRebarRatio) return FALSE;
+		/*35*/if (Prj_PillarRebarRatio != para.Prj_PillarRebarRatio) return FALSE;
+		/*36*/if (Prj_PlateRebarRatio != para.Prj_PlateRebarRatio) return FALSE;
+		/*37*/if (Prj_WallRebarRatio != para.Prj_WallRebarRatio) return FALSE;
+		/*38*/if (Prj_PlateDefaultThickness != para.Prj_PlateDefaultThickness) return FALSE;
+		/*39*/if (Prj_WallDefaultThickness != para.Prj_WallDefaultThickness) return FALSE;
+		/*40*/if (Prj_WallConcLayer != para.Prj_WallConcLayer) return FALSE;
+		/*41*/if (Prj_CoorOffset != para.Prj_CoorOffset) return FALSE;
+		/*42*/if (Prj_MaxQuadAngle != para.Prj_MaxQuadAngle) return FALSE;
+		/*43*/if (Prj_MaxTriAngle != para.Prj_MaxTriAngle) return FALSE;
+		/*44*/if (Prj_nSmooth != para.Prj_nSmooth) return FALSE;
+		/*45*/if (Prj_MinLineSize != para.Prj_MinLineSize) return FALSE;
+		/*46*/if (Prj_BeamOverlayStiffDeduction != para.Prj_BeamOverlayStiffDeduction) return FALSE;
+		/*47*/if (Prj_BeamOverlayAreaDeduction != para.Prj_BeamOverlayAreaDeduction) return FALSE;
+		/*48*/if (Prj_PlateOverlayStiffDeduction != para.Prj_PlateOverlayStiffDeduction) return FALSE;
+		/*49*/if (Prj_PlateOverlayAreaDeduction != para.Prj_PlateOverlayAreaDeduction) return FALSE;
+		/*50*/if (Prj_FortificationCategory != para.Prj_FortificationCategory) return FALSE;
+		/*51*/if (Prj_SlabSeisGrade != para.Prj_SlabSeisGrade) return FALSE;
+		/*52*/if (Prj_SeisDetailsGrade != para.Prj_SeisDetailsGrade) return FALSE;
+		/*53*/if (Prj_IsolatStory != para.Prj_IsolatStory) return FALSE;
+		/*54*/if (Prj_ImportanceCoef != para.Prj_ImportanceCoef) return FALSE;
+		/*55*/if (Prj_BearingCoef != para.Prj_BearingCoef) return FALSE;
+		/*56*/if (Prj_CodeType != para.Prj_CodeType) return FALSE;
+		/*57*/if (Prj_PerformType != para.Prj_PerformType) return FALSE;
+		/*58*/if (Prj_SlabConcLayer != para.Prj_SlabConcLayer) return FALSE;
+		/*59*/if (Prj_StructTemper != para.Prj_StructTemper) return FALSE;
+		/*60*/if (Prj_ScaleMassMinLength != para.Prj_ScaleMassMinLength) return FALSE;
+		/*61*/if (Prj_ScaleMassMinTriArea != para.Prj_ScaleMassMinTriArea) return FALSE;
+		/*62*/if (Prj_ScaleMassMinQuadArea != para.Prj_ScaleMassMinQuadArea) return FALSE;
+		/*63*/if (Prj_ScaleFactor != para.Prj_ScaleFactor) return FALSE;
+		/*64*/if (Prj_bScaleByFactor != para.Prj_bScaleByFactor) return FALSE;
+		/*65*/if (Prj_fTotalMassRatio != para.Prj_fTotalMassRatio) return FALSE;
+		/*66*/if (Prj_bAutoScaleMass != para.Prj_bAutoScaleMass) return FALSE;
+		/*67*/if (Prj_bScaleMass != para.Prj_bScaleMass) return FALSE;
+		/*68*/if (Prj_DriftLmt != para.Prj_DriftLmt) return FALSE;
+		/*69*/if (Prj_JGCodeType != para.Prj_JGCodeType) return FALSE;
+
+		/*70*/if (Prj_MeshOptIter != para.Prj_MeshOptIter) return FALSE;
+
+		/*71*/if (Prj_DZPerformanceGradeGJ != para.Prj_DZPerformanceGradeGJ) return FALSE;
+		/*72*/if (Prj_DZPerformanceGradeNM != para.Prj_DZPerformanceGradeNM) return FALSE;
+		/*73*/if (Prj_DZPerformanceGradeHN != para.Prj_DZPerformanceGradeHN) return FALSE;
+
+		/*74*/if (Prj_ZZPerformanceGradeGJ != para.Prj_ZZPerformanceGradeGJ) return FALSE;
+		/*75*/if (Prj_ZZPerformanceGradeNM != para.Prj_ZZPerformanceGradeNM) return FALSE;
+		/*76*/if (Prj_ZZPerformanceGradeHN != para.Prj_ZZPerformanceGradeHN) return FALSE;
+
+		/*77*/if (Prj_XZPerformanceGradeGJ != para.Prj_XZPerformanceGradeGJ) return FALSE;
+		/*78*/if (Prj_XZPerformanceGradeNM != para.Prj_XZPerformanceGradeNM) return FALSE;
+		/*79*/if (Prj_XZPerformanceGradeHN != para.Prj_XZPerformanceGradeHN) return FALSE;
+
+		/*80*/if (Prj_SoilkhRatio != para.Prj_SoilkhRatio)return FALSE;
+		return TRUE;
 	}
 
 	void Init(void);
@@ -366,6 +515,7 @@ public:
 	BOOL Read(const CString &sPrjName);
 	BOOL Write(CFile &fout);
 	BOOL Write2020(CFile &fout);
+
 };
 
 class _SSG_DLLIMPEXP  CProgramControl
@@ -419,6 +569,13 @@ public:
 	struct
 	{
 		int Sys_PerformType;//4为非线性规程(应变),3为广东省规程\非线性规程(位移角),2为RBS，0为默认，1为倒塌//2019.11.27王丹
+		BOOL Sys_PerformTypeSteelOn; //是否考虑钢构件评价标准
+		int Sys_PerformTypeSteel; //钢构件评价标准
+
+		BOOL Sys_PerformTypeDamperOn; //是否考虑阻尼器评价标注
+
+		int Sys_PerformGradeNum; //评价等级数量
+
 		CString Sys_PerformGradeNameRBS[5];//2019.11.27王丹
 		COLORREF Sys_PerformGradeColorRBS[5];//2019.11.27王丹
 	
@@ -426,52 +583,95 @@ public:
 		float Sys_DcRBS[3];//2019.12.30王丹
 
 		//广东省规程性能评价、非线性规程（位移角）所需内置参数 2021.1.13王丹
-		float Sys_GDNLBeam020012[6];
-		float Sys_GDNLBeam080012[6];
-		float Sys_GDNLBeam020001[6];
-		float Sys_GDNLBeam080001[6];
+		float Sys_GDNLBeam[8][6] =
+		{
+			//弯控
+			0.004f,0.016f,0.024f,0.031f,0.039f,0.044f, //0 m≤0.2 ρv≥0.012
+			0.004f,0.018f,0.029f,0.039f,0.049f,0.054f, //1 m≥0.8 ρv≥0.012
+			0.004f,0.010f,0.011f,0.013f,0.014f,0.017f, //2 m≤0.2 ρv≤0.001
+			0.004f,0.012f,0.016f,0.020f,0.024f,0.029f, //3 m≥0.8 ρv≤0.001
+			//弯剪控
+			0.004f,0.009f,0.014f,0.019f,0.024f,0.026f, //4 m≤0.5 ρsv≥0.008
+			0.004f,0.007f,0.009f,0.012f,0.014f,0.016f, //5 m≥2.5 ρsv≥0.008
+			0.004f,0.007f,0.009f,0.012f,0.014f,0.016f, //6 m≤0.5 ρsv≤0.0005
+			0.004f,0.005f,0.007f,0.008f,0.009f,0.012f, //7 m≥2.5 ρsv≤0.0005
+		};
 
-		float Sys_GDNLBeamShear050008[6];
-		float Sys_GDNLBeamShear250008[6];
-		float Sys_GDNLBeamShear0500005[6];
-		float Sys_GDNLBeamShear2500005[6];
+		float Sys_GDNLPillar[8][6] =
+		{
+			//弯控
+			0.004f,0.018f,0.027f,0.037f,0.046f,0.056f, //0 n≤0.1 ρv≥0.021
+			0.004f,0.013f,0.018f,0.022f,0.027f,0.030f, //1 n=0.6 ρv≥0.021
+			0.004f,0.015f,0.022f,0.029f,0.036f,0.042f, //2 n≤0.1 ρv≤0.001
+			0.004f,0.009f,0.011f,0.012f,0.013f,0.014f, //3 n=0.6 ρv≤0.001
+			//弯剪控
+			0.003f,0.013f,0.020f,0.026f,0.033f,0.040f, //4 n≤0.1 m≤0.6
+			0.003f,0.009f,0.011f,0.014f,0.016f,0.018f, //5 n=0.6 m≤0.6
+			0.003f,0.011f,0.016f,0.021f,0.026f,0.028f, //6 n≤0.1 m≥1.0
+			0.003f,0.008f,0.009f,0.011f,0.012f,0.014f, //7 n=0.6 m≥1.0
+		};
 
-		float Sys_GDNLPillar010021[6];
-		float Sys_GDNLPillar060021[6];
-		float Sys_GDNLPillar010001[6];
-		float Sys_GDNLPillar060001[6];
-
-		float Sys_GDNLPillarShear0106[6];
-		float Sys_GDNLPillarShear0606[6];
-		float Sys_GDNLPillarShear0110[6];
-		float Sys_GDNLPillarShear0610[6];
-
-		float Sys_GDNLWall010025[6];
-		float Sys_GDNLWall040025[6];
-		float Sys_GDNLWall010004[6];
-		float Sys_GDNLWall040004[6];
-
-		float Sys_GDNLWallShear0105[6];
-		float Sys_GDNLWallShear0305[6];
-		float Sys_GDNLWallShear0120[6];
-		float Sys_GDNLWallShear0320[6];
+		float Sys_GDNLWall[8][6] =
+		{
+			//弯控
+			0.003f,0.011f,0.016f,0.022f,0.025f,0.028f, //0 n≤0.1 ρv≥0.025
+			0.003f,0.010f,0.013f,0.017f,0.020f,0.022f, //1 n=0.4 ρv≥0.025
+			0.003f,0.008f,0.010f,0.011f,0.013f,0.015f, //2 n≤0.1 ρv≤0.004
+			0.003f,0.007f,0.008f,0.009f,0.010f,0.011f, //3 n=0.4 ρv≤0.004
+			//弯剪控
+			0.003f,0.010f,0.013f,0.017f,0.020f,0.021f, //4 n≤0.1 m≤0.5
+			0.003f,0.008f,0.011f,0.013f,0.015f,0.016f, //5 n=0.3 m≤0.5
+			0.003f,0.008f,0.010f,0.011f,0.013f,0.015f, //6 n≤0.1 m=2.0
+			0.003f,0.007f,0.008f,0.010f,0.011f,0.013f, //7 n=0.3 m=2.0
+		};
 
 		//抗倒塌规程所需参数【CECS 392： 2014】
-		CString Sys_PerformGradeNameCollapse[Sys_MaxPerformGrade];
-		float Sys_PerformCollapseConcrete[6];
-		float Sys_PerformCollapseRebar[6];
+		CString Sys_PerformGradeNameCollapse[Sys_MaxPerformGrade] =
+		{
+			_CHSL(L"无损坏", L"None") ,_CHSL(L"轻微损坏", L"Light") ,_CHSL(L"轻度损坏", L"Slight"),
+			_CHSL(L"中度损坏", L"Moderate") ,_CHSL(L"比较严重损坏", L"Heavy") ,_CHSL(L"严重损坏", L"Severe")
+		};
+		float Sys_PerformCollapseConcrete[6] = { 0.f,1.f,1.f,1.5f,2.f,3.f };
+		float Sys_PerformCollapseRebar[6] = { 0.f,1.f,2.5f,5.f,12.5f,20.f };
 
 		//应力标准
-		CString Sys_PerformGradeNameStress[6];
-		float Sys_PerformStressConcrete[6];
-		float Sys_PerformStressRebar[6];
+		CString Sys_PerformGradeNameStress[6] =
+		{
+			_CHSL(L"无损坏", L"None") ,_CHSL(L"轻微损坏", L"Light") ,_CHSL(L"轻度损坏", L"Slight"),
+			_CHSL(L"中度损坏", L"Moderate") ,_CHSL(L"重度损坏", L"Heavy") ,_CHSL(L"严重损坏", L"Severe")
+		};
+		float Sys_PerformStressConcrete[6] = { -1.f,-0.2f,0.f,0.2f,0.5f,0.75f };
+		float Sys_PerformStressRebar[6] = { 0.f,1.f,3.f,5.f,7.f,12.f };
 
 		//非线性规程所需参数
-		CString Sys_PerformGradeNameNonlinear[Sys_MaxPerformGrade];
-		float Sys_PerformNonlinearConcrete[6];
-		float Sys_PerformNonlinearRebar[6];
+		CString Sys_PerformGradeNameNonlinear[Sys_MaxPerformGrade] =
+		{
+			_CHSL(L"无损坏", L"None") ,_CHSL(L"轻微损坏", L"Light") ,_CHSL(L"轻度损坏", L"Slight"),
+			_CHSL(L"中度损坏", L"Moderate") ,_CHSL(L"重度损坏", L"Heavy") ,_CHSL(L"严重损坏", L"Severe")
+		};
+		float Sys_PerformNonlinearConcrete[6] = { 0.f,0.8f,1.f,1.35f,2.175f,3.f };
+		float Sys_PerformNonlinearRebar[6] = { 0.f,1.f,2.f,4.f,7.f,13.f };
 
-		int Sys_PerformGradeNum;
+		//韧性评价标准所需参数
+		CString Sys_PerformGradeNameRES[Sys_MaxPerformGrade] =
+		{ 
+			_CHSL(L"0级", L"Level 0") ,_CHSL(L"1级", L"Level 1") ,_CHSL(L"2级", L"Level 2"),
+			_CHSL(L"3级", L"Level 3") ,_CHSL(L"4级", L"Level 4") ,_CHSL(L"5级", L"Level 5")
+		};
+		COLORREF Sys_PerformGradeColorRES[Sys_MaxPerformGrade] = { RGB(0,0,255) ,RGB(0,255,255) ,RGB(0,255,0) ,RGB(255,255,0) ,RGB(255,97,0) ,RGB(255,0,0) };
+		float Sys_PerformRESConcrete[Sys_MaxPerformGrade] = { 0.f,1.f,1.f,1.5f,3.f,4.5f };
+		float Sys_PerformRESRebar[Sys_MaxPerformGrade] = { 0.f,1.f,2.f,3.5f,12.f,20.f };
+
+		//性能化设计标准所需参数
+		CString Sys_PerformGradeNamePBSD[Sys_MaxPerformGrade] =
+		{
+			_CHSL(L"无损坏", L"None") ,_CHSL(L"轻微损坏", L"Light") ,_CHSL(L"轻度损坏", L"Slight"),
+			_CHSL(L"中度损坏", L"Moderate") ,_CHSL(L"重度损坏", L"Heavy") ,_CHSL(L"严重损坏", L"Severe")
+		};
+		float Sys_PerformPBSDConcrete[6] = { 0.f,0.5f,1.f,1.5f,3.f,4.5f };
+		float Sys_PerformPBSDRebar[6] = { 0.f,1.f,3.f,6.f,12.f,20.f };
+
+		//2023版本默认评价标准
 		CString Sys_PerformGradeName[Sys_MaxPerformGrade];
 		float Sys_StrainGrade[Sys_MaxPerformGrade];
 		float Sys_DamageGrade[Sys_MaxPerformGrade];
@@ -491,12 +691,132 @@ public:
 		float Sys_WallDtGradeDefault[Sys_MaxPerformGrade];
 		COLORREF Sys_PerformGradeColorDefault[Sys_MaxPerformGrade];	
 
-		int Sys_DamperPerformGradeNum; //2020.6.4王丹，暂时用不到，为整体性能评价阻尼器部分开发备用
+		//钢构件性能评价标准
+		int Sys_SteelPerformGradeNum = 6;
+		float Sys_SteelGradeDefault[17][Sys_MaxPerformGrade] =
+		{
+			//S1
+			0.0f,1.0f,4.5f,8.0f,12.0f,15.0f ,
+			0.0f,1.0f,3.0f,5.0f,7.0f,9.0f,
+			0.0f,1.0f,2.5f,4.0f,5.5f,7.0f,
+			0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,
+			//S2
+			0.0f,1.0f,2.5f,4.0f,6.0f,8.0f,
+			0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,
+			0.0f,1.0f,1.75f,2.5f,3.25f,4.0f,
+			0.0f,1.0f,1.5f,2.0f,2.5f,3.0f,
+			//S3
+			0.0f,1.0f,2.0f,3.0f,4.0f,5.0f,
+			0.0f,1.0f,1.5f,2.0f,2.5f,3.0f,
+			0.0f,1.0f,1.4f,1.75f,2.2f,2.5f,
+			0.0f,1.0f,1.25f,1.5f,1.75f,2.0f,
+			//S4
+			0.0f,1.0f,1.5f,2.0f,3.0f,4.0f,
+			0.0f,1.0f,1.4f,1.75f,2.2f,2.5f,
+			0.0f,1.0f,1.25f,1.5f,1.75f,2.0f,
+			0.0f,1.0f,1.2f,1.4f,1.6f,1.8f,
+			//P/Py>0.6
+			0.0f,1.0f,1.0f,1.0f,1.0f,1.0f
+		};
+
+		//钢构件性能评价标准（位移角）
+		float Sys_SteelDirftLmtGradeDefault[5][4] = //宽厚比和高厚比限值
+		{
+			 9.f,72.f,11.f,110.f,
+			 9.f,51.f,11.f,79.f,
+			 9.f,45.f,11.f,68.f,
+			19.f,51.f,33.f,79.f,
+			19.f,45.f,33.f,68.f,
+		};
+		float Sys_SteelDirftGradeDefault[11][Sys_MaxPerformGrade] =
+		{
+			//梁（H截面）
+			0.0f,1.0f,2.00f,6.0f,10.0f,12.0f, //b/tf≤9且h/tw≤72
+			0.0f,1.0f,1.25f,2.63f,4.0f,5.f, //b/tf≥11或h/tw≥110
+
+			//柱（H截面）
+			//n<0.2
+			0.0f,1.0f,2.0f,6.0f,10.0f,12.0f, //b/tf≤9且h/tw≤51
+			0.0f,1.0f,1.25f,2.63f,4.0f,5.f, //b/tf≥11或h/tw≥79
+			//0.2≤n≤0.6
+			0.0f,1.0f,1.25f,8.125f,15.0f,18.0f, //b/tf≤9且h/tw≤51
+			0.0f,1.0f,1.25f,1.38f,1.5f,1.8f, //b/tf≥11或h/tw≥79
+
+			//柱（方管截面）
+			//n<0.2
+			0.0f,1.0f,2.0f,6.0f,10.0f,12.0f, //b/tf≤19且h/tw≤51
+			0.0f,1.0f,1.25f,2.63f,4.0f,5.f, //b/tf≥33或h/tw≥79
+			//0.2≤n≤0.6
+			0.0f,1.0f,1.25f,8.125f,15.0f,18.0f, //b/tf≤19且h/tw≤45
+			0.0f,1.0f,1.25f,1.38f,1.5f,1.8f, //b/tf≥33或h/tw≥68
+
+			//其他情况
+			0.0f,1.0f,1.0f,1.0f,1.0f,1.0f,
+		};
+		float Sys_SteelDirftNGradeDefault[11][Sys_MaxPerformGrade] =
+		{
+			//梁（H截面）
+			0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //b/tf≤9且h/tw≤72
+			0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //b/tf≥11或h/tw≥110
+
+			//柱（H截面）
+			//n<0.2
+			0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //b/tf≤9且h/tw≤51
+			0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //b/tf≥11或h/tw≥79
+			//0.2≤n≤0.6
+			0.0f,0.0f,0.0f,11.7f,23.3f,28.3f, //b/tf≤9且h/tw≤51
+			0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //b/tf≥11或h/tw≥79
+
+			//柱（方管截面）
+			//n<0.2
+			0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //b/tf≤19且h/tw≤51
+			0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //b/tf≥33或h/tw≥79
+			//0.2≤n≤0.6
+			0.0f,0.0f,0.0f,11.7f,23.3f,28.3f, //b/tf≤19且h/tw≤45
+			0.0f,0.0f,0.0f,0.0f,0.0f,0.0f, //b/tf≥33或h/tw≥68
+
+			//其他情况
+			0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,
+		};
+
+		int Sys_DamperPerformGradeNum = 6; //一般连接评价标准
 		
 		float Sys_DamperGradeDefault[6];//2020.7.10王丹
 		float Sys_DamperGrade_n[6];//2020.6.4王丹，暂时用不到，为整体性能评价阻尼器部分开发备用
 		float Sys_DamperGrade_t[6];//2020.6.15王丹，暂时用不到，为整体性能评价阻尼器部分开发备用
 	};
+
+	CString GetSteelDriftString(int i, int j)
+	{
+		CString str;
+		float X = Sys_SteelDirftGradeDefault[i][j];
+		float Y = Sys_SteelDirftNGradeDefault[i][j];
+
+		if (abs(Y) > 0.f) str.Format(L"%g-%gn", X, Y);
+		else str.Format(L"%g", X);
+
+		return str;
+	};
+	BOOL GetSteelDriftLmt(float* fA, float* fB, CString str)
+	{
+		CStringArray sArr;
+		SplitCString(str, &sArr);
+
+		if (sArr.GetCount() > 0) *fA = _ttof(sArr[0]);
+		if (sArr.GetCount() > 1) *fB = _ttof(sArr[1]);
+
+		return TRUE;
+	}
+	int GetSteelDriftPerform(STRUCT_TYPE iStrucType, SECTION_SHAPE iSecType, float fDrift, float fKHB, float fGHB, float fComp = 0.f);
+
+	//性能评价标准说明
+	CString GetPerformNote();
+
+	void Read(CASCFile& fin, int iPerformType);
+	void Write(CASCFile& fout, int iPerformType);
+	CString GetStrSwitch(CString str);
+	CString* GetPerformGradeName();
+	COLORREF* GetPerformGradeColor();
 };
 
 class _SSG_DLLIMPEXP  CHingeGradePara
@@ -521,7 +841,7 @@ public:
 	};
 };
 
-#define Sys_ComponentNum 258 //分量名称
+#define Sys_ComponentNum 392 //分量名称
 struct _SSG_DLLIMPEXP COMPONENT_COMMENT_TABLE
 {
 	CString sName;				//分量名称
@@ -540,3 +860,5 @@ extern "C" _SSG_DLLIMPEXP COLORREF g_Sys_Color_Default[SYSTEM_COLOR_NUMBER];
 extern "C" _SSG_DLLIMPEXP float g_Sys_ProgCtrl_Default[6];
 extern "C" _SSG_DLLIMPEXP float g_Sys_InitialviewParameter_Default[4];
 extern "C" _SSG_DLLIMPEXP COMPONENT_COMMENT_TABLE aComponentCommentTable[Sys_ComponentNum];
+extern "C" _SSG_DLLIMPEXP COLORREF g_Sys_Structural_member_Color[SYSTEM_STRUCTURAL_MEMBER_COLOR_NUMBER];
+

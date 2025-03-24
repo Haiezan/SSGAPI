@@ -14,6 +14,7 @@
 #include <algorithm>
 #include <functional>
 #include "..\Common\VisibleMesh.h"
+#include "MeshOpt.h"
 
 
 //结点到单元的映射关系
@@ -117,11 +118,15 @@ public:
 	SUB_ELM_INFO2 *m_pSubBeamInfo;
 	SUB_ELM_INFO3 *m_pSubTriInfo;
 	SUB_ELM_INFO4 *m_pSubQuadInfo;
+	
+	//显示裂缝节点数据
+	Vector4* m_pTriPrim;
+	Vector4* m_pQuadPrim;
 
 	CBoundary *m_pBoundary;  //边界条件数组，包括荷载和位移，按结点存储
 
 	//加载步数，此数据应该与框架中的数据一致,如不一致，则以下为无效数据。此处为冗余数据，生成网格时得到
-	//原始数据为CFrame::m_cStage.aStagePtr.GetCount()，为了网格数据文件的完整性
+	//原始数据为CFrame::m_cStage.GetCount()，为了网格数据文件的完整性
 	int m_nStage;    //施工阶段数
 	int *m_pStartNode;     //某加载步中结点起始编号,   长度为m_nStage+1，最后一个数据可以得到总结点数
 	int *m_pStartBeamElm;  //某加载步中梁单元起始编号, 长度为m_nStage+1
@@ -136,12 +141,14 @@ public:
 	{
 		if(this==&mesh) return *this;
 		ASSERT(FALSE);  //用于跟踪此函数，暂时不提供复制功能
+
 		return *this;
 	}
 
+
 	void Clear();
 	float GetMinMax(Vector4 &MinCoor,Vector4 &MaxCoor); //返回外包直径
-	int GetNodeID(float x,float y,float z);  //根据坐标找到结点号
+	int GetNodeID(float x,float y,float z) const;  //根据坐标找到结点号
 
 	//处理地基和地下室约束
 	BOOL SetBoundary(void); 
@@ -178,7 +185,7 @@ public:
 	void RearrangeElmByStage(int nStage);	
 
 	//对每个单元的结点从小到大排序
-	void RearrangeElmLocalNode(void);	
+	void RearrangeElmLocalNode(const CFrame& frame);
 
 	//统计每阶段的起始结点号
 	void GetStageStartNode(int nStage);	
@@ -197,7 +204,8 @@ public:
 	void InitShellSubElmOriginalCoor(void);
 	//网格坐标变化后更新子单元变形坐标
 	void UpdateShellSubElmDeformCoor(CVertex *pNode);
-
+	//
+	BOOL CreateShellElmPrim(void);
 
 	//得到层间位移角单元
 	//Sty_Col_id: 柱子（几何模型,包括斜撑、边缘构件）信息，包括上层节点编号、下层节点编号、楼层号，长度Sty_Col_Num×3
@@ -215,6 +223,7 @@ public:
 	int CreateStoryShearElm(vector<BEAM_CONN_LAYER> &vBottomBeamElm,vector<SHELL_CONN_LAYER> &vBottomShell,vector<SHELL_CONN_LAYER> &vBottomQuad,
 		int iFilter,const void *pFilterData);
 
+	void ScaleNodeMass(float fMinLength, float fMinTriArea, float fMinQuadArea);
 
 	BOOL ReadMeshBin(int &nStory,CStory *pStory); //读取单元和坐标
 	BOOL WriteMeshBin(void);
@@ -223,6 +232,8 @@ public:
 	//由王欣维护的代码
 	void PostMesh(void);
 
+	//优化器
+	CMeshOpt m_cOpt;
 private:
 	void RearrangeID();  //重新编排ID，去掉无效图元
 

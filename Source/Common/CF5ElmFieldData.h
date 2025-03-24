@@ -1,6 +1,5 @@
 #pragma once
 #include "..\Common\PostData.h"
-//#include "..\StructGraph\StructGraph.h"
 
 //F-5格式的一个单元块
 class _SSG_DLLIMPEXP CF5ElemBlock
@@ -235,17 +234,32 @@ class _SSG_DLLIMPEXP CElmFieldOneComponent
 {
 public:
 	CElmFieldOneComponent()
+		: sFilePath(L"")
+		, sTitle(L"")
+		, sGroupName(L"")
+		, nMaxSteps(0)
+		, iStartStep(0)
+		, nBeam(0)
+		, nTriAngle(0)
+		, nQuad(0)
+		, iComponent(0)
+		, nBlock(0)
+		, pBlockCol(NULL)
+		, fMin(0)
+		, fMax(0)
+		, iMinStep(0)
+		, iMaxStep(0)
+		, sComponentName(L"")
+		, pBeamIndex(NULL)
+		, pTriIndex(NULL)
+		, pQuadIndex(NULL)
+		, ppData(NULL)
+		, pTime(NULL)
+		, pEnvelope()
+		, nBeamIndex(0)
+		, nTriIndex(0)
+		, nQuadInex(0)
 	{
-		pBeamIndex=NULL;
-		pTriIndex=NULL;
-		pQuadIndex=NULL;
-		ppData=NULL;
-		for(int i=0;i<sizeof(pEnvelope)/sizeof(float *);i++) pEnvelope[i]=NULL;
-		pTime=NULL;
-		nMaxSteps=0;
-		nBlock=0;
-		pBlockCol=NULL;
-		iStartStep=0;
 	}
 
 	~CElmFieldOneComponent() 
@@ -253,36 +267,45 @@ public:
 		Clear();
 
 		nBlock=0;
-		delete[] pBlockCol;		pBlockCol=NULL;
+		delete[] pBlockCol;	
+		pBlockCol=NULL;
 	}
 	
 	void Clear(void)
 	{
-		if(pBeamIndex) delete[] pBeamIndex; 
-		if(pTriIndex) delete[] pTriIndex;
-		if(pQuadIndex) delete[] pQuadIndex;
+		if(pBeamIndex)
+			delete[] pBeamIndex; 
+
+		if(pTriIndex)
+			delete[] pTriIndex;
+
+		if(pQuadIndex) 
+			delete[] pQuadIndex;
+
 		pBeamIndex=NULL;
 		pTriIndex=NULL;
 		pQuadIndex=NULL;
 
-		if(ppData)
+		if (ppData)
 		{
-			for(int i=0;i<nMaxSteps;i++) delete[] ppData[i];
+			for (int i = 0; i < nMaxSteps; i++)
+				delete[] ppData[i];
+
 			delete[] ppData;
-			ppData=NULL;
+			ppData = NULL;
 		}
 
-		for(int i=0;i<sizeof(pEnvelope)/sizeof(float *);i++)
+		for (int i = 0; i < sizeof(pEnvelope) / sizeof(float*); i++)
 		{
 			delete pEnvelope[i];
-			pEnvelope[i]=NULL;
+			pEnvelope[i] = NULL;
 		}
 
 		delete[] pTime;
-		pTime=NULL;
-		sFilePath=L"";
-		nMaxSteps=0;
-		sComponentName=L"";
+		pTime = NULL;
+		sFilePath = L"";
+		nMaxSteps = 0;
+		sComponentName = L"";
 	}
 
 	CString sFilePath;  //文件名
@@ -290,7 +313,6 @@ public:
 	CString sGroupName; //分组名称
 	int nMaxSteps;  //读入的时间步数
 	int iStartStep; //读入的开始时间步序号
-
 
 	int nBeam;  //实际读取的梁单元数，是全体梁单元的子集
 	int nTriAngle; //实际读取的三角形壳单元数，是全体三角形壳单元的子集
@@ -311,6 +333,9 @@ public:
 	int *pBeamIndex;  //梁单元整体编号到局部编号的索引，值为-1时表示此单元无数据
 	int *pTriIndex;  //四边形壳单元整体编号到局部编号的索引，值为-1时表示此单元无数据
 	int *pQuadIndex;  //四边形壳单元整体编号到局部编号的索引，值为-1时表示此单元无数据
+	int nBeamIndex;	//全局梁数
+	int nTriIndex;	//全局三角形数
+	int nQuadInex;  //全局四边形数  
 
 	float **ppData;  //物理量指针数组,每一个指针成员对应一个时刻的物理场,每一时刻包含nBeam+nTriAngle+nQuad个单元的一个分量数据，先存梁数据，然后三角形数据，最后是四边形壳数据
 	float *pTime;  //时间数组,每一个指针成员对应一个时刻，单位：秒
@@ -319,14 +344,15 @@ public:
 
 	CElmFieldOneComponent &operator=(const CElmFieldOneComponent &blk)
 	{
-		if(this==&blk) return *this;
+		if(this==&blk) 
+			return *this;
 
 		ASSERT(FALSE);
 
 		return *this;
 	}
 
-	BOOL IsValid(void) {return nMaxSteps>0?TRUE:FALSE;}
+	BOOL IsValid(void)const {return nMaxSteps>0?TRUE:FALSE;}
 
 	//得到时间分辨率,单位：秒，假设时间步是等间隔的，否则不正确
 	float GetDTime(void) 
@@ -461,7 +487,8 @@ public:
 	BOOL ReadBinElmField_AllStep(const CString &fname,CF5Header hdr,CF5ElemBlock *pblock,int iStartStep0,int iSkip=1); 
 
 	void GetMaxMin();
-	
+	bool CalInterDensity();	//计算应变能密度
+
 };
 
 //某一时刻某一块的单元数据的所有分量

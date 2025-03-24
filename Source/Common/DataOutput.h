@@ -4,8 +4,8 @@
 class _SSG_DLLIMPEXP COutput
 {
 public:
-	//	COutput() {value=0;}
-	COutput() {value=23;}	//ÇÇ±£¾ê 2015.6.18
+	COutput():value(0){}
+	//COutput() {value=23;}	//ÇÇ±£¾ê 2015.6.18
 	COutput(const COutput &out) {*this=out;}
 	~COutput() {;}
 

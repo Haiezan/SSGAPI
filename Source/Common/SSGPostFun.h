@@ -11,9 +11,10 @@
 
 namespace ssgPost
 {
-	_POST_FUN void ShowShearforcecurve(LOADCASETYPE iType = EARTHQUAKE, BOOL bNoIso = FALSE);
-	_POST_FUN void ShowMomentcurve(LOADCASETYPE iType = EARTHQUAKE, BOOL bNoIso = FALSE);
+	_POST_FUN void ShowShearforcecurve(LOADCASETYPE iType = EARTHQUAKE);
+	_POST_FUN void ShowMomentcurve(LOADCASETYPE iType = EARTHQUAKE);
 	_POST_FUN void ShowEnergyCurve(LOADCASETYPE iType = EARTHQUAKE);
+	_POST_FUN void ShowEnergyStructCurve(LOADCASETYPE iType = EARTHQUAKE);
 	_POST_FUN void OnOpendatafile();
 	_POST_FUN void OnTermCurve();
 	_POST_FUN void OnSupportfile();
@@ -29,4 +30,10 @@ namespace ssgPost
 	_POST_FUN void ShowStressRatioGraph();
 	_POST_FUN bool OnDefineperformance();
 	_POST_FUN bool OnOpenSAUSGAPI();
+	_POST_FUN void ShowShearforcecurveCmp(LOADCASETYPE iType = EARTHQUAKE);
+	_POST_FUN void ShowMomentcurveCmp(LOADCASETYPE iType = EARTHQUAKE);
+	_POST_FUN void ShowEnergyCurveCmp(LOADCASETYPE iType = EARTHQUAKE);
+	_POST_FUN void ShowPMMDlg();
+	_POST_FUN void ShowMultiModelShearforcecurveCmp(LOADCASETYPE iType = EARTHQUAKE);
+	_POST_FUN void ShowMultiModelMomentcurveCmp(LOADCASETYPE iType = EARTHQUAKE);
 }

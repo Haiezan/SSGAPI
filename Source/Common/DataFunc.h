@@ -59,14 +59,6 @@ extern "C" _SSG_DLLIMPEXP double RotateAngleDouble(const CVertex &center,const C
 extern "C" _SSG_DLLIMPEXP STRUCT_KEYWORD g_StructKeyword[Sys_StructTypeNum];
 extern "C" _SSG_DLLIMPEXP STRUCT_PROPERTY1 g_PropTable1[17];
 
-//生成板构件边线与节点对应关系存在CLine.aNodes中
-extern "C" _SSG_DLLIMPEXP void GenPlateEdgeNodes(CPlateStruc &plate,int iLindId);
-//生成板构件边线与节点对应关系存在CLine.aNodes中只有线上有荷载才生成
-extern "C" _SSG_DLLIMPEXP void GenPlateAllEdgeNodes(CPlateStruc &plate);
-//获得虚梁对应节点
-extern "C" _SSG_DLLIMPEXP void GenVirtualBeamNodes(CBeamStruc &beam);
-//获得梁上结构线对应节点
-extern "C" _SSG_DLLIMPEXP void GenBeamLineNodes(CBeamStruc &beam);
 
 extern "C" _SSG_DLLIMPEXP void GetBeamInitialImperfection(CBeamStruc &beam,bool bRewrite=false);
 
@@ -80,4 +72,4 @@ extern "C" _SSG_DLLIMPEXP void CubicSmooth5 ( float in[], float out[], int N );
 extern "C" _SSG_DLLIMPEXP void CubicSmooth7(float in[], float out[], int N);
 extern "C" _SSG_DLLIMPEXP void GaussianSmooth(float in[], float out[], int N);
 
-extern "C" _SSG_DLLIMPEXP void OnFrame2elm();  //读入网格、生成网格后要调用
+extern "C" _SSG_DLLIMPEXP void OnFrame2elm(CFrame& frame, CMesh& mesh);  //读入网格、生成网格后要调用

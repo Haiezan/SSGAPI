@@ -13,6 +13,15 @@ struct SEC_KELVIN
 	float fU5Linear,fU5NLinear,fU5InvaidData,fU5Ke,fU5De,fU5K,fU5DmpC,fU5DmpE,fU5InvaidDatas[22];//U5方向
 	float fU6Linear,fU6NLinear,fU6InvaidData,fU6Ke,fU6De,fU6K,fU6DmpC,fU6DmpE,fU6InvaidDatas[22];//U6方向
 };
+struct SEC_KELVINSPRING
+{
+	float fU1Linear, fU1NLinear, fU1InvaidData, fU1Ke, fU1De, fU1K, fU1DmpC, fU1DmpE, fU1ConnectK, fU1InvaidDatas[21];//U1方向
+	float fU2Linear, fU2NLinear, fU2InvaidData, fU2Ke, fU2De, fU2K, fU2DmpC, fU2DmpE, fU2ConnectK, fU2InvaidDatas[21];//U2方向
+	float fU3Linear, fU3NLinear, fU3InvaidData, fU3Ke, fU3De, fU3K, fU3DmpC, fU3DmpE, fU3ConnectK, fU3InvaidDatas[21];//U3方向
+	float fU4Linear, fU4NLinear, fU4InvaidData, fU4Ke, fU4De, fU4K, fU4DmpC, fU4DmpE, fU4ConnectK, fU4InvaidDatas[21];//U4方向
+	float fU5Linear, fU5NLinear, fU5InvaidData, fU5Ke, fU5De, fU5K, fU5DmpC, fU5DmpE, fU5ConnectK, fU5InvaidDatas[21];//U5方向
+	float fU6Linear, fU6NLinear, fU6InvaidData, fU6Ke, fU6De, fU6K, fU6DmpC, fU6DmpE, fU6ConnectK, fU6InvaidDatas[21];//U6方向
+};
 struct SEC_MAXWELL
 {
 	float fU1Linear,fU1NLinear,fU1InvaidData,fU1Ke,fU1De,fU1K,fU1DmpC,fU1DmpE,fU1InvaidDatas[22];//U1方向
@@ -119,6 +128,24 @@ struct SEC_HOOK
 {
 	float fU1Linear,fU1NLinear,fU1InvaidData,fU1Ke,fU1De,fU1K,fU1D;//U1方向
 };
+struct SEC_USER
+{
+	float fU1Linear, fU1NLinear, fU1InvaidData, fKu1, fDu1, fU1Datas[25];//U1方向
+	float fU2Linear, fU2NLinear, fU2InvaidData, fKu2, fDu2, fU2Datas[25];//U2方向
+	float fU3Linear, fU3NLinear, fU3InvaidData, fKu3, fDu3, fU3Datas[25];//U3方向
+	float fU4Linear, fU4NLinear, fU4InvaidData, fKu4, fDu4, fU4Datas[25];//U4方向
+	float fU5Linear, fU5NLinear, fU5InvaidData, fKu5, fDu5, fU5Datas[25];//U5方向
+	float fU6Linear, fU6NLinear, fU6InvaidData, fKu6, fDu6, fU6Datas[25];//U6方向
+};
+struct SEC_TVMD
+{
+	float fU1Linear, fU1NLinear, fU1InvaidData, fU1Ke, fU1De, fU1K0, fU1DmpC, fU1DmpE, fU1Mass, fU1InvaidDatas[21];//U1方向
+	float fU2Linear, fU2NLinear, fU2InvaidData, fU2Ke, fU2De, fU2K0, fU2DmpC, fU2DmpE, fU2Mass, fU2InvaidDatas[21];//U2方向
+	float fU3Linear, fU3NLinear, fU3InvaidData, fU3Ke, fU3De, fU3K0, fU3DmpC, fU3DmpE, fU3Mass, fU3InvaidDatas[21];//U3方向
+	float fU4Linear, fU4NLinear, fU4InvaidData, fU4Ke, fU4De, fU4K0, fU4DmpC, fU4DmpE, fU4Mass, fU4InvaidDatas[21];//U4方向
+	float fU5Linear, fU5NLinear, fU5InvaidData, fU5Ke, fU5De, fU5K0, fU5DmpC, fU5DmpE, fU5Mass, fU5InvaidDatas[21];//U5方向
+	float fU6Linear, fU6NLinear, fU6InvaidData, fU6Ke, fU6De, fU6K0, fU6DmpC, fU6DmpE, fU6Mass, fU6InvaidDatas[21];//U6方向
+};
 
 struct INFO_LRB
 {
@@ -128,11 +155,23 @@ struct INFO_LRB
 };
 struct INFO_ESB
 {
-	float	fShearModule,fDiameter,fTireTh,fS1,fS2,fArea,fDisMax;
+	float	fShearModule,fDiameter,fTireTh,fS1,fS2,fArea, fCoef, fAxialStiff, fInitStiff, fDisMax;
 };
 struct INFO_FPS
 {
-	float	fArea,fDisMax;
+	float	fType, fRaidus, fH, fDiameter, fDisMax, fCslow, fCfast, fCRatio, fArea, fAxialStiff, fInitStiff, fEqvStiff, fAxialF;
+};
+struct INFO_BRB
+{
+	float	fYieldF, fYieldDis, fInitStiff, fYieldExp, fSecStiffRatio, fUltimateF, fUltimateDis, fLen, fAxialLen;
+};
+struct INFO_VFD
+{
+	float	fDampCoef, fDampExp, fInitStiff, fDesignFLow, fDesignFUp, fDesignDisLow, fDesignDisUp, fMaxVelo, fLen;
+};
+struct INFO_MYD
+{
+	float	fYieldF, fYieldDis, fInitStiff, fYieldExp, fSecStiffRatio, fUltimateF, fUltimateDisLow, fUltimateDisUp;
 };
 
 class CASCFile;
@@ -141,7 +180,21 @@ class _SSG_DLLIMPEXP CDamperSection
 {
 public:
 	//构造与析构函数
-	CDamperSection(void) { Clear();}
+	CDamperSection(void)
+		: id(-1)
+		, sName(L"")
+		, iSectionType(LINK_UNKNOWN)
+		, iSubType(0)
+		, fMass(0)
+		, dwColor(0)
+		, fDamperSecPara()
+		, fDamperDesPara()
+		, nUsedCount(0)
+		, bPDelta(false)
+		, nDamperGrade(0)
+		, fDamperGrade_n()
+		, fDamperGrade_t()
+	{}
 	CDamperSection(const CDamperSection &sec)	{ nUsedCount=0; *this=sec; }
 	~CDamperSection(void) { Clear(); }
 
@@ -169,6 +222,9 @@ public:
 		struct SEC_GAP Gap;
 		struct SEC_HOOK Hook;
 		struct SEC_LRBWEN IoslatorWen;
+		struct SEC_KELVINSPRING KelvinSpring;
+		struct SEC_USER User;
+		struct SEC_TVMD Tvmd;
 		float fDamperSecPara[DAMPERSECTION_PARA];
 	};
 	float fMass;
@@ -178,6 +234,9 @@ public:
 		struct INFO_LRB IsolatorInfo;
 		struct INFO_ESB ESBInfo;
 		struct INFO_FPS FPSInfo;
+		struct INFO_BRB BRBInfo;
+		struct INFO_MYD MYDInfo;
+		struct INFO_VFD	VFDInfo;
 		float fDamperDesPara[DAMPERDESIGN_PARA];
 	};
 	bool bPDelta;
@@ -194,12 +253,14 @@ public:
 	BOOL Read(CASCFile &fin);
 	void Write(CASCFile &fout);
 	void Write2020(CASCFile &fout);
-	CString sTypeName(); //得到截面类型名称 邱海 2016年6月15日
+	CString sTypeName()const; //得到截面类型名称 邱海 2016年6月15日
 	//设计信息读写
 	BOOL ReadDesignInfo(CASCFile &fin);
 	void WriteDesignInfo(CASCFile &fout);
 	void WriteDesignInfo2020(CASCFile &fout);
 	//
+	void GenerateDamperGradeOld();
+	int GenerateDamperGrade(float* fDamperGrade_n = NULL, float* fDamperGrade_t = NULL);
 };
 
 
@@ -222,7 +283,7 @@ public:
 	int GetIndex(int id) const;  //根据给定的梁截面id返回索引,找不到返回-1
 	int *CreateIndex(void);  //创建ID-->序号的索引数组，调用程序需要删除它，数组长度为iMaxID+1
 	void AppendSection(CDamperSection *psec);  //增加新截面，自动获取ID
-	int GetSecNumByType(LINK_SUBTYPE iStrucType);// 得到同类型截面的数量 邱海 2016年3月24日
+	int GetSecNumByType(LINK_SUBTYPE iStrucType)const ;// 得到同类型截面的数量 邱海 2016年3月24日
 
 
 	CDamperSectionCollection & operator=(const CDamperSectionCollection &sec)
@@ -240,7 +301,7 @@ public:
 
 		return *this;
 	}
-	int GetID(const CString &sName);
+	int GetID(const CString &sName) const;
 	void Clear();
 	void Read(CASCFile &fin);
 	void Write(CASCFile &fout);

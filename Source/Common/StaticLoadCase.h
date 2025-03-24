@@ -20,10 +20,58 @@ public:
 	float fFactor;
 
 	CombData()
+		: nCaseType(0)
+		, nCaseId(-1)
+		, fFactor(1.f)
 	{
-		nCaseType = 0;
-		nCaseId = -1;
-		fFactor = 1.f;
+	}
+
+	CombData(int Id, float factor)
+		: nCaseType(0)
+		, nCaseId(Id)
+		, fFactor(factor)
+	{
+	}
+
+	CombData(const CombData& data)
+	{
+		*this = data;
+	}
+
+	CombData& operator = (const CombData& data)
+	{
+		if (this == &data)
+			return *this;
+
+		nCaseType = data.nCaseType;
+		nCaseId = data.nCaseId;
+		fFactor = data.fFactor;
+
+		return *this;
+	}
+
+	bool operator == (const CombData& data)const
+	{
+		if (this == &data)
+			return true;
+
+		if (nCaseType != data.nCaseType)
+			return false;
+
+		if (nCaseId != data.nCaseId)
+			return false;
+
+		if (abs(fFactor - data.fFactor) > 1e-6f)
+			return false;
+
+		return true;
+	}
+
+	CombData(int Type, int CaseId, float Factor)
+		: nCaseType(Type)
+		, nCaseId(CaseId)
+		, fFactor(Factor)
+	{
 	}
 
 	CString sCaseName() const;
@@ -74,7 +122,7 @@ public:
 
 	CStaticLoadCase *GetAt(int i) {return aStaticLoadPtr.GetAt(i);}
 
-	CStaticLoadCase *operator[](int i) {return aStaticLoadPtr[i];}
+	CStaticLoadCase *operator[](int i) const {return aStaticLoadPtr[i];}
 
 	void SetAt(int i,CStaticLoadCase *load) {aStaticLoadPtr[i]=load;}
 
@@ -88,7 +136,7 @@ public:
 private:
 	CArray<CStaticLoadCase*,CStaticLoadCase*> aStaticLoadPtr; //荷载工况集合
 public:
-	vector<CombData> m_vBucklingComb;
+	vector<CombData> m_vStaticComb;
 };
 
 //工况组合

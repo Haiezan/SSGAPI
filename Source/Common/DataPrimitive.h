@@ -187,16 +187,16 @@ struct _SSG_DLLIMPEXP SUB_LINE
 struct _SSG_DLLIMPEXP LINE_USED
 {
 	LINE_USED(void)
+		:bBeam(FALSE)
+		, bPillar(FALSE)
+		, bWall(FALSE)
+		, bBeamWall(FALSE)
+		, bAlong(TRUE)
+		, bLink(FALSE)
+		, bAnti(FALSE)
+		, fWeight(0)
+		, fMeshRatio(1.f)
 	{
-		bBeam=FALSE;
-		bPillar=FALSE;
-		bWall=FALSE;
-		bBeamWall=FALSE;
-		bAlong=TRUE;
-		bLink=FALSE;
-		bAnti=FALSE;
-		fWeight = 0;
-		fMeshRatio = 1.f;
 	}
 	BOOL bBeam;    //是否被梁用到
 	BOOL bPillar;  //是否被柱用到
@@ -217,6 +217,7 @@ class _SSG_DLLIMPEXP CPrimitiveProp
 {
 public:
 	CPrimitiveProp(void);
+	CPrimitiveProp(DWORD clc, int iStory = 0);
 
 	int idmStory;     //楼层IDF=IDM,从0开始编号,0为地面
 	int iStage;        //施工阶段,从0开始编号
@@ -230,15 +231,8 @@ public:
 	};
 
 	int tag;			//tag 标记
-	float ftag1;
-	float ftag2;
-	DWORD dwColor1;		
-
 	unsigned char iStatus;  //状态标志，0无效，1-正常，2-选中，3-参考点(目前只对点有效)
 	CString sComments;  //用于显示的说明文字,由程序随时更新
-	CString sComments2;  //用于显示的说明文字,由程序随时更新//显示第二个节点力 
-
-	float fMeshRatio; //网格加密系数，>1加密，保存在单独数据段
 
 	CPrimitiveProp & operator=(const CPrimitiveProp &prop)
 	{
@@ -251,13 +245,7 @@ public:
 		iStatus=prop.iStatus;  
 		//iStatus=1; //被复制的图元自动变成有效2012-10-25
 		sComments=prop.sComments;
-		sComments2=prop.sComments2;
-		fMeshRatio=prop.fMeshRatio;
-
 		tag = prop.tag;
-		ftag1 = prop.ftag1;
-		ftag2 = prop.ftag2;
-		dwColor1 = prop.dwColor1;
 
 		return *this;
 	}

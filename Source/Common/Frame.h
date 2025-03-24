@@ -20,6 +20,16 @@
 
 #include "DataSolidStruc.h"
 
+#include "DefectCaseMbr.h"
+#include "DefectCaseFrm.h"
+#include "BucklingCase.h"
+#include "DataSemiRigid.h"
+#include"BeamSectionReinForced.h"
+#include "PlateSectionReinForced.h"
+#include "PartitionWallGroupData.h"
+#include "PrestressingTendonGroupData.h"
+
+
 #define ID_TEST_FUNC1					60001
 #define ID_TEST_FUNC2					60002
 #define ID_TEST_FUNC3					60003
@@ -28,6 +38,8 @@
 #define ID_PLUGIN_FUNC3					60006
 #define ID_PLUGIN_FUNC4					60007
 #define ID_PLUGIN_FUNC5					60008
+#define ID_OPTIMIZATION    	        	60009
+
 
 //延长线交点类型
 enum EXT_TYPE
@@ -55,12 +67,11 @@ class _SSG_DLLIMPEXP CFrame : public CRemoveInvalidPrimitive
 {
 public:
 	CFrame(void);
-	CFrame(const CFrame &frame) {*this=frame;}
+	CFrame(const CFrame& frame) { m_pRigidBody = NULL;  *this = frame; }
 	~CFrame(void){Clear();} 
 
 public:
 	float m_fVer;  //版本号,合法值1.1,2.0，此版本号为读入的数据文件版本号，写出文件后将被改变
-	float m_fExeVer; //2021版630临时判断版本
 
 	//几何数据
 	CArray<CVertex,CVertex&> m_aVex;   //点数组,所有框架图元顶点共用该数组，包括线条、多边形面、轴网、辅助线
@@ -77,10 +88,15 @@ public:
 	CSectionCollection m_cSection;					//截面信息
 	CDamperSectionCollection m_cDamperSection;		//一般连接截面信息	//乔保娟 2015.5.19
 	CDamperGroupSecCollection  m_cDamperGroupSec;	//减震构件组  邱海 2016年10月27日
+	CPrestressingTendonGroupSecCollection m_cPrestressingTendonGroupSec;  // 绘制预应力筋 辛业文 2024年10月12日
 	CPlateSectionCollection m_cPlateSection;		//面构件截面信息
 	CMaterialCollection m_cMaterial;				//材料信息
-	//临时使用：tendon使用及添加vector
-	vector<int> m_cMaterialTendon;
+
+	CSemiRigidSectionCollection m_cSemiRigidSection;	//半刚性连接截面信息	辛业文 2022年12月31日
+	CSectionCollectionReinForced m_cSectionReinForced; // 加固构件截面信息 辛业文 2023年5月15日
+	CPlateSectionReinforcedCollection m_cPlateSectionReinforced;		//面构件加固截面信息 辛业文 2023年10月17日
+	CPartitionWallGroupSecCollection  m_cPartitionWallGroupSec;	//隔墙构件组  辛业文2024年1月17日
+
 	CEdgeStrucCollection m_cEdgeCollection;			//边缘构件信息,为了显示边缘构件的墙构成关系用
 	CBoundaryCollection m_cBoundary;				//边界条件信息
 	CNonISOModel m_cNonISOModel;					//非隔震模型参数
@@ -89,6 +105,15 @@ public:
 	CStageCollection m_cStage;   //分步模型信息，将模型按照建设过程分成若干部分，逐次提交计算
 	CGroupCollection m_cGroup;
 	CGroupCollection m_cDamperGroup;
+	CGroupCollection m_cShearForceGroup; //  自定义层间剪力 辛业文2023年2月20日
+	CGroupCollection m_cBaseShearForceGroup; //  自定义基底剪力 辛业文2024年9月30日
+	CGroupCollection m_cGroupBC;//BC Group
+	CGroupCollection m_cGroupLD;//Load Group
+	CGroupCollection m_cPartitionWallGroup; //隔墙构件组  辛业文2024年1月17日
+	CGroupCollection m_cDamperGroupSchemeCollection;  // 阻尼器方案组  辛业文2024年5月9日
+	CGroupCollection m_cDamperSchemeLibraryCollection;  // 阻尼器方案库  辛业文2024年5月9日
+	CGroupCollection m_cOptimGroup; //卞媛媛 阻尼器优化组_遗传算法  2024/7/9
+	CGroupCollection m_cPrestressingTendonGroup; // 绘制预应力筋 辛业文 2023年3月3日
 
 	//网格控制参数
 	float m_fElmSize;			//网格特征尺寸
@@ -99,18 +124,6 @@ public:
 	float m_fWallBeamLayerMinSize;
 	BOOL m_bAntiBeamPillarAsOne;
 	BOOL m_bAlongBraceAsOne;
-
-	//分析控制参数
-	BOOL m_bScaleIrrMass;
-	BOOL m_bScaleSelectedMass;
-	BOOL m_bScaleIrrByFactor;
-
-	float m_fScaleFactor;	//暂时没存
-	float m_fMinTriAngle;	//没用
-	float m_fMinQuadAngle;	//没用
-	float m_fMinLength;
-	float m_fMinTriArea;
-	float m_fMinQuadArea;
 
 	//项目通用参数
 	CString m_sCurCase;  //当前工况(组合)名称
@@ -133,7 +146,6 @@ public:
 	BOOL m_bUseRebar;	//是否计入钢筋作用
 	UINT m_iMaxSteps; // 最大迭代次数，5000
 	float m_fStaticTol;// 收敛精度 ，0.00001
-
 	//显式静力加载参数
 	float m_fStaticTimeStep;   //采用显式计算模拟重力加载的时间，采用显式分析进行竖向荷载加载，有效
 
@@ -157,6 +169,7 @@ public:
 	BOOL			m_bFilterLocal;		//地震作用方向
 	BOOL      m_bCalcuNonIso;//隐式分析同时计算非隔震模型 V2021
 	BOOL        m_bCalSubStru; //  隐式分析同时计算层间隔震结构下部结构  用于复模态分析组装非比例阻尼矩阵  林思齐 20210602
+
 	//整体缺陷
 	float m_fOverallImperfect;	//缺陷最大值
 	float m_fImperfectAngle;//缺陷角度
@@ -179,7 +192,7 @@ public:
 	//关联表，单独读取，不包含在本类Read中
 	CArray<COutput,COutput&> aOutput; //输出的分量表
 	float fDisStep,fForceStep,fGroupStep;
-
+	int nOutFlag;
 
 	CGeneralCollection m_cGenLoad; //荷载工况集合:1恒1活1风1地震
 
@@ -192,10 +205,12 @@ public:
 	CRSFunctionCollection m_cRSFunction;
 	CRSLoadCaseCollection m_cRSLoadCase;
 
-	//屈曲分析
-	UINT m_nBucklingModes;		//振型数
-	BOOL m_bBucklingOverallDefect;
-	BOOL m_bBucklingMemberDefect;
+	//初始缺陷
+	DefectCaseMbrCollection m_cDefectMbr;
+	DefectCaseFrmCollection m_cDefectFrm;
+
+	//屈曲分析 2022.12.13贾苏
+	CBucklingCaseCollection m_cBucklingLoad;
 
 	// 复模态分析控制参数  林思齐 20210526
 	BOOL m_bParaInput;
@@ -229,6 +244,10 @@ public:
 	BOOL IsSelfWeight()				const {return m_dwControl&0x08?TRUE:FALSE;}
 	BOOL IsExLoad2Mass()			const {return m_dwControl&0x10?TRUE:FALSE;}
 	BOOL IsOffsetFlag()				const {return m_dwControl&0x20?TRUE:FALSE;}
+	BOOL IsUseLinkEqvStiff()		const {return m_dwControl&0x40?TRUE:FALSE;}
+	BOOL IsUseStiffCoef()			const {return m_dwControl&0x80?TRUE:FALSE;}
+	BOOL IsUseStaticStiff()			const {return m_dwControl&0x100?TRUE:FALSE;}
+	BOOL IsReforcedSecLoad()	const { return m_dwControl & 0x200 ? TRUE : FALSE; }
 
 	void SetExtentBeamFlag(BOOL bFlag)			{if(bFlag) m_dwControl |=0x01;else m_dwControl &=~0x01;}
 	void SetBeamWallDoubleLayerFlag(BOOL bFlag)	{if(bFlag) m_dwControl |=0x02;else m_dwControl &=~0x02;}
@@ -236,19 +255,24 @@ public:
 	void SetSelfWeightFlag(BOOL bFlag)			{if(bFlag) m_dwControl |=0x08;else m_dwControl &=~0x08;}
 	void SetExLoad2MassFlag(BOOL bFlag)			{if(bFlag) m_dwControl |=0x10;else m_dwControl &=~0x10;}
 	void SetOffsetFlag(BOOL bFlag)				{if(bFlag) m_dwControl |=0x20;else m_dwControl &=~0x20;}
-
+	void SetUseLinkEqvStiff(BOOL bFlag)			{if(bFlag) m_dwControl |=0x40;else m_dwControl &=~0x40;}
+	void SetUseStiffCoef(BOOL bFlag)			{if(bFlag) m_dwControl |=0x80;else m_dwControl &=~0x80;}
+	void SetUseStaticStiff(BOOL bFlag)          {if(bFlag) m_dwControl |=0x100;else m_dwControl &= ~0x100; }
+	void SetReforcedSecLoad(BOOL bFlag) { if (bFlag) m_dwControl |= 0x200; else m_dwControl &= ~0x200; }
 
 	void SetDeviceType(DEVICE_TYPE device)
 	{
 		m_dwControl &= ~DEVICE_MASK;
-		if(device==DEVICE_CUDA) m_dwControl |= DEVICE_CUDA ;
-		if(device==DEVICE_OMP) m_dwControl |= DEVICE_OMP ;
+		if (device == DEVICE_CUDA) m_dwControl |= DEVICE_CUDA;
+		if (device == DEVICE_CUDAS) m_dwControl |= DEVICE_CUDAS;
+		if (device == DEVICE_OMP) m_dwControl |= DEVICE_OMP;
 	}
 
 	DEVICE_TYPE GetDeviceType() const
 	{
-		if(m_dwControl &DEVICE_CUDA) return DEVICE_CUDA;
-		if(m_dwControl &DEVICE_OMP) return DEVICE_OMP;
+		if (m_dwControl & DEVICE_CUDA) return DEVICE_CUDA;
+		if (m_dwControl & DEVICE_CUDAS) return DEVICE_CUDAS;
+		if (m_dwControl & DEVICE_OMP) return DEVICE_OMP;
 		return DEVICE_CUDA;
 	}
 
@@ -258,6 +282,8 @@ public:
 
 	//存储在单独文件中：FILE_VISIBLEINFO
 	CVisibleStruct m_cVisible;  //模型可见分类
+
+	CVisibleStruct m_cVisibleResult;  //20241225 tutianchi
 
 	//存储在单独文件中：FILE_COMBINEFRAME
 	CCombineFrameCollection m_cCombine;  //竖向组合构件，用于计算组合构件内力，生成网格时生成数据，模型解锁时清除数据
@@ -269,6 +295,7 @@ public:
 	int m_nPlate,m_nWallCol,m_nWallBeam;
 	
 	int m_nTowers; //分塔数=最大塔号+1，要求塔号连续
+	vector<CString> m_vTowerName;//分塔塔名  涂天驰 2023.12.19
 
 	int m_nSolid;	//sigma 1.0实体
 	bool AddSolidByFaceVertex(const int *vex, int nvex, const int *face, int nface, int iStory, const CStory *pStory);
@@ -279,10 +306,7 @@ public:
 	CFrame & operator=(const CFrame &frame);
 
 	void Clear();  
-	//删除所有依赖于SSG的中间文件
-	void RemoveAllIntFile(void);
-	//删除所有计算结果文件,sPrjName项目文件
-	void RemoveAllResultFile(void);	//qiao
+
 	BOOL IsVersion10() {return m_fVer<2.0f-0.01f;}	//1.0及1.1版本
 	BOOL IsVersion20() {return (m_fVer>2.0f-0.01f&&m_fVer<2.0+0.01f);}	//2.0 //3.1版本
 	BOOL IsVersionBigEqual20() {return (m_fVer>2.0f-0.01f);}
@@ -301,8 +325,13 @@ public:
 	BOOL IsVersionBigEqual20206(){return (m_fVer > 2020.6f - 0.01f);}
 	BOOL IsVersionBigEqual20207(){return (m_fVer > 2020.7f - 0.01f);}
 	BOOL IsVersionBigEqual2021(){return (m_fVer > 2021.0f - 0.01f);}
-	BOOL IsVersionBigEqual2022630(){return m_fExeVer > 2022.0f - 0.01f;}
 	BOOL IsVersionBigEqual2022(){return m_fVer > 2022.0f - 0.01f;}
+	BOOL IsVersionBigEqual2021Small2023() { return (m_fVer > 2021.0f - 0.01f && m_fVer < 2023.0f + 0.01f); }
+	BOOL IsVersionBigEqual2023() { return m_fVer > 2023.0f - 0.01f; }
+	//BOOL IsVersionBigEqual2024() { return m_fVer > 2024.0f - 0.01f; } 
+	BOOL IsVersionBigEqual2024() { return m_fVer > 2024.1f - 0.01f; } // 因为2024-930版本的m_fVer=2024，故将2024-330版本m_fVer=2024.1
+	BOOL IsVersionBigEqual2024930() { return m_fVer > 2024.2f - 0.01f; }
+	BOOL IsVersionBigEqual2025() { return m_fVer > 2025.f - 0.01f; }
 	////////////////建模函数////////////////
 
 	//增加线段,计算与交叉点和分割线
@@ -338,7 +367,7 @@ public:
 	//如果iLineType=1，添加到辅助线里面，如果iLineType=2，添加到结构线里面，并且修改相关的结构
 	//输入：pointID--点ID
 	void CrossVertex(int pointID,int iLineType);
-	void CrossVertex(const CVertex &vex,int iLineType);
+	//void CrossVertex(const CVertex &vex,int iLineType);
 
 	BOOL DeleteVex(int id); //根据点ID判断是否该点是否是孤立点,是则置为无效,成功删除返回TRUE
 	void DeleteGuides(int id); //删除辅助线，以及相关的孤立点
@@ -348,7 +377,20 @@ public:
 	void DeletePlate(int id); //删除板或墙，以及相关的孤立结构线和点
 	void ReplaceVertex(int discard_vex,int reserve_vex);  //将discard_vex结点用reserve_vex替换，同时删除discard_vex,只是针对线结构进行简单代替，不检查拓扑结构变化
 	void MergeVertex(int discard_vex,int reserve_vex); //将旧点与新点合并，保留新点，完成点编号替换，处理拓扑关系的变化，处理退化的线和面、以及相关构件
+	void MergeWallVertex(int discard_vex, int reserve_vex);//消除短墙-合并墙两端端点 20240513 涂天驰
+	void MergeBeamVertex(int discard_vex, int reserve_vex);//消除短梁-合并梁端端点 20240607 涂天驰
+	void MoveWallVertex(float dX, float dY, float dZ, int PointID);//移动墙节点 20240830 涂天驰
+	
 	void SpliteBeam(int nSel,const int *pSelNames, int nSegments);  //对所选线构件拆分，用到选择集
+
+	void DeleteInVaildEdge(vector<int>vEdge);//删除已不存在的边界线 20240606 涂天驰
+	int AlignEdgePoint(int wallid, vector<int>& vLeftPoint, vector<int>& vRightPoint, vector<int>& vLeft, vector<int>& vRight);//对齐短墙两端节点，按插值法插入 20240606 涂天驰
+	int GetSameVertex(float x, float y, float z, vector<int> vPoint,int iStory, float Sys_PointError = g_cSysSizePara.Sys_PointError);//返回边界点数组中的相同坐标ID 20240830 涂天驰
+	void MergeWall(int wallid, vector<int>vLeft, vector<int>vRight, vector<int>vLeftPoint, vector<int>vRightPoint);//消除短墙函数 20240606 涂天驰
+	void MergeWallEdgeVertex(vector<int>vEdge, vector<int>vEdgePoint, float fControlWidth);//消除墙边上距离小于控制宽度的点 20240618 涂天驰
+
+	void AutoDeleteVex();//自动清理冗余点
+	BOOL IsLeftRightAlign(vector<int> vLeftPoint, vector<int> vRightPoint);//判断短墙两边节点z坐标是否对齐 20240830 涂天驰
 
 	BOOL MergeCoinVertex(float fError = g_cSysSizePara.Sys_PointError); //有合并返回TRUE
 
@@ -369,7 +411,7 @@ public:
 
 	//点的相似性定义：X,Y,DZ分别相等
 	int GetSimilarVertex(int pointid,int iStory); //按给定点pointid的XY及ΔZ(=楼层标高-点的Z坐标)坐标在指定楼层寻找靠近点的ID，没找到返回-1
-	int GetSimilarVertex(float x,float y,float dz,int iStory); //按给定的XY及ΔZ(=楼层标高-点的Z坐标)坐标在指定楼层寻找靠近点的ID，没找到返回-1
+	int GetSimilarVertex(float x,float y,float dz,int iStory, float Sys_PointError = g_cSysSizePara.Sys_PointError); //按给定的XY及ΔZ(=楼层标高-点的Z坐标)坐标在指定楼层寻找靠近点的ID，没找到返回-1
 	int GetSimilarGuideLine(int lineid,int iStory);  //按给的线ID找到对应楼层的相似的辅助线ID，没找到返回-1
 	
 	int GetSimilarLines(int lineid,int iStory,int *pLineIDs,int maxsize); //按给的线ID找到对应楼层的相似的结构线IDs，返回线段个数
@@ -389,6 +431,9 @@ public:
 	int GetGuidesID(int id1, int id2);  //根据点ID找到辅助线ID,未找到则返回-1
 	int GetBeamID(int lineid);      //按给的线ID 找到使用这条结构线的梁或柱的ID，没找到返回-1
 	int GetPlateIDs(int lineid,int *pPlateIDs,int maxsize) const;  //按给的线ID，找到使用这条结构线的板或墙的ID，返回个数，板ID保存在pIDs中
+	int GetAdjoinedPlateIDs(int wallid, vector<int>& vPlateIDs);  //按给的墙ID，找到除本墙外使用这条墙边界结构线的板或墙的ID，返回个数，板ID保存在pIDs中 20240718  涂天驰
+	int GetWallIDFromPoint(int pointid, int* pPlateIDs, int maxsize) const;//按给的点ID，找到使用这个结构点的墙的ID，返回个数，墙ID保存在pIDs中 20240724 涂天驰
+	int GetLineIDs(int pointid, int* pLineIDs, int maxsize) const;//按给的点ID，找到使用这个结构点的梁的ID，返回个数，梁ID保存在pIDs中 20240724 涂天驰
 	int GetPlateID(const CPlateStruc &plate);   //按给面的几何数据，返回板或墙的ID，没找到返回-1
 
 	float GetInclineCos(const CLine &line);  //得到结构线的倾角余弦(首点指向末点的矢量与Z轴的夹角)，范围：-1 -- 1	
@@ -408,10 +453,6 @@ public:
 	//得到所有施工阶段的图元数据
 	//vBeam,vPlate--输出每个施工阶段的构件编号
 	void GetStepStruct(vector<int> vBeam[],vector<int> vPlate[],int nStory); 
-
-	//得到材料库到使用库的索引，及使用库到材料库的索引，传出创建指针和用到的材料名称集合，调用程序需要清除，返回值为使用库的材料数
-	int GetUsedConc(int *&pIndexOfLib2Used,int *&pIndexOfUsed2Lib,CStringArray &aConcList);  //混凝土
-	int GetUsedSteel(int *&pIndexOfLib2Used,int *&pIndexOfUsed2Lib,CStringArray &aSteelList); //金属,，包括型钢和钢筋材料
 
 	//统计各种构件的数量
 	STRUCT_COUNT GetStructCount(void) const;	
@@ -446,6 +487,15 @@ public:
 	int GetWallEdge(int wallid,vector<int> &vLeft,vector<int> &vRight,vector<int> &vUp,vector<int> &vDown);
 	int GetWallEdge(CPlateStruc &wall,vector<int> &vLeft,vector<int> &vRight,vector<int> &vUp,vector<int> &vDown);
 
+	float GetWallWidth(int wallid);//20240626 涂天驰 获取墙的宽度
+	int GetWallOneEdge(int wallid, vector<int>& vEdge, int iWallSequence);//0-Left,1-Right，2-Up,3-Down	 20240527 涂天驰 获取单条边的线id组
+	int CFrame::GetEdgePoint(int wallid, vector<int>& vEdgePoint, int iWallSequence);	//0-Left,1-Right，2-Up,3-Down 20240617 涂天驰 获取单条边的点id组
+	BOOL CFrame::GetWallCornerPoint(int wallid, int& left_bottom, int& right_bottom, int& right_top, int& left_top);	//返回墙边界线段组四角端点 20240724 涂天驰
+	void CFrame::GetEndPoint(vector<int> vEdge, int& iBottom, int& iTop);	//返回边界线段组两端的端点 20240527 涂天驰
+
+	void CFrame::WeldingLine(vector<int> Line);	//焊接线两端的面,已知线两端的面共面 20240604 涂天驰
+	BOOL CFrame::WeldingPoint(int pointid);//焊接点两端的线，两根线通过同一点时才合并 20240604 涂天驰
+
 	//找到本楼层该点下所有竖向结构线(被斜撑用到的除外)，不管是否是墙的边界
 	void GetLinesByVex(int vexid,list<int> &vLines);
 	void GetLinesByVex(int vexid,int &nlines,int *pline);
@@ -473,12 +523,12 @@ public:
 	//跟踪墙梁，返回值：0--不是墙梁，1--墙梁，2--未知
 	int TraceBeamWall(const CPlateStruc &plate,vector<int> &vBraceLine,float &minz,float &maxz) const; 
 	// 1-顶部与楼层相连；0-底部与楼层相连；-1-不与楼层相连
-	int BeamWallPos(const CPlateStruc &plate) const; //qiaobaojuan 2016.3.21
+	int BeamWallPos(const CPlateStruc &plate, const CVertex* v) const; //qiaobaojuan 2016.3.21
 
 
 	////////////////输入输出函数////////////////
 
-	BOOL Read(CString fname,CProjectPara cPrjPara,BOOL bOnlyModel=FALSE);
+	BOOL Read(const CString& fname, const CProjectPara& cPrjPara, BOOL bOnlyModel=FALSE);
 	BOOL Write(void);
 	BOOL Write2020(void);
 protected:
@@ -552,9 +602,28 @@ public:
 	void ReorderStaticLoadCase(int *pMap);
 	//删除重编动力荷载工况
 	void ReorderDynaLoadCase(int *pMap);
+	//删除重编抗爆墙体类型
+	void ReorderBlastTypeLoadCase(int* pMap);
 	//检查网格与几何模型是否对应
-	void CheckMesh() const;
+	void CheckMesh();
 	//点共线
 	bool IsVertexColline(const CVertex &va, const CVertex &vb, const CVertex &v);
+
+	//生成板构件边线与节点对应关系存在CLine.aNodes中
+	void GenPlateEdgeNodes(const CMesh& mesh, CPlateStruc & plate, int iLindId);
+	//生成板构件边线与节点对应关系存在CLine.aNodes中只有线上有荷载才生成
+	void GenPlateAllEdgeNodes(const CMesh& mesh, CPlateStruc & plate);
+	//获得虚梁对应节点
+	void GenVirtualBeamNodes(const CMesh& mesh, CBeamStruc & beam);
+	//获得梁上结构线对应节点
+	void GenBeamLineNodes(const CMesh& mesh, CBeamStruc & beam);
+	//
+	void InitLinkEqvStiff();
+	//计算结构楼层质心
+	void CalcMassCenter();
+	//Delete overlapBeam
+	void DeleteOverlapBeam();
+	//批量移动点 不考虑拓扑关系
+	void MoveVertex(float dX,float dY,float dZ,int nSel, const int* pSel);
 };
 

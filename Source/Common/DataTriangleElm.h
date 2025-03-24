@@ -7,7 +7,11 @@
 class _SSG_DLLIMPEXP CTriangleElm : public CPrimitiveProp
 {
 public:
-	CTriangleElm(void) {Clear();}
+	CTriangleElm(void)
+		: PlateStrucIDM(-1)
+		, pVexIDM()
+		, iBlock(0)
+	{}
 
 	//enum {nVex=3}; //边界点数，不重合
 	int pVexIDM[3];  //端点ID数组
@@ -40,6 +44,8 @@ public:
 	}
 
 	float Area(const CVertex *pNode) const;  //计算三角形面积>0,pNode为结点坐标数组
+	float Area(const Vector4* pNode) const;
+	float GetTcr() const; //计算单元临界步长
 
 	void Clear(void) {PlateStrucIDM=-1;iBlock=0; /*memset(pVexIrr,0,sizeof(pVexIrr))*/;}
 
@@ -64,13 +70,13 @@ public:
 	BOOL LocalCoorVector(const CVertex *pVexArray,Vector4 &c00,Vector4 &u,Vector4 &v,Vector4 &w) const;
 
 	//计算中心点坐标，pVex为全局结点数组,由于坐标会变形，因此这里要用传进来的坐标数组参数进行计算
-	CVertex GetCenter(const CVertex *pVex) const;
+	Vector4 GetCenter(const CVertex *pVex) const;
 
 	//得到坐标范围
-	void GetRange(Vector4 &rMin,Vector4 &rMax);
+	void GetRange(const CVertex* pVexArray, Vector4 &rMin,Vector4 &rMax);
 
 	virtual BOOL Read(CASCFile &fin); //派生类的虚函数关键字virtual可写可不写，但总是虚函数
-	virtual BOOL Write(CASCFile &fout,int idf,int idf_Struct,STRUCT_TYPE itype);
+	virtual BOOL Write(CASCFile &fout,int idf,int idf_Struct,STRUCT_TYPE itype, float area);
 
 	virtual inline void ReadBin(CFile &fin);
 	virtual inline BOOL WriteBin(CFile &fout);

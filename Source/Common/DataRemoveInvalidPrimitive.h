@@ -27,8 +27,10 @@ protected:
 	void RemoveInvalidQuadElm(int &nElm,CQuadElm *pElm,CVertex *pVex);   //被RearrengeID调用
 	void RemoveInvalidLine(int &nLine,CLine *pLine,CArray<CVertex,CVertex&> &aVex,int *index2,CGroupCollection &aGroup,CGroupCollection *DmpGroup=NULL);   //被RearrengeID调用 
 	void RemoveInvalidGuides(int &nGuides,CVertex *pVex,CLine *pLine,CGroupCollection &aGroup,CGroupCollection *DmpGroup=NULL);   //被RearrengeID调用
-	BOOL RemoveInvalidBeamStruc(int &nStruc,CArray<CLine,CLine&> &aLine,CBeamStruc *pStruc,int *index4,CGroupCollection &aGroup,CGroupCollection *DmpGroup=NULL);   //被RearrengeID调用  返回：TRUE，数据已改变
-	BOOL RemoveInvalidPlateStruc(int &nStruc,CArray<CLine,CLine&> &aLine,CPlateStruc *pStruc,int *index3,CGroupCollection &aGroup,CGroupCollection *DmpGroup=NULL);   //被RearrengeID调用  返回：TRUE，数据已改变
+	BOOL RemoveInvalidBeamStruc(int &nStruc,CArray<CLine,CLine&> &aLine,CBeamStruc *pStruc,int *index4,CGroupCollection &aGroup,CGroupCollection *DmpGroup=NULL, CGroupCollection* PartitionWallGroup = NULL, CGroupCollection* OptimGroup = NULL,
+		CGroupCollection* DamperGroupSchemeCollection = NULL, CGroupCollection* m_cDamperSchemeLibraryCollection = NULL, CGroupCollection* m_cPrestressingTendonGroup=NULL);   //被RearrengeID调用  返回：TRUE，数据已改变
+	BOOL RemoveInvalidPlateStruc(int &nStruc, const CVertex* pVex, CArray<CLine,CLine&> &aLine,CPlateStruc *pStruc,int *index3,CGroupCollection &aGroup,CGroupCollection *DmpGroup=NULL, 
+		CGroupCollection* DamperGroupSchemeCollection=NULL, CGroupCollection* m_cDamperSchemeLibraryCollection = NULL);   //被RearrengeID调用  返回：TRUE，数据已改变
 
 	void RemoveInvalidGroup(STRUCT_TYPE iPrimType,int nStruc,const int *index1,CGroupCollection &aGroup);  //被以上各图元函数调用
 public:

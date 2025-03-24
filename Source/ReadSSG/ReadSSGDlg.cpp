@@ -1,5 +1,5 @@
-ï»¿
-// ReadSSGDlg.cpp : å®ç°æ–‡ä»¶
+
+// ReadSSGDlg.cpp : ÊµÏÖÎÄ¼ş
 //
 
 #include "stdafx.h"
@@ -35,20 +35,20 @@ static char THIS_FILE[] = __FILE__;
 #endif
 
 
-// ç”¨äºåº”ç”¨ç¨‹åºâ€œå…³äºâ€èœå•é¡¹çš„ CAboutDlg å¯¹è¯æ¡†
+// ÓÃÓÚÓ¦ÓÃ³ÌĞò¡°¹ØÓÚ¡±²Ëµ¥ÏîµÄ CAboutDlg ¶Ô»°¿ò
 
 class CAboutDlg : public CDialogEx
 {
 public:
 	CAboutDlg();
 
-// å¯¹è¯æ¡†æ•°æ®
+// ¶Ô»°¿òÊı¾İ
 	enum { IDD = IDD_ABOUTBOX };
 
 	protected:
-	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV æ”¯æŒ
+	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV Ö§³Ö
 
-// å®ç°
+// ÊµÏÖ
 protected:
 	DECLARE_MESSAGE_MAP()
 };
@@ -66,7 +66,7 @@ BEGIN_MESSAGE_MAP(CAboutDlg, CDialogEx)
 END_MESSAGE_MAP()
 
 
-// CReadSSGDlg å¯¹è¯æ¡†
+// CReadSSGDlg ¶Ô»°¿ò
 
 
 
@@ -78,7 +78,6 @@ CReadSSGDlg::CReadSSGDlg(CWnd* pParent /*=NULL*/)
 	, m_fAngleGap(15)
 	, m_sAngle(_T("0,"))
 	, m_bOpenTxt(FALSE)
-	, m_fError(0.5f)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDI_ICON);
 }
@@ -92,7 +91,6 @@ void CReadSSGDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_ANGLE, m_sAngle);
 	DDX_Control(pDX, IDC_EDIT1, m_cEditMsg);
 	DDX_Check(pDX, IDC_CHECK_OPENTXT, m_bOpenTxt);
-	DDX_Text(pDX, IDC_EDIT_ERROR, m_fError);
 }
 
 BEGIN_MESSAGE_MAP(CReadSSGDlg, CDialogEx)
@@ -105,19 +103,18 @@ BEGIN_MESSAGE_MAP(CReadSSGDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON_HARM_DISP, &CReadSSGDlg::OnBnClickedButtonHarmDisp)
 	ON_EN_KILLFOCUS(IDC_EDIT_NUM, &CReadSSGDlg::OnEnKillfocusEditNum)
 	ON_BN_CLICKED(IDC_BUTTON1, &CReadSSGDlg::OnBnClickedButton1)
-	ON_BN_CLICKED(IDC_BUTTON_DISPRATIO, &CReadSSGDlg::OnBnClickedButtonDispratio)
 END_MESSAGE_MAP()
 
 
-// CReadSSGDlg æ¶ˆæ¯å¤„ç†ç¨‹åº
+// CReadSSGDlg ÏûÏ¢´¦Àí³ÌĞò
 
 BOOL CReadSSGDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
 
-	// å°†â€œå…³äº...â€èœå•é¡¹æ·»åŠ åˆ°ç³»ç»Ÿèœå•ä¸­ã€‚
+	// ½«¡°¹ØÓÚ...¡±²Ëµ¥ÏîÌí¼Óµ½ÏµÍ³²Ëµ¥ÖĞ¡£
 
-	// IDM_ABOUTBOX å¿…é¡»åœ¨ç³»ç»Ÿå‘½ä»¤èŒƒå›´å†…ã€‚
+	// IDM_ABOUTBOX ±ØĞëÔÚÏµÍ³ÃüÁî·¶Î§ÄÚ¡£
 	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
 	ASSERT(IDM_ABOUTBOX < 0xF000);
 
@@ -135,14 +132,14 @@ BOOL CReadSSGDlg::OnInitDialog()
 		}
 	}
 
-	// è®¾ç½®æ­¤å¯¹è¯æ¡†çš„å›¾æ ‡ã€‚å½“åº”ç”¨ç¨‹åºä¸»çª—å£ä¸æ˜¯å¯¹è¯æ¡†æ—¶ï¼Œæ¡†æ¶å°†è‡ªåŠ¨
-	//  æ‰§è¡Œæ­¤æ“ä½œ
-	SetIcon(m_hIcon, TRUE);			// è®¾ç½®å¤§å›¾æ ‡
-	SetIcon(m_hIcon, FALSE);		// è®¾ç½®å°å›¾æ ‡
+	// ÉèÖÃ´Ë¶Ô»°¿òµÄÍ¼±ê¡£µ±Ó¦ÓÃ³ÌĞòÖ÷´°¿Ú²»ÊÇ¶Ô»°¿òÊ±£¬¿ò¼Ü½«×Ô¶¯
+	//  Ö´ĞĞ´Ë²Ù×÷
+	SetIcon(m_hIcon, TRUE);			// ÉèÖÃ´óÍ¼±ê
+	SetIcon(m_hIcon, FALSE);		// ÉèÖÃĞ¡Í¼±ê
 
-	// TODO: åœ¨æ­¤æ·»åŠ é¢å¤–çš„åˆå§‹åŒ–ä»£ç 
+	// TODO: ÔÚ´ËÌí¼Ó¶îÍâµÄ³õÊ¼»¯´úÂë
 
-	return TRUE;  // é™¤éå°†ç„¦ç‚¹è®¾ç½®åˆ°æ§ä»¶ï¼Œå¦åˆ™è¿”å› TRUE
+	return TRUE;  // ³ı·Ç½«½¹µãÉèÖÃµ½¿Ø¼ş£¬·ñÔò·µ»Ø TRUE
 }
 
 void CReadSSGDlg::OnSysCommand(UINT nID, LPARAM lParam)
@@ -158,19 +155,19 @@ void CReadSSGDlg::OnSysCommand(UINT nID, LPARAM lParam)
 	}
 }
 
-// å¦‚æœå‘å¯¹è¯æ¡†æ·»åŠ æœ€å°åŒ–æŒ‰é’®ï¼Œåˆ™éœ€è¦ä¸‹é¢çš„ä»£ç 
-//  æ¥ç»˜åˆ¶è¯¥å›¾æ ‡ã€‚å¯¹äºä½¿ç”¨æ–‡æ¡£/è§†å›¾æ¨¡å‹çš„ MFC åº”ç”¨ç¨‹åºï¼Œ
-//  è¿™å°†ç”±æ¡†æ¶è‡ªåŠ¨å®Œæˆã€‚
+// Èç¹ûÏò¶Ô»°¿òÌí¼Ó×îĞ¡»¯°´Å¥£¬ÔòĞèÒªÏÂÃæµÄ´úÂë
+//  À´»æÖÆ¸ÃÍ¼±ê¡£¶ÔÓÚÊ¹ÓÃÎÄµµ/ÊÓÍ¼Ä£ĞÍµÄ MFC Ó¦ÓÃ³ÌĞò£¬
+//  Õâ½«ÓÉ¿ò¼Ü×Ô¶¯Íê³É¡£
 
 void CReadSSGDlg::OnPaint()
 {
 	if (IsIconic())
 	{
-		CPaintDC dc(this); // ç”¨äºç»˜åˆ¶çš„è®¾å¤‡ä¸Šä¸‹æ–‡
+		CPaintDC dc(this); // ÓÃÓÚ»æÖÆµÄÉè±¸ÉÏÏÂÎÄ
 
 		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
 
-		// ä½¿å›¾æ ‡åœ¨å·¥ä½œåŒºçŸ©å½¢ä¸­å±…ä¸­
+		// Ê¹Í¼±êÔÚ¹¤×÷Çø¾ØĞÎÖĞ¾ÓÖĞ
 		int cxIcon = GetSystemMetrics(SM_CXICON);
 		int cyIcon = GetSystemMetrics(SM_CYICON);
 		CRect rect;
@@ -178,7 +175,7 @@ void CReadSSGDlg::OnPaint()
 		int x = (rect.Width() - cxIcon + 1) / 2;
 		int y = (rect.Height() - cyIcon + 1) / 2;
 
-		// ç»˜åˆ¶å›¾æ ‡
+		// »æÖÆÍ¼±ê
 		dc.DrawIcon(x, y, m_hIcon);
 	}
 	else
@@ -187,8 +184,8 @@ void CReadSSGDlg::OnPaint()
 	}
 }
 
-//å½“ç”¨æˆ·æ‹–åŠ¨æœ€å°åŒ–çª—å£æ—¶ç³»ç»Ÿè°ƒç”¨æ­¤å‡½æ•°å–å¾—å…‰æ ‡
-//æ˜¾ç¤ºã€‚
+//µ±ÓÃ»§ÍÏ¶¯×îĞ¡»¯´°¿ÚÊ±ÏµÍ³µ÷ÓÃ´Ëº¯ÊıÈ¡µÃ¹â±ê
+//ÏÔÊ¾¡£
 HCURSOR CReadSSGDlg::OnQueryDragIcon()
 {
 	return static_cast<HCURSOR>(m_hIcon);
@@ -223,29 +220,35 @@ CString GetMatName(int id)
 
 void CReadSSGDlg::OnBnClickedButtonReadSSG()
 {
-	//æ‰“å¼€SSGæ¨¡å‹
 	CString fname=L"";
-	CString stitle=L"SAUSAGEæ–‡ä»¶|*.ssg||";
+	CString stitle=L"SAUSAGEÎÄ¼ş|*.ssg||";
 	CFileDialog dlg(TRUE,L"ssg",L"*.ssg",0,stitle);
 	if(dlg.DoModal()!=IDOK) return;
 	fname=dlg.GetPathName();
 
-	//æ¸…é™¤æ‰€æœ‰æ•°æ®
+	//Çå³ıËùÓĞÊı¾İ
 	theData.Clear();
-	theData.InitialAPI(); //2022ç‰ˆæœ¬ä¿®æ”¹
 	theData.m_sPrjFile=fname;
 	BOOL bSuccess=TRUE;
 
 	DWORD tick0=GetTickCount(),tick1;	
 	ClearMsg();
-	AppendMsg(L"å¼€å§‹è¯»å…¥SSGæ¨¡å‹æ•°æ®...\r\n");
+	AppendMsg(L"¿ªÊ¼¶ÁÈëSSGÄ£ĞÍÊı¾İ...\r\n");
 
-	//è¯»å…¥é¡¹ç›®é…ç½®å‚æ•°
+	//¶ÁÈëÏîÄ¿ÅäÖÃ²ÎÊı
+	AppendMsg(L"¶ÁÈë*PROJECT ...\r\n");
 	bSuccess&=theData.m_cPrjPara.Read(theData.m_sPrjFile);
 
-	//è¯»å…¥æ¥¼å±‚æ•°æ®
+	tick1=GetTickCount();
+	tick0=tick1;
+
+	//¶ÁÈëÂ¥²ãÊı¾İ
 	CASCFile fin;
 	if(!fin.Open(theData.m_sPrjFile,CFile::modeRead|CFile::shareDenyWrite)) return;
+	tick1=GetTickCount();
+	tick0=tick1;
+
+	AppendMsg(L"¶ÁÈë*STORY ...\r\n");
 	int count;
 	if(fin.FindKey("*STORY"))
 	{
@@ -259,17 +262,22 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 			}
 		}
 	}
-	if(fin.FindKey("*STYPROP"))  //æ¥¼å±‚å‚æ•°
+	
+	AppendMsg(L"¶ÁÈë*STYPROP ...\r\n");
+	tick1=GetTickCount();
+	tick0=tick1;
+
+	if(fin.FindKey("*STYPROP"))  //Â¥²ã²ÎÊı
 	{
-		fin.GetKeyValueInt("NPARA=");  //å‚æ•°ä¸ªæ•°ï¼ˆåˆ—æ•°ï¼‰ï¼Œè¡Œæ•°ä¸ºæ¥¼å±‚æ•°ï¼ˆåŒ…æ‹¬0å±‚ï¼‰
-		fin.GetKeyValueInt("NSTRUCTTYPE=");  //æ„ä»¶ç§ç±»
-		int nrec=fin.GetKeyValueInt("NUMBER=");  //è®°å½•æ•°
+		fin.GetKeyValueInt("NPARA=");  //²ÎÊı¸öÊı£¨ÁĞÊı£©£¬ĞĞÊıÎªÂ¥²ãÊı£¨°üÀ¨0²ã£©
+		fin.GetKeyValueInt("NSTRUCTTYPE=");  //¹¹¼şÖÖÀà
+		int nrec=fin.GetKeyValueInt("NUMBER=");  //¼ÇÂ¼Êı
 		for(int i=0;i<nrec;i++)
 		{
-			CString key=fin.GetStr();  //ç»“æ„ç±»å‹å…³é”®å­—
+			CString key=fin.GetStr();  //½á¹¹ÀàĞÍ¹Ø¼ü×Ö
 			int iStruct=GetStructKeywordIndex(key);
 			if(iStruct==-1) continue;
-			int iStory=fin.GetInt();  //æ¥¼å±‚å·
+			int iStory=fin.GetInt();  //Â¥²ãºÅ
 			int id_conc=fin.GetInt();
 			int id_rebar=fin.GetInt();
 			int id_steel=fin.GetInt();
@@ -321,40 +329,50 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 	fin.Close();
 
 
-	//è¯»å…¥æ¨¡å‹æ•°æ®
+	//¶ÁÈëÄ£ĞÍÊı¾İ
+	AppendMsg(L"¶ÁÈë¹¹¼şÊı¾İ ...\r\n");
 	bSuccess&=theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara);
+
 	if(bSuccess)
 	{
-		//è¯»å…¥ç½‘æ ¼
+		//¶ÁÈëÍø¸ñ
+		tick1=GetTickCount();
+		tick0=tick1;
+		AppendMsg(L"¶ÁÈëµ¥ÔªÊı¾İ ...\r\n");
 		theData.m_cMesh.ReadMeshBin(theData.m_nStory,theData.m_pStory);
-		//ç”Ÿæˆç»“ç‚¹åˆ°å•å…ƒçš„ç´¢å¼•
+
+
+		//Éú³É½áµãµ½µ¥ÔªµÄË÷Òı
+		tick1=GetTickCount();
+		tick0=tick1;
+
 		theData.m_cMesh.CreateNode2Elm();
 		theData.m_cMesh.CreateShellSubElm();		
 	}
-	AppendMsg(L"SSGæ¨¡å‹è¯»å–æˆåŠŸï¼\r\n\r\n");
+	AppendMsg(L"SSGÄ£ĞÍ¶ÁÈ¡³É¹¦£¡\r\n\r\n");
 
 
-	AppendMsg(L"å¼€å§‹è¯»å–ç»“æœ...\r\n");
+	AppendMsg(L"¿ªÊ¼¶ÁÈ¡½á¹û...\r\n");
 
-	//è¯»å–åŠ¨åŠ›åˆ†æèŠ‚ç‚¹ä½ç§»
+	//¶ÁÈ¡¶¯Á¦·ÖÎö½ÚµãÎ»ÒÆ
 	CNodeFieldSet m_cDis;
 	m_cDis.Clear();
-	AppendMsg(L"åŠ è½½åŠ¨åŠ›åˆ†æç»“ç‚¹ä½ç§»æ–‡ä»¶...\r\n");
-	fname = theData.GetFilePath(FILE_DISP_BIN, theData.m_cFrame.m_cLoad[0]->sCaseName); //ç›´æ¥å†™å·¥å†µåç§°ä¹Ÿå¯ä»¥
+	AppendMsg(L"¼ÓÔØ¶¯Á¦·ÖÎö½áµãÎ»ÒÆÎÄ¼ş...\r\n");
+	fname = theData.GetFilePath(FILE_DISP_BIN, theData.m_cFrame.m_cLoad[0]->sCaseName); //Ö±½ÓĞ´¹¤¿öÃû³ÆÒ²¿ÉÒÔ
 	BOOL ret=m_cDis.ReadBinNodeField_AllStep(fname,false); 
 	if (!ret||m_cDis.GetStepNumber()<1)
 	{
-		AppendMsg(L"æ²¡æ‰¾åˆ°ç»“æœæ–‡ä»¶ï¼\r\n");
+		AppendMsg(L"Ã»ÕÒµ½½á¹ûÎÄ¼ş£¡\r\n");
 		m_cDis.Clear();
 		return;
 	}
 
 
-	//éå†æ‰€æœ‰æ—¶æ­¥ï¼Œæ±‚èŠ‚ç‚¹æœ€å¤§è½¬è§’
+	//±éÀúËùÓĞÊ±²½£¬Çó½Úµã×î´ó×ª½Ç
 	int nNode=theData.m_cMesh.m_nNode;
-	float *fNodeThetaMaxX= new float[nNode];	//èŠ‚ç‚¹ç»å¯¹å€¼æœ€å¤§çš„è½¬è§’ï¼Œå¸¦æ­£è´Ÿå·
-	float *fNodeThetaMaxY= new float[nNode];	//èŠ‚ç‚¹ç»å¯¹å€¼æœ€å¤§çš„è½¬è§’ï¼Œå¸¦æ­£è´Ÿå·
-	float *fNodeThetaMaxZ= new float[nNode];	//èŠ‚ç‚¹ç»å¯¹å€¼æœ€å¤§çš„è½¬è§’ï¼Œå¸¦æ­£è´Ÿå·	//æ³¨æ„ä¸‰ä¸ªæ–¹å‘çš„æœ€å¤§è½¬è§’å¯èƒ½ä¸æ˜¯åŒæ—¶åˆ»å‘ç”Ÿçš„
+	float *fNodeThetaMaxX= new float[nNode];	//½Úµã¾ø¶ÔÖµ×î´óµÄ×ª½Ç£¬´øÕı¸ººÅ
+	float *fNodeThetaMaxY= new float[nNode];	//½Úµã¾ø¶ÔÖµ×î´óµÄ×ª½Ç£¬´øÕı¸ººÅ
+	float *fNodeThetaMaxZ= new float[nNode];	//½Úµã¾ø¶ÔÖµ×î´óµÄ×ª½Ç£¬´øÕı¸ººÅ	//×¢ÒâÈı¸ö·½ÏòµÄ×î´ó×ª½Ç¿ÉÄÜ²»ÊÇÍ¬Ê±¿Ì·¢ÉúµÄ
 	memset(fNodeThetaMaxX,0,sizeof(float)*nNode);
 	memset(fNodeThetaMaxY,0,sizeof(float)*nNode);
 	memset(fNodeThetaMaxZ,0,sizeof(float)*nNode);
@@ -364,7 +382,7 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 		for (int iNode=0;iNode<nNode;iNode++)
 		{
 			Vector4 d;
-			d.x=m_cDis.aFieldsPtr[iStep]->GetItemData(iNode,3,m_cDis.nItems);	//åä¸‰ä¸ªåˆ†é‡æ˜¯è½¬è§’ï¼Œå‰ä¸‰ä¸ªåˆ†é‡æ˜¯å¹³åŠ¨ä½ç§»
+			d.x=m_cDis.aFieldsPtr[iStep]->GetItemData(iNode,3,m_cDis.nItems);	//ºóÈı¸ö·ÖÁ¿ÊÇ×ª½Ç£¬Ç°Èı¸ö·ÖÁ¿ÊÇÆ½¶¯Î»ÒÆ
 			d.y=m_cDis.aFieldsPtr[iStep]->GetItemData(iNode,4,m_cDis.nItems);
 			d.z=m_cDis.aFieldsPtr[iStep]->GetItemData(iNode,5,m_cDis.nItems);
 			if (abs(d.x)>abs(fNodeThetaMaxX[iNode])) fNodeThetaMaxX[iNode]=d.x;
@@ -373,42 +391,42 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 		}
 	}
 
-	//æ±‚æ„ä»¶æœ€å¤§è½¬è§’
+	//Çó¹¹¼ş×î´ó×ª½Ç
 	int nBeam=theData.m_cFrame.m_aBeam.GetCount();
-	float *fThetaX1= new float[nBeam];	//æ„ä»¶å·¦ç«¯è½¬è§’
-	float *fThetaX2= new float[nBeam];	//æ„ä»¶å³ç«¯è½¬è§’
-	float *fThetaXMax= new float[nBeam];	//æ„ä»¶æœ€å¤§è½¬è§’
+	float *fThetaX1= new float[nBeam];	//¹¹¼ş×ó¶Ë×ª½Ç
+	float *fThetaX2= new float[nBeam];	//¹¹¼şÓÒ¶Ë×ª½Ç
+	float *fThetaXMax= new float[nBeam];	//¹¹¼ş×î´ó×ª½Ç
 	memset(fThetaX1,0,sizeof(float)*nBeam);
 	memset(fThetaX2,0,sizeof(float)*nBeam);
 	memset(fThetaXMax,0,sizeof(float)*nBeam);
 
-	float *fThetaY1= new float[nBeam];	//æ„ä»¶å·¦ç«¯è½¬è§’
-	float *fThetaY2= new float[nBeam];	//æ„ä»¶å³ç«¯è½¬è§’
-	float *fThetaYMax= new float[nBeam];	//æ„ä»¶æœ€å¤§è½¬è§’
+	float *fThetaY1= new float[nBeam];	//¹¹¼ş×ó¶Ë×ª½Ç
+	float *fThetaY2= new float[nBeam];	//¹¹¼şÓÒ¶Ë×ª½Ç
+	float *fThetaYMax= new float[nBeam];	//¹¹¼ş×î´ó×ª½Ç
 	memset(fThetaY1,0,sizeof(float)*nBeam);
 	memset(fThetaY2,0,sizeof(float)*nBeam);
 	memset(fThetaYMax,0,sizeof(float)*nBeam);
 
 
-	float *fThetaZ1= new float[nBeam];	//æ„ä»¶å·¦ç«¯è½¬è§’
-	float *fThetaZ2= new float[nBeam];	//æ„ä»¶å³ç«¯è½¬è§’
-	float *fThetaZMax= new float[nBeam];	//æ„ä»¶æœ€å¤§è½¬è§’
+	float *fThetaZ1= new float[nBeam];	//¹¹¼ş×ó¶Ë×ª½Ç
+	float *fThetaZ2= new float[nBeam];	//¹¹¼şÓÒ¶Ë×ª½Ç
+	float *fThetaZMax= new float[nBeam];	//¹¹¼ş×î´ó×ª½Ç
 	memset(fThetaZ1,0,sizeof(float)*nBeam);
 	memset(fThetaZ2,0,sizeof(float)*nBeam);
 	memset(fThetaZMax,0,sizeof(float)*nBeam);
 
-	//éå†æ‰€æœ‰å•å…ƒï¼Œæ‰¾åˆ°æ„ä»¶æœ€å¤§è½¬è§’
+	//±éÀúËùÓĞµ¥Ôª£¬ÕÒµ½¹¹¼ş×î´ó×ª½Ç
 	for (int iEle=0;iEle<theData.m_cMesh.m_nBeam;iEle++)
 	{
 		int iEleId1=theData.m_cMesh.m_pBeam[iEle].VexIDM1;
 		int iEleId2=theData.m_cMesh.m_pBeam[iEle].VexIDM2;
-		CVertex &Vex1=theData.m_cMesh.m_pNode[iEleId1];	//æ¢å•å…ƒèµ·ç‚¹
+		CVertex &Vex1=theData.m_cMesh.m_pNode[iEleId1];	//Áºµ¥ÔªÆğµã
 		CVertex &Vex2=theData.m_cMesh.m_pNode[iEleId2];
 
 		int iBeamId=theData.m_cMesh.m_pBeam[iEle].BeamStrucIDM;
-		CBeamStruc &beam=theData.m_cFrame.m_aBeam[iBeamId];	//æ¢å•å…ƒæ‰€å±çš„æ¢æ„ä»¶		
-		CLine &line=theData.m_cFrame.m_aLine[beam.LineIDM]; //ç»“æ„çº¿		
-		CVertex &v1=theData.m_cFrame.m_aVex[line.VexIDM1];	//ç«¯ç‚¹åæ ‡
+		CBeamStruc &beam=theData.m_cFrame.m_aBeam[iBeamId];	//Áºµ¥ÔªËùÊôµÄÁº¹¹¼ş		
+		CLine &line=theData.m_cFrame.m_aLine[beam.LineIDM]; //½á¹¹Ïß		
+		CVertex &v1=theData.m_cFrame.m_aVex[line.VexIDM1];	//¶Ëµã×ø±ê
 		CVertex &v2=theData.m_cFrame.m_aVex[line.VexIDM2];
 
 		if (Vex1==v1)
@@ -446,63 +464,63 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 		if (abs(fNodeThetaMaxZ[iEleId2])>abs(fThetaZMax[iBeamId])) fThetaZMax[iBeamId]=fNodeThetaMaxZ[iEleId2];
 	}
 
-	//è¾“å‡ºè½¬è§’æ–‡ä»¶
-	AppendMsg(L"æ­£åœ¨è¾“å‡ºæ„ä»¶è½¬è§’æ–‡ä»¶...\r\n");
+	//Êä³ö×ª½ÇÎÄ¼ş
+	AppendMsg(L"ÕıÔÚÊä³ö¹¹¼ş×ª½ÇÎÄ¼ş...\r\n");
 	CASCFile fout;
 	char buf[512];
 	CString sOutFileName=theData.GetPrjPath()+theData.GetPrjName()+L"Theta.txt";
 	if (!fout.Open(sOutFileName,CFile::modeCreate|CFile::modeWrite|CFile::shareDenyWrite))return;
 	USES_CONVERSION;
 
-	sprintf_s(buf,sizeof(buf),"**SAUSAGEä¸€ç»´æ„ä»¶è½¬è§’\r\n");
+	sprintf_s(buf,sizeof(buf),"**SAUSAGEÒ»Î¬¹¹¼ş×ª½Ç\r\n");
 	fout.Write(buf,strlen(buf));
 
-	sprintf_s(buf,sizeof(buf),"*ä¸€ç»´æ„ä»¶æ•°ç›®=%d\r\n",nBeam);
+	sprintf_s(buf,sizeof(buf),"*Ò»Î¬¹¹¼şÊıÄ¿=%d\r\n",nBeam);
 	fout.Write(buf,strlen(buf));
 
-	sprintf_s(buf,sizeof(buf),"ç¼–å·\tç±»å‹\tå±‚å·\tæˆªé¢åç§°\tæ··å‡åœŸç­‰çº§\té’¢ç­‹ç­‰çº§\tç®ç­‹ç­‰çº§\té’¢æç­‰çº§\tèµ·ç‚¹è½¬è§’Î¸x\tèµ·ç‚¹è½¬è§’Î¸y\tèµ·ç‚¹è½¬è§’Î¸z\t\tç»ˆç‚¹è½¬è§’Î¸x\tç»ˆç‚¹è½¬è§’Î¸y\tç»ˆç‚¹è½¬è§’Î¸z\t\tæœ€å¤§è½¬è§’Î¸x\tæœ€å¤§è½¬è§’Î¸y\tæœ€å¤§è½¬è§’Î¸z\r\n");
+	sprintf_s(buf,sizeof(buf),"±àºÅ\tÀàĞÍ\t²ãºÅ\t½ØÃæÃû³Æ\t»ìÄıÍÁµÈ¼¶\t¸Ö½îµÈ¼¶\t¹¿½îµÈ¼¶\t¸Ö²ÄµÈ¼¶\tÆğµã×ª½Ç¦Èx\tÆğµã×ª½Ç¦Èy\tÆğµã×ª½Ç¦Èz\t\tÖÕµã×ª½Ç¦Èx\tÖÕµã×ª½Ç¦Èy\tÖÕµã×ª½Ç¦Èz\t\t×î´ó×ª½Ç¦Èx\t×î´ó×ª½Ç¦Èy\t×î´ó×ª½Ç¦Èz\r\n");
 	fout.Write(buf,strlen(buf));
 
 	for (int iBeam=0;iBeam<nBeam;iBeam++)
 	{
 		CBeamStruc &beam=theData.m_cFrame.m_aBeam[iBeam];
-		if(beam.iStatus==0) continue;	//è¢«æ€æ­»çš„æ„ä»¶
+		if(beam.iStatus==0) continue;	//±»É±ËÀµÄ¹¹¼ş
 		
-		CString sType;	//æ„ä»¶ç±»å‹		
+		CString sType;	//¹¹¼şÀàĞÍ		
 		switch(beam.iStrucType)
 		{
 		case STRUCT_UNKNOWN 	: 
-			sType=L"æœªçŸ¥ç±»å‹";
+			sType=L"Î´ÖªÀàĞÍ";
 			break;			
 		case STRUCT_BEAM    	:    
-			sType=L"æ¢";
+			sType=L"Áº";
 			break;
 		case STRUCT_PILLAR  	:    
-			sType=L"æŸ±";
+			sType=L"Öù";
 			break;
 		case STRUCT_BRACING 	:    
-			sType=L"æ–œæ’‘";
+			sType=L"Ğ±³Å";
 			break;
 		case STRUCT_EDGE  : 
-			sType=L"è¾¹ç¼˜æ„ä»¶";
+			sType=L"±ßÔµ¹¹¼ş";
 			break;
 		case STRUCT_HIDEBEAM   : 
-			sType=L"è™šæ¢";
+			sType=L"ĞéÁº";
 			break;
 		case STRUCT_LONGIREBAR   : 
-			sType=L"è¿æ¢çºµç­‹";
+			sType=L"Á¬Áº×İ½î";
 			break;
 		case STRUCT_LINK   : 
-			sType=L"ä¸€èˆ¬è¿æ¥";
+			sType=L"Ò»°ãÁ¬½Ó";
 			break;			
 		default:
-			sType=L"æœªçŸ¥ç±»å‹";
+			sType=L"Î´ÖªÀàĞÍ";
 			break;
 		}
-		int iStory=beam.idmStory;	//æ¥¼å±‚
-		//æˆªé¢
+		int iStory=beam.idmStory;	//Â¥²ã
+		//½ØÃæ
 		CBeamSection *psec=theData.m_cFrame.m_cSection.GetBeamSection(beam.iSectionID);
-		//ææ–™
+		//²ÄÁÏ
 		CString sConc=beam.ConcMat;
 		CString sRebar=beam.RebarMat;
 		CString sStirrup=beam.StirrupMat;
@@ -518,16 +536,16 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 
 
 		/*
-		//ç»“æ„çº¿
+		//½á¹¹Ïß
 		CLine &line=theData.m_cFrame.m_aLine[beam.LineIDM];
 
-		//ç«¯ç‚¹åæ ‡
+		//¶Ëµã×ø±ê
 		CVertex &v1=theData.m_cFrame.m_aVex[line.VexIDM1];
 		CVertex &v2=theData.m_cFrame.m_aVex[line.VexIDM2];
 
-		//æˆªé¢
+		//½ØÃæ
 		CBeamSection *psec=theData.m_cFrame.m_cSection.GetBeamSection(beam.iSectionID);
-		//å¯»æ‰¾æ··å‡åœŸæˆªé¢
+		//Ñ°ÕÒ»ìÄıÍÁ½ØÃæ
 		int nSec=psec->aSubSec.GetCount();
 		int iSec=-1;
 		for(int k=0;k<nSec;k++)
@@ -543,14 +561,14 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 		int iShape=sub.iShape;
 
 
- 		//å±€éƒ¨åæ ‡ç³»
+ 		//¾Ö²¿×ø±êÏµ
  		Vector4 u,v,w;
  		beam.LocalCoorVector(u,v,w);
  
- 		//è½¬è§’
+ 		//×ª½Ç
  		float angle=beam.fRotateAng;
 
-		//ææ–™
+		//²ÄÁÏ
 		CString sSteel=beam.SteelMat;
 		CString sConc=beam.ConcMat;
 		CString sRebar=beam.RebarMat;
@@ -562,25 +580,25 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 	}
 	fout.Close();
 
-	AppendMsg(L"æ„ä»¶è½¬è§’æ–‡ä»¶è¾“å‡ºæˆåŠŸï¼\r\n");
+	AppendMsg(L"¹¹¼ş×ª½ÇÎÄ¼şÊä³ö³É¹¦£¡\r\n");
 
 	CString msgfile=L"notepad.exe \"" + sOutFileName + CString(L"\"");
 	WinExec(T2A(msgfile),SW_SHOW);
 
 
 	/*
-	//è¯»å–åŠ¨åŠ›åˆ†æå•å…ƒç»“æœï¼Œå¦‚æŸä¼¤ã€æ€§èƒ½æ°´å¹³ç­‰
+	//¶ÁÈ¡¶¯Á¦·ÖÎöµ¥Ôª½á¹û£¬ÈçËğÉË¡¢ĞÔÄÜË®Æ½µÈ
 	CElmFieldOneComponent m_cElmFieldSet; 
 	fname=theData.GetFilePath(sTypeName,m_sCaseFile,Sys_Group_All);
 	if (!IsFileExists(fname))return;
 	if(m_cElmFieldSet.pBlockCol){delete[] m_cElmFieldSet.pBlockCol;	m_cElmFieldSet.pBlockCol=NULL;}
 	m_cElmFieldSet.nBlock=0;
-	//è¯»æ•°æ®æ–‡ä»¶
-	CF5Header  hdr;  //æ–‡ä»¶å¤´
-	CF5ElemBlock *pblock=NULL;  //åˆ†å—æ•°ç»„
+	//¶ÁÊı¾İÎÄ¼ş
+	CF5Header  hdr;  //ÎÄ¼şÍ·
+	CF5ElemBlock *pblock=NULL;  //·Ö¿éÊı×é
 	BOOL ret=ReadF5Header(fname,hdr,pblock);
 	if(!ret)return FALSE;
-	int nBlock=hdr.GetElemTypeNum();  //æ€»åˆ†å—æ•°
+	int nBlock=hdr.GetElemTypeNum();  //×Ü·Ö¿éÊı
 	m_cElmFieldSet.pBlockCol=new int[nBlock];
 	for (int i=0;i<nBlock;i++)
 	{
@@ -589,30 +607,30 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 	ret=m_cElmFieldSet.ReadBinElmField_AllStep(fname,hdr,pblock,0);
 	delete[] pblock;pblock=NULL;
 
-	//å¼•ç”¨ç»“æœï¼Œä»¥è¯»å–æœ€åä¸€æ­¥ç»“æœä¸ºä¾‹ï¼Œä¹Ÿå¯ä»¥ for(int j=0;j<fieldstep;j++) 
-	int fieldstep=m_cElmFieldSet.nMaxSteps;  //ç‰©ç†åœºæ—¶é—´æ­¥æ•°
+	//ÒıÓÃ½á¹û£¬ÒÔ¶ÁÈ¡×îºóÒ»²½½á¹ûÎªÀı£¬Ò²¿ÉÒÔ for(int j=0;j<fieldstep;j++) 
+	int fieldstep=m_cElmFieldSet.nMaxSteps;  //ÎïÀí³¡Ê±¼ä²½Êı
 
-	//æ¢å•å…ƒ
+	//Áºµ¥Ôª
 	for(int i=0;i<theData.m_cMesh.m_nBeam;i++)
 	{
-		int index=m_cElmFieldSet.pBeamIndex[i]; //ppDataæ•°ç»„ä¸­çš„ä½ç½®ç´¢å¼•
+		int index=m_cElmFieldSet.pBeamIndex[i]; //ppDataÊı×éÖĞµÄÎ»ÖÃË÷Òı
 		if(index==-1) continue;
 		float v=m_cElmFieldSet.GetBeamData(fieldstep-1,i);
 
 	}	
 
-	//ä¸‰è§’å½¢å•å…ƒ
+	//Èı½ÇĞÎµ¥Ôª
 	for(int i=0;i<theData.m_cMesh.m_nTriangle;i++)
 	{
-		int index=m_cElmFieldSet.pTriIndex[i]; //ppDataæ•°ç»„ä¸­çš„ä½ç½®ç´¢å¼•
+		int index=m_cElmFieldSet.pTriIndex[i]; //ppDataÊı×éÖĞµÄÎ»ÖÃË÷Òı
 		if(index==-1) continue;
 		float v=m_cElmFieldSet.GetTriData(fieldstep-1,i);			
 	}
 
-	//å››è¾¹å½¢å•å…ƒ
+	//ËÄ±ßĞÎµ¥Ôª
 	for(int i=0;i<theData.m_cMesh.m_nQuad;i++)
 	{
-		int index=m_cElmFieldSet.pQuadIndex[i]; //ppDataæ•°ç»„ä¸­çš„ä½ç½®ç´¢å¼•
+		int index=m_cElmFieldSet.pQuadIndex[i]; //ppDataÊı×éÖĞµÄÎ»ÖÃË÷Òı
 		if(index==-1) continue;
 		float v=m_cElmFieldSet.GetQuadData(fieldstep-1,i);
 	}
@@ -626,15 +644,15 @@ void CReadSSGDlg::OnBnClickedButtonReadSSG()
 void CReadSSGDlg::OnBnClickedButtonHelp()
 {
 	
-	AfxMessageBox(L"SSGAPIï¼Œè¯¦ç»†ä¿¡æ¯è¯·å…³æ³¨â€œSAUSAGEéçº¿æ€§â€ï¼\r\n");
+	AfxMessageBox(L"SSGAPI£¬ÏêÏ¸ĞÅÏ¢Çë¹Ø×¢¡°SAUSAGE·ÇÏßĞÔ¡±£¡\r\n");
 }
 
-//ç»Ÿè®¡å±‚é—´ä½ç§»è§’
+//Í³¼Æ²ã¼äÎ»ÒÆ½Ç
 void CReadSSGDlg::OnBnClickedButtonDisp()
 {
-	// TODO: åœ¨æ­¤æ·»åŠ æ§ä»¶é€šçŸ¥å¤„ç†ç¨‹åºä»£ç 
+	// TODO: ÔÚ´ËÌí¼Ó¿Ø¼şÍ¨Öª´¦Àí³ÌĞò´úÂë
 	UpdateData(true);
-	//è·å–ä½ç§»è§’è§’åº¦æ•°æ®
+	//»ñÈ¡Î»ÒÆ½Ç½Ç¶ÈÊı¾İ
 	if (m_sAngle.IsEmpty()) return;
 
 	vector <float> fVectorAngle;
@@ -648,35 +666,34 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 	strArr.RemoveAll();
 
 	CString fname = L"";
-	CString stitle = L"SAUSAGEæ–‡ä»¶|*.ssg||";
+	CString stitle = L"SAUSAGEÎÄ¼ş|*.ssg||";
 	CFileDialog dlg(TRUE, L"ssg", L"*.ssg", 0, stitle);
 	if (dlg.DoModal() != IDOK) return;
 	fname = dlg.GetPathName();
 
-	//æ¸…é™¤æ‰€æœ‰æ•°æ®
+	//Çå³ıËùÓĞÊı¾İ
 	theData.Clear();
-	theData.InitialAPI(); //2022ç‰ˆæœ¬ä¿®æ”¹
 	theData.m_sPrjFile = fname;
 	BOOL bSuccess = TRUE;
 
 	DWORD tick0 = GetTickCount(), tick1;
 	ClearMsg();
-	AppendMsg(L"å¼€å§‹è¯»å…¥SSGæ¨¡å‹æ•°æ®...\r\n");
+	AppendMsg(L"¿ªÊ¼¶ÁÈëSSGÄ£ĞÍÊı¾İ...\r\n");
 
-	//è¯»å…¥é¡¹ç›®é…ç½®å‚æ•°
-	AppendMsg(L"è¯»å…¥*PROJECT ...\r\n");
+	//¶ÁÈëÏîÄ¿ÅäÖÃ²ÎÊı
+	AppendMsg(L"¶ÁÈë*PROJECT ...\r\n");
 	bSuccess &= theData.m_cPrjPara.Read(theData.m_sPrjFile);
 
 	tick1 = GetTickCount();
 	tick0 = tick1;
 
-	//è¯»å…¥æ¥¼å±‚æ•°æ®
+	//¶ÁÈëÂ¥²ãÊı¾İ
 	CASCFile fin;
 	if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) return;
 	tick1 = GetTickCount();
 	tick0 = tick1;
 
-	AppendMsg(L"è¯»å…¥*STORY ...\r\n");
+	AppendMsg(L"¶ÁÈë*STORY ...\r\n");
 	int count;
 	if (fin.FindKey("*STORY"))
 	{
@@ -691,21 +708,21 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 		}
 	}
 
-	AppendMsg(L"è¯»å…¥*STYPROP ...\r\n");
+	AppendMsg(L"¶ÁÈë*STYPROP ...\r\n");
 	tick1 = GetTickCount();
 	tick0 = tick1;
 
-	if (fin.FindKey("*STYPROP"))  //æ¥¼å±‚å‚æ•°
+	if (fin.FindKey("*STYPROP"))  //Â¥²ã²ÎÊı
 	{
-		fin.GetKeyValueInt("NPARA=");  //å‚æ•°ä¸ªæ•°ï¼ˆåˆ—æ•°ï¼‰ï¼Œè¡Œæ•°ä¸ºæ¥¼å±‚æ•°ï¼ˆåŒ…æ‹¬0å±‚ï¼‰
-		fin.GetKeyValueInt("NSTRUCTTYPE=");  //æ„ä»¶ç§ç±»
-		int nrec = fin.GetKeyValueInt("NUMBER=");  //è®°å½•æ•°
+		fin.GetKeyValueInt("NPARA=");  //²ÎÊı¸öÊı£¨ÁĞÊı£©£¬ĞĞÊıÎªÂ¥²ãÊı£¨°üÀ¨0²ã£©
+		fin.GetKeyValueInt("NSTRUCTTYPE=");  //¹¹¼şÖÖÀà
+		int nrec = fin.GetKeyValueInt("NUMBER=");  //¼ÇÂ¼Êı
 		for (int i = 0; i < nrec; i++)
 		{
-			CString key = fin.GetStr();  //ç»“æ„ç±»å‹å…³é”®å­—
+			CString key = fin.GetStr();  //½á¹¹ÀàĞÍ¹Ø¼ü×Ö
 			int iStruct = GetStructKeywordIndex(key);
 			if (iStruct == -1) continue;
-			int iStory = fin.GetInt();  //æ¥¼å±‚å·
+			int iStory = fin.GetInt();  //Â¥²ãºÅ
 			int id_conc = fin.GetInt();
 			int id_rebar = fin.GetInt();
 			int id_steel = fin.GetInt();
@@ -757,59 +774,59 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 	fin.Close();
 
 
-	//è¯»å…¥æ¨¡å‹æ•°æ®
-	AppendMsg(L"è¯»å…¥æ„ä»¶æ•°æ® ...\r\n");
+	//¶ÁÈëÄ£ĞÍÊı¾İ
+	AppendMsg(L"¶ÁÈë¹¹¼şÊı¾İ ...\r\n");
 	bSuccess &= theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara);
 
 	if (bSuccess)
 	{
-		//è¯»å…¥ç½‘æ ¼
+		//¶ÁÈëÍø¸ñ
 		tick1 = GetTickCount();
 		tick0 = tick1;
-		AppendMsg(L"è¯»å…¥å•å…ƒæ•°æ® ...\r\n");
+		AppendMsg(L"¶ÁÈëµ¥ÔªÊı¾İ ...\r\n");
 		theData.m_cMesh.ReadMeshBin(theData.m_nStory, theData.m_pStory);
 
 
-		//ç”Ÿæˆç»“ç‚¹åˆ°å•å…ƒçš„ç´¢å¼•
+		//Éú³É½áµãµ½µ¥ÔªµÄË÷Òı
 		tick1 = GetTickCount();
 		tick0 = tick1;
 
 		theData.m_cMesh.CreateNode2Elm();
 		theData.m_cMesh.CreateShellSubElm();
 	}
-	AppendMsg(L"SSGæ¨¡å‹è¯»å–æˆåŠŸï¼\r\n\r\n");
+	AppendMsg(L"SSGÄ£ĞÍ¶ÁÈ¡³É¹¦£¡\r\n\r\n");
 
-	//åˆ¤æ–­å·¥å†µç¼–å·
+	//ÅĞ¶Ï¹¤¿ö±àºÅ
 	if (m_iCaseNum > theData.m_cFrame.m_cLoad.GetCount())
 	{
-		AfxMessageBox(L"å·¥å†µå®šä¹‰é”™è¯¯ï¼\r\n");
+		AfxMessageBox(L"¹¤¿ö¶¨Òå´íÎó£¡\r\n");
 		return;
 	}
 	else
 	{
 		CString str;
-		str.Format(L"è¯»å–*%s*å·¥å†µç»“æœ\r\n", theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName);
+		str.Format(L"¶ÁÈ¡*%s*¹¤¿ö½á¹û\r\n", theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName);
 		AppendMsg(str);
 	}
 
 
-	AppendMsg(L"å¼€å§‹è¯»å–ç»“æœ...\r\n");
+	AppendMsg(L"¿ªÊ¼¶ÁÈ¡½á¹û...\r\n");
 
-	//è¯»å–åŠ¨åŠ›åˆ†æèŠ‚ç‚¹ä½ç§»
+	//¶ÁÈ¡¶¯Á¦·ÖÎö½ÚµãÎ»ÒÆ
 	CNodeFieldSet m_cDis;
 	m_cDis.Clear();
-	AppendMsg(L"åŠ è½½åŠ¨åŠ›åˆ†æç»“ç‚¹ä½ç§»æ–‡ä»¶...\r\n");
-	fname = theData.GetFilePath(FILE_DISP_BIN, theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName); //ç›´æ¥å†™å·¥å†µåç§°ä¹Ÿå¯ä»¥
+	AppendMsg(L"¼ÓÔØ¶¯Á¦·ÖÎö½áµãÎ»ÒÆÎÄ¼ş...\r\n");
+	fname = theData.GetFilePath(FILE_DISP_BIN, theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName); //Ö±½ÓĞ´¹¤¿öÃû³ÆÒ²¿ÉÒÔ
 	BOOL ret = m_cDis.ReadBinNodeField_AllStep(fname, false);
 	if (!ret || m_cDis.GetStepNumber() < 1)
 	{
-		AppendMsg(L"æ²¡æ‰¾åˆ°ç»“æœæ–‡ä»¶ï¼\r\n");
+		AppendMsg(L"Ã»ÕÒµ½½á¹ûÎÄ¼ş£¡\r\n");
 		m_cDis.Clear();
 		return;
 	}
 
 
-	//æ±‚èŠ‚ç‚¹ä½ç§»
+	//Çó½ÚµãÎ»ÒÆ
 	int iNodeNum = 1000;
 	int nStep = m_cDis.nMaxSteps;
 	float *fNodeDispX = new float[nStep];
@@ -818,14 +835,14 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 	for (int iStep = 0; iStep < nStep; iStep++)
 	{
 		Vector4 d;
-		d.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 0, m_cDis.nItems);	//åä¸‰ä¸ªåˆ†é‡æ˜¯è½¬è§’ï¼Œå‰ä¸‰ä¸ªåˆ†é‡æ˜¯å¹³åŠ¨ä½ç§»
+		d.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 0, m_cDis.nItems);	//ºóÈı¸ö·ÖÁ¿ÊÇ×ª½Ç£¬Ç°Èı¸ö·ÖÁ¿ÊÇÆ½¶¯Î»ÒÆ
 		d.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 1, m_cDis.nItems);
 		d.z = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 2, m_cDis.nItems);
 		fNodeDispX[iStep] = d.x;
 	}
 
-	//è¯»å–DEFæ–‡ä»¶
-	AppendMsg(L"å¼€å§‹è¯»å–DEFæ–‡ä»¶...\r\n");
+	//¶ÁÈ¡DEFÎÄ¼ş
+	AppendMsg(L"¿ªÊ¼¶ÁÈ¡DEFÎÄ¼ş...\r\n");
 	//CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + sGroup + CString(".") + FILE_OUTPUT_DEF;
 	CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + CString("All") + CString(".") + FILE_OUTPUT_DEF;
 	int *story_pillar_node = NULL;
@@ -835,7 +852,7 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 	int nstory = 0;
 	if (fin.Open(defname, CFile::modeRead | CFile::shareDenyWrite))
 	{
-		nstory = fin.GetInt() ;//å±‚æ•°
+		nstory = fin.GetInt() ;//²ãÊı
 		//ASSERT(nstory == theData.m_nStory);
 		npillar = fin.GetInt();
 		for (int i = 0; i < npillar; i++)
@@ -854,17 +871,17 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 		}
 		fin.Close();
 	}
-	AppendMsg(L"è¯»å–æ•°æ®æˆåŠŸ\r\n\r\n");
+	AppendMsg(L"¶ÁÈ¡Êı¾İ³É¹¦\r\n\r\n");
 
 	float *fStoryDriftAll = new float[fVectorAngle.size()*nstory];
 	memset(fStoryDriftAll, 0, sizeof(float)*(fVectorAngle.size()*nstory));
 
-	AppendMsg(L"æ­£åœ¨è¾“å‡ºå±‚é—´ä½ç§»è§’æ–‡ä»¶...\r\n");
+	AppendMsg(L"ÕıÔÚÊä³ö²ã¼äÎ»ÒÆ½ÇÎÄ¼ş...\r\n");
 
 	for (int m = 0; m < fVectorAngle.size(); m++)
 	{
 
-		//è®¡ç®—ä»»æ„è§’åº¦å±‚é—´ä½ç§»è§’
+		//¼ÆËãÈÎÒâ½Ç¶È²ã¼äÎ»ÒÆ½Ç
 		float fAngle0 = fVectorAngle[m];
 		float fAngle = fAngle0 * 3.14 / 180;
 		float *fNodeDriftX = new float[nstory * npillar];
@@ -874,7 +891,7 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 		memset(fNodeDriftY, 0, sizeof(float)*(nstory * npillar));
 
 		float *fStoryDriftX = new float[nstory];
-		int *iMaxStoryDriftNode = new int[nstory];	//Xå‘æœ€å¤§å±‚é—´ä½ç§»è§’å¯¹åº”èŠ‚ç‚¹å·
+		int *iMaxStoryDriftNode = new int[nstory];	//XÏò×î´ó²ã¼äÎ»ÒÆ½Ç¶ÔÓ¦½ÚµãºÅ
 		//float *fStoryDriftY = new float[nstory];
 		memset(fStoryDriftX, 0, sizeof(float)*nstory);
 		memset(iMaxStoryDriftNode, 0, sizeof(float)*nstory);
@@ -908,7 +925,7 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 					fNodeDriftX[i + j * nstory] = max(fNodeDriftX[i + j * nstory], fDriftX);
 					fNodeDriftY[i + j * nstory] = max(fNodeDriftY[i + j * nstory], fDriftY);
 				}
-				//æœ€å¤§ä½ç§»è§’åŒ…ç»œ
+				//×î´óÎ»ÒÆ½Ç°üÂç
 				if (fNodeDriftX[i + j * nstory] > fStoryDriftX[i])
 				{
 					iMaxStoryDriftNode[i] = iNode1 + 1;
@@ -921,7 +938,7 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 			fStoryDriftAll[m*nstory + i] = fStoryDriftX[i];
 		}
 
-		//è¾“å‡ºä½ç§»è§’æ–‡ä»¶
+		//Êä³öÎ»ÒÆ½ÇÎÄ¼ş
 		CASCFile fout;
 		char buf[512];
 		CString str;
@@ -933,10 +950,10 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 		AppendMsg(str);
 		AppendMsg(L"\r\n");
 
-		sprintf_s(buf, sizeof(buf), "**SAUSAGEå±‚é—´ä½ç§»è§’\r\n");
+		sprintf_s(buf, sizeof(buf), "**SAUSAGE²ã¼äÎ»ÒÆ½Ç\r\n");
 		fout.Write(buf, strlen(buf));
 
-		sprintf_s(buf, sizeof(buf), "å±‚å·\t%0.0fÂ°\t\tèŠ‚ç‚¹å·\r\n", fAngle0);
+		sprintf_s(buf, sizeof(buf), "²ãºÅ\t%0.0f¡ã\t\t½ÚµãºÅ\r\n", fAngle0);
 		fout.Write(buf, strlen(buf));
 
 		for (int iStory = 0; iStory < nstory; iStory++)
@@ -947,12 +964,17 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 		}
 		fout.Close();
 
+		if (fStoryDriftX) delete[] fStoryDriftX;
+		if (iMaxStoryDriftNode) delete[] iMaxStoryDriftNode;
+		if (fNodeDriftX) delete[] fNodeDriftX;
+		if (fNodeDriftY) delete[] fNodeDriftY;
+
 		CString msgfile = L"notepad.exe \"" + sOutFileName + CString(L"\"");
 		if (m_bOpenTxt) WinExec(T2A(msgfile), SW_SHOW);
 	}
 
-	//è¾“å‡ºæ‰€æœ‰å±‚é—´ä½ç§»è§’
-	AppendMsg(L"æ­£åœ¨è¾“å‡ºæ‰€æœ‰æ–¹å‘å±‚é—´ä½ç§»è§’æ–‡ä»¶...\r\n");
+	//Êä³öËùÓĞ²ã¼äÎ»ÒÆ½Ç
+	AppendMsg(L"ÕıÔÚÊä³öËùÓĞ·½Ïò²ã¼äÎ»ÒÆ½ÇÎÄ¼ş...\r\n");
 	CASCFile fout;
 	char buf[512];
 	//int i = m_iCaseNum;
@@ -961,10 +983,10 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 	if (!fout.Open(sOutFileName, CFile::modeCreate | CFile::modeWrite | CFile::shareDenyWrite))return;
 	USES_CONVERSION;
 
-	sprintf_s(buf, sizeof(buf), "**SAUSAGEå±‚é—´ä½ç§»è§’\r\n");
+	sprintf_s(buf, sizeof(buf), "**SAUSAGE²ã¼äÎ»ÒÆ½Ç\r\n");
 	fout.Write(buf, strlen(buf));
 
-	sprintf_s(buf, sizeof(buf), "å±‚å·\t");
+	sprintf_s(buf, sizeof(buf), "²ãºÅ\t");
 	fout.Write(buf, strlen(buf));
 
 	for (int i = 0; i < fVectorAngle.size(); i++)
@@ -973,7 +995,7 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 		CString str;
 		str.Format(_T("%0.0f"), fAngle0);
 
-		sprintf_s(buf, sizeof(buf), "%0.0fÂ°\t", fAngle0);
+		sprintf_s(buf, sizeof(buf), "%0.0f¡ã\t", fAngle0);
 		fout.Write(buf, strlen(buf));
 	}
 	sprintf_s(buf, sizeof(buf), "\r\n");
@@ -994,21 +1016,25 @@ void CReadSSGDlg::OnBnClickedButtonDisp()
 	}
 	fout.Close();
 
-	AppendMsg(L"ç»“æ„å±‚é—´ä½ç§»è§’è¾“å‡ºæˆåŠŸï¼\r\n");
+	AppendMsg(L"½á¹¹²ã¼äÎ»ÒÆ½ÇÊä³ö³É¹¦£¡\r\n");
 
 	CString msgfile = L"notepad.exe \"" + sOutFileName + CString(L"\"");
 	WinExec(T2A(msgfile), SW_SHOW);
 
+	
+	if (fStoryDriftAll) delete[] fStoryDriftAll;
+	if (story_pillar_node) delete[] story_pillar_node;
+	if (fNodeDispX) delete[] fNodeDispX;
 
 	theData.Clear();
 }
 
-//ç»Ÿè®¡æœ‰å®³å±‚é—´ä½ç§»è§’
+//Í³¼ÆÓĞº¦²ã¼äÎ»ÒÆ½Ç
 void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 {
-	// TODO: åœ¨æ­¤æ·»åŠ æ§ä»¶é€šçŸ¥å¤„ç†ç¨‹åºä»£ç 
+	// TODO: ÔÚ´ËÌí¼Ó¿Ø¼şÍ¨Öª´¦Àí³ÌĞò´úÂë
 	UpdateData(true);
-	//è·å–ä½ç§»è§’è§’åº¦æ•°æ®
+	//»ñÈ¡Î»ÒÆ½Ç½Ç¶ÈÊı¾İ
 	if (m_sAngle.IsEmpty()) return;
 
 	vector <float> fVectorAngle;
@@ -1022,35 +1048,34 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 	strArr.RemoveAll();
 
 	CString fname = L"";
-	CString stitle = L"SAUSAGEæ–‡ä»¶|*.ssg||";
+	CString stitle = L"SAUSAGEÎÄ¼ş|*.ssg||";
 	CFileDialog dlg(TRUE, L"ssg", L"*.ssg", 0, stitle);
 	if (dlg.DoModal() != IDOK) return;
 	fname = dlg.GetPathName();
 
-	//æ¸…é™¤æ‰€æœ‰æ•°æ®
+	//Çå³ıËùÓĞÊı¾İ
 	theData.Clear();
-	theData.InitialAPI(); //2022ç‰ˆæœ¬ä¿®æ”¹
 	theData.m_sPrjFile = fname;
 	BOOL bSuccess = TRUE;
 
 	DWORD tick0 = GetTickCount(), tick1;
 	ClearMsg();
-	AppendMsg(L"å¼€å§‹è¯»å…¥SSGæ¨¡å‹æ•°æ®...\r\n");
+	AppendMsg(L"¿ªÊ¼¶ÁÈëSSGÄ£ĞÍÊı¾İ...\r\n");
 
-	//è¯»å…¥é¡¹ç›®é…ç½®å‚æ•°
-	AppendMsg(L"è¯»å…¥*PROJECT ...\r\n");
+	//¶ÁÈëÏîÄ¿ÅäÖÃ²ÎÊı
+	AppendMsg(L"¶ÁÈë*PROJECT ...\r\n");
 	bSuccess &= theData.m_cPrjPara.Read(theData.m_sPrjFile);
 
 	tick1 = GetTickCount();
 	tick0 = tick1;
 
-	//è¯»å…¥æ¥¼å±‚æ•°æ®
+	//¶ÁÈëÂ¥²ãÊı¾İ
 	CASCFile fin;
 	if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) return;
 	tick1 = GetTickCount();
 	tick0 = tick1;
 
-	AppendMsg(L"è¯»å…¥*STORY ...\r\n");
+	AppendMsg(L"¶ÁÈë*STORY ...\r\n");
 	int count;
 	if (fin.FindKey("*STORY"))
 	{
@@ -1065,21 +1090,21 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 		}
 	}
 
-	AppendMsg(L"è¯»å…¥*STYPROP ...\r\n");
+	AppendMsg(L"¶ÁÈë*STYPROP ...\r\n");
 	tick1 = GetTickCount();
 	tick0 = tick1;
 
-	if (fin.FindKey("*STYPROP"))  //æ¥¼å±‚å‚æ•°
+	if (fin.FindKey("*STYPROP"))  //Â¥²ã²ÎÊı
 	{
-		fin.GetKeyValueInt("NPARA=");  //å‚æ•°ä¸ªæ•°ï¼ˆåˆ—æ•°ï¼‰ï¼Œè¡Œæ•°ä¸ºæ¥¼å±‚æ•°ï¼ˆåŒ…æ‹¬0å±‚ï¼‰
-		fin.GetKeyValueInt("NSTRUCTTYPE=");  //æ„ä»¶ç§ç±»
-		int nrec = fin.GetKeyValueInt("NUMBER=");  //è®°å½•æ•°
+		fin.GetKeyValueInt("NPARA=");  //²ÎÊı¸öÊı£¨ÁĞÊı£©£¬ĞĞÊıÎªÂ¥²ãÊı£¨°üÀ¨0²ã£©
+		fin.GetKeyValueInt("NSTRUCTTYPE=");  //¹¹¼şÖÖÀà
+		int nrec = fin.GetKeyValueInt("NUMBER=");  //¼ÇÂ¼Êı
 		for (int i = 0; i < nrec; i++)
 		{
-			CString key = fin.GetStr();  //ç»“æ„ç±»å‹å…³é”®å­—
+			CString key = fin.GetStr();  //½á¹¹ÀàĞÍ¹Ø¼ü×Ö
 			int iStruct = GetStructKeywordIndex(key);
 			if (iStruct == -1) continue;
-			int iStory = fin.GetInt();  //æ¥¼å±‚å·
+			int iStory = fin.GetInt();  //Â¥²ãºÅ
 			int id_conc = fin.GetInt();
 			int id_rebar = fin.GetInt();
 			int id_steel = fin.GetInt();
@@ -1131,59 +1156,59 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 	fin.Close();
 
 
-	//è¯»å…¥æ¨¡å‹æ•°æ®
-	AppendMsg(L"è¯»å…¥æ„ä»¶æ•°æ® ...\r\n");
+	//¶ÁÈëÄ£ĞÍÊı¾İ
+	AppendMsg(L"¶ÁÈë¹¹¼şÊı¾İ ...\r\n");
 	bSuccess &= theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara);
 
 	if (bSuccess)
 	{
-		//è¯»å…¥ç½‘æ ¼
+		//¶ÁÈëÍø¸ñ
 		tick1 = GetTickCount();
 		tick0 = tick1;
-		AppendMsg(L"è¯»å…¥å•å…ƒæ•°æ® ...\r\n");
+		AppendMsg(L"¶ÁÈëµ¥ÔªÊı¾İ ...\r\n");
 		theData.m_cMesh.ReadMeshBin(theData.m_nStory, theData.m_pStory);
 
 
-		//ç”Ÿæˆç»“ç‚¹åˆ°å•å…ƒçš„ç´¢å¼•
+		//Éú³É½áµãµ½µ¥ÔªµÄË÷Òı
 		tick1 = GetTickCount();
 		tick0 = tick1;
 
 		theData.m_cMesh.CreateNode2Elm();
 		theData.m_cMesh.CreateShellSubElm();
 	}
-	AppendMsg(L"SSGæ¨¡å‹è¯»å–æˆåŠŸï¼\r\n\r\n");
+	AppendMsg(L"SSGÄ£ĞÍ¶ÁÈ¡³É¹¦£¡\r\n\r\n");
 
-	//åˆ¤æ–­å·¥å†µç¼–å·
+	//ÅĞ¶Ï¹¤¿ö±àºÅ
 	if (m_iCaseNum > theData.m_cFrame.m_cLoad.GetCount())
 	{
-		AfxMessageBox(L"å·¥å†µå®šä¹‰é”™è¯¯ï¼\r\n");
+		AfxMessageBox(L"¹¤¿ö¶¨Òå´íÎó£¡\r\n");
 		return;
 	}
 	else
 	{
 		CString str;
-		str.Format(L"è¯»å–*%s*å·¥å†µç»“æœ\r\n", theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName);
+		str.Format(L"¶ÁÈ¡*%s*¹¤¿ö½á¹û\r\n", theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName);
 		AppendMsg(str);
 	}
 
 
-	AppendMsg(L"å¼€å§‹è¯»å–ç»“æœ...\r\n");
+	AppendMsg(L"¿ªÊ¼¶ÁÈ¡½á¹û...\r\n");
 
-	//è¯»å–åŠ¨åŠ›åˆ†æèŠ‚ç‚¹ä½ç§»
+	//¶ÁÈ¡¶¯Á¦·ÖÎö½ÚµãÎ»ÒÆ
 	CNodeFieldSet m_cDis;
 	m_cDis.Clear();
-	AppendMsg(L"åŠ è½½åŠ¨åŠ›åˆ†æç»“ç‚¹ä½ç§»æ–‡ä»¶...\r\n");
-	fname = theData.GetFilePath(FILE_DISP_BIN, theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName); //ç›´æ¥å†™å·¥å†µåç§°ä¹Ÿå¯ä»¥
+	AppendMsg(L"¼ÓÔØ¶¯Á¦·ÖÎö½áµãÎ»ÒÆÎÄ¼ş...\r\n");
+	fname = theData.GetFilePath(FILE_DISP_BIN, theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName); //Ö±½ÓĞ´¹¤¿öÃû³ÆÒ²¿ÉÒÔ
 	BOOL ret = m_cDis.ReadBinNodeField_AllStep(fname, false);
 	if (!ret || m_cDis.GetStepNumber() < 1)
 	{
-		AppendMsg(L"æ²¡æ‰¾åˆ°ç»“æœæ–‡ä»¶ï¼\r\n");
+		AppendMsg(L"Ã»ÕÒµ½½á¹ûÎÄ¼ş£¡\r\n");
 		m_cDis.Clear();
 		return;
 	}
 
 
-	//æ±‚èŠ‚ç‚¹ä½ç§»
+	//Çó½ÚµãÎ»ÒÆ
 	int iNodeNum = 1000;
 	int nStep = m_cDis.nMaxSteps;
 	float *fNodeDispX = new float[nStep];
@@ -1192,14 +1217,14 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 	for (int iStep = 0; iStep < nStep; iStep++)
 	{
 		Vector4 d;
-		d.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 0, m_cDis.nItems);	//åä¸‰ä¸ªåˆ†é‡æ˜¯è½¬è§’ï¼Œå‰ä¸‰ä¸ªåˆ†é‡æ˜¯å¹³åŠ¨ä½ç§»
+		d.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 0, m_cDis.nItems);	//ºóÈı¸ö·ÖÁ¿ÊÇ×ª½Ç£¬Ç°Èı¸ö·ÖÁ¿ÊÇÆ½¶¯Î»ÒÆ
 		d.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 1, m_cDis.nItems);
 		d.z = m_cDis.aFieldsPtr[iStep]->GetItemData(iNodeNum, 2, m_cDis.nItems);
 		fNodeDispX[iStep] = d.x;
 	}
 
-	//è¯»å–DEFæ–‡ä»¶
-	AppendMsg(L"å¼€å§‹è¯»å–DEFæ–‡ä»¶...\r\n");
+	//¶ÁÈ¡DEFÎÄ¼ş
+	AppendMsg(L"¿ªÊ¼¶ÁÈ¡DEFÎÄ¼ş...\r\n");
 	//CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + sGroup + CString(".") + FILE_OUTPUT_DEF;
 	CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + CString("All") + CString(".") + FILE_OUTPUT_DEF;
 	int *story_pillar_node = NULL;
@@ -1209,7 +1234,7 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 	int nstory = 0;
 	if (fin.Open(defname, CFile::modeRead | CFile::shareDenyWrite))
 	{
-		nstory = fin.GetInt();//å±‚æ•°
+		nstory = fin.GetInt();//²ãÊı
 		//ASSERT(nstory == theData.m_nStory);
 		npillar = fin.GetInt();
 		for (int i = 0; i < npillar; i++)
@@ -1228,17 +1253,17 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 		}
 		fin.Close();
 	}
-	AppendMsg(L"è¯»å–æ•°æ®æˆåŠŸ\r\n\r\n");
+	AppendMsg(L"¶ÁÈ¡Êı¾İ³É¹¦\r\n\r\n");
 
 	float *fStoryDriftAll = new float[fVectorAngle.size()*nstory];
 	memset(fStoryDriftAll, 0, sizeof(float)*(fVectorAngle.size()*nstory));
 
-	AppendMsg(L"æ­£åœ¨è¾“å‡ºå±‚é—´ä½ç§»è§’æ–‡ä»¶...\r\n");
+	AppendMsg(L"ÕıÔÚÊä³ö²ã¼äÎ»ÒÆ½ÇÎÄ¼ş...\r\n");
 
 	for (int m = 0; m < fVectorAngle.size(); m++)
 	{
 
-		//è®¡ç®—ä»»æ„è§’åº¦å±‚é—´ä½ç§»è§’
+		//¼ÆËãÈÎÒâ½Ç¶È²ã¼äÎ»ÒÆ½Ç
 		float fAngle0 = fVectorAngle[m];
 		float fAngle = fAngle0 * 3.14 / 180;
 		float *fNodeDriftX = new float[nstory * npillar];
@@ -1247,8 +1272,8 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 		memset(fNodeDriftX, 0, sizeof(float)*(nstory * npillar));
 		memset(fNodeDriftY, 0, sizeof(float)*(nstory * npillar));
 
-		float *fStoryDriftX = new float[nstory];	//Xå‘å±‚é—´ä½ç§»è§’
-		int *iMaxStoryDriftNode = new int[nstory];	//Xå‘æœ€å¤§å±‚é—´ä½ç§»è§’å¯¹åº”èŠ‚ç‚¹å·
+		float *fStoryDriftX = new float[nstory];	//XÏò²ã¼äÎ»ÒÆ½Ç
+		int *iMaxStoryDriftNode = new int[nstory];	//XÏò×î´ó²ã¼äÎ»ÒÆ½Ç¶ÔÓ¦½ÚµãºÅ
 		float *fStoryDriftY = new float[nstory];
 		memset(fStoryDriftX, 0, sizeof(float)*nstory);
 		memset(iMaxStoryDriftNode, 0, sizeof(float)*nstory);
@@ -1311,7 +1336,7 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 					fNodeDriftX[i + j * nstory] = max(fNodeDriftX[i + j * nstory], fDriftX);
 					//fNodeDriftY[i + j * nstory] = max(fNodeDriftY[i + j * nstory], fDriftY);
 				}
-				//æœ€å¤§ä½ç§»è§’åŒ…ç»œ
+				//×î´óÎ»ÒÆ½Ç°üÂç
 				if (fNodeDriftX[i + j * nstory] > fStoryDriftX[i])
 				{
 					iMaxStoryDriftNode[i] = iNode1 + 1;
@@ -1323,7 +1348,7 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 			fStoryDriftAll[m*nstory + i] = fStoryDriftX[i];
 		}
 
-		//è¾“å‡ºä½ç§»è§’æ–‡ä»¶
+		//Êä³öÎ»ÒÆ½ÇÎÄ¼ş
 		CASCFile fout;
 		char buf[512];
 		CString str;
@@ -1335,10 +1360,10 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 		AppendMsg(str);
 		AppendMsg(L"\r\n");
 
-		sprintf_s(buf, sizeof(buf), "**SAUSAGEæœ‰å®³å±‚é—´ä½ç§»è§’\r\n");
+		sprintf_s(buf, sizeof(buf), "**SAUSAGEÓĞº¦²ã¼äÎ»ÒÆ½Ç\r\n");
 		fout.Write(buf, strlen(buf));
 
-		sprintf_s(buf, sizeof(buf), "å±‚å·\t%0.0fÂ°\t\tèŠ‚ç‚¹å·\r\n", fAngle0);
+		sprintf_s(buf, sizeof(buf), "²ãºÅ\t%0.0f¡ã\t\t½ÚµãºÅ\r\n", fAngle0);
 		fout.Write(buf, strlen(buf));
 
 		for (int iStory = 0; iStory < nstory; iStory++)
@@ -1349,12 +1374,18 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 		}
 		fout.Close();
 
+		if (fNodeDriftX) delete[] fNodeDriftX;
+		if (fNodeDriftY) delete[] fNodeDriftY;
+		if (fStoryDriftX) delete[] fStoryDriftX;
+		if (iMaxStoryDriftNode) delete[] iMaxStoryDriftNode;
+		if (fStoryDriftY) delete[]fStoryDriftY;
+
 		CString msgfile = L"notepad.exe \"" + sOutFileName + CString(L"\"");
 		if (m_bOpenTxt) WinExec(T2A(msgfile), SW_SHOW);
 	}
 
-	//è¾“å‡ºæ‰€æœ‰å±‚é—´ä½ç§»è§’
-	AppendMsg(L"æ­£åœ¨è¾“å‡ºæ‰€æœ‰æ–¹å‘æœ‰å®³å±‚é—´ä½ç§»è§’æ–‡ä»¶...\r\n");
+	//Êä³öËùÓĞ²ã¼äÎ»ÒÆ½Ç
+	AppendMsg(L"ÕıÔÚÊä³öËùÓĞ·½ÏòÓĞº¦²ã¼äÎ»ÒÆ½ÇÎÄ¼ş...\r\n");
 	CASCFile fout;
 	char buf[512];
 	//int i = m_iCaseNum;
@@ -1363,10 +1394,10 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 	if (!fout.Open(sOutFileName, CFile::modeCreate | CFile::modeWrite | CFile::shareDenyWrite))return;
 	USES_CONVERSION;
 
-	sprintf_s(buf, sizeof(buf), "**SAUSAGEæœ‰å®³å±‚é—´ä½ç§»è§’\r\n");
+	sprintf_s(buf, sizeof(buf), "**SAUSAGEÓĞº¦²ã¼äÎ»ÒÆ½Ç\r\n");
 	fout.Write(buf, strlen(buf));
 
-	sprintf_s(buf, sizeof(buf), "å±‚å·\t");
+	sprintf_s(buf, sizeof(buf), "²ãºÅ\t");
 	fout.Write(buf, strlen(buf));
 
 	for (int i = 0; i < fVectorAngle.size(); i++)
@@ -1375,7 +1406,7 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 		CString str;
 		str.Format(_T("%0.0f"), fAngle0);
 
-		sprintf_s(buf, sizeof(buf), "%0.0fÂ°\t", fAngle0);
+		sprintf_s(buf, sizeof(buf), "%0.0f¡ã\t", fAngle0);
 		fout.Write(buf, strlen(buf));
 	}
 	sprintf_s(buf, sizeof(buf), "\r\n");
@@ -1396,7 +1427,12 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 	}
 	fout.Close();
 
-	AppendMsg(L"ç»“æ„å±‚é—´ä½ç§»è§’è¾“å‡ºæˆåŠŸï¼\r\n");
+	if (fNodeDispX) delete[] fNodeDispX;
+	if (story_pillar_node) delete[] story_pillar_node;
+	if (fStoryDriftAll) delete[] fStoryDriftAll;
+
+
+	AppendMsg(L"½á¹¹²ã¼äÎ»ÒÆ½ÇÊä³ö³É¹¦£¡\r\n");
 
 	CString msgfile = L"notepad.exe \"" + sOutFileName + CString(L"\"");
 	WinExec(T2A(msgfile), SW_SHOW);
@@ -1405,7 +1441,7 @@ void CReadSSGDlg::OnBnClickedButtonHarmDisp()
 	theData.Clear();
 }
 
-// åˆ†å‰²å­—ç¬¦ä¸²
+// ·Ö¸î×Ö·û´®
 void CReadSSGDlg::SplitStr(CString strSrc, CString strGap, CStringArray &strResult)
 {
 	int nPos = strSrc.Find(strGap);
@@ -1431,7 +1467,7 @@ void CReadSSGDlg::SplitStr(CString strSrc, CString strGap, CStringArray &strResu
 
 void CReadSSGDlg::OnEnKillfocusEditNum()
 {
-	// TODO: åœ¨æ­¤æ·»åŠ æ§ä»¶é€šçŸ¥å¤„ç†ç¨‹åºä»£ç 
+	// TODO: ÔÚ´ËÌí¼Ó¿Ø¼şÍ¨Öª´¦Àí³ÌĞò´úÂë
 	UpdateData(true);
 	m_sAngle.Empty();
 	float fAngle = 0.f;
@@ -1448,367 +1484,9 @@ void CReadSSGDlg::OnEnKillfocusEditNum()
 
 void CReadSSGDlg::OnBnClickedButton1()
 {
-	// åœ¨æ­¤è¾“å…¥æ‚¨çš„ç¨‹åº
+	// ÔÚ´ËÊäÈëÄúµÄ³ÌĞò
 
-	AfxMessageBox(L"ç”¨SSGAPIç¼–å†™æˆ‘çš„ç¨‹åºâ€ï¼\r\n");
-	return;
-}
-
-
-void CReadSSGDlg::OnBnClickedButtonDispratio()
-{
-	// TODO: åœ¨æ­¤æ·»åŠ æ§ä»¶é€šçŸ¥å¤„ç†ç¨‹åºä»£ç 
-	UpdateData(true);
-
-	CString fname = L"";
-	CString stitle = L"SAUSAGEæ–‡ä»¶|*.ssg||";
-	CFileDialog dlg(TRUE, L"ssg", L"*.ssg", 0, stitle);
-	if (dlg.DoModal() != IDOK) return;
-	fname = dlg.GetPathName();
-
-	//æ¸…é™¤æ‰€æœ‰æ•°æ®
-	theData.Clear();
-	theData.InitialAPI(); //2022ç‰ˆæœ¬ä¿®æ”¹
-	theData.m_sPrjFile = fname;
-	BOOL bSuccess = TRUE;
-
-	DWORD tick0 = GetTickCount(), tick1;
-	ClearMsg();
-	AppendMsg(L"å¼€å§‹è¯»å…¥SSGæ¨¡å‹æ•°æ®...\r\n");
-
-	//è¯»å…¥é¡¹ç›®é…ç½®å‚æ•°
-	AppendMsg(L"è¯»å…¥*PROJECT ...\r\n");
-	bSuccess &= theData.m_cPrjPara.Read(theData.m_sPrjFile);
-
-	tick1 = GetTickCount();
-	tick0 = tick1;
-
-	//è¯»å…¥æ¥¼å±‚æ•°æ®
-	CASCFile fin;
-	if (!fin.Open(theData.m_sPrjFile, CFile::modeRead | CFile::shareDenyWrite)) return;
-	tick1 = GetTickCount();
-	tick0 = tick1;
-
-	AppendMsg(L"è¯»å…¥*STORY ...\r\n");
-	int count;
-	if (fin.FindKey("*STORY"))
-	{
-		count = fin.GetKeyValueInt("NUMBER=");
-		if (count > 0)
-		{
-			theData.m_nStory = count - 1;
-			for (int i = 0; i <= theData.m_nStory; i++)
-			{
-				theData.m_pStory[i].Read(fin);
-			}
-		}
-	}
-
-	AppendMsg(L"è¯»å…¥*STYPROP ...\r\n");
-	tick1 = GetTickCount();
-	tick0 = tick1;
-
-	if (fin.FindKey("*STYPROP"))  //æ¥¼å±‚å‚æ•°
-	{
-		fin.GetKeyValueInt("NPARA=");  //å‚æ•°ä¸ªæ•°ï¼ˆåˆ—æ•°ï¼‰ï¼Œè¡Œæ•°ä¸ºæ¥¼å±‚æ•°ï¼ˆåŒ…æ‹¬0å±‚ï¼‰
-		fin.GetKeyValueInt("NSTRUCTTYPE=");  //æ„ä»¶ç§ç±»
-		int nrec = fin.GetKeyValueInt("NUMBER=");  //è®°å½•æ•°
-		for (int i = 0; i < nrec; i++)
-		{
-			CString key = fin.GetStr();  //ç»“æ„ç±»å‹å…³é”®å­—
-			int iStruct = GetStructKeywordIndex(key);
-			if (iStruct == -1) continue;
-			int iStory = fin.GetInt();  //æ¥¼å±‚å·
-			int id_conc = fin.GetInt();
-			int id_rebar = fin.GetInt();
-			int id_steel = fin.GetInt();
-			theData.m_pStory[iStory].sConc[iStruct] = GetMatName(id_conc);
-			theData.m_pStory[iStory].sRebar[iStruct] = GetMatName(id_rebar);
-			theData.m_pStory[iStory].sSteel[iStruct] = GetMatName(id_steel);
-			switch (g_StructKeyword[iStruct].iType)
-			{
-			case STRUCT_BEAM:
-				theData.m_pStory[iStory].fPara[1][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[2][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[3][iStruct] = fin.GetFloat();
-				theData.m_pStory[iStory].fPara[4][iStruct] = fin.GetFloat();
-				break;
-			case STRUCT_PILLAR:
-				theData.m_pStory[iStory].fPara[9][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[10][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[11][iStruct] = fin.GetFloat();
-				theData.m_pStory[iStory].fPara[12][iStruct] = fin.GetFloat();
-				break;
-			case STRUCT_BRACING:
-				theData.m_pStory[iStory].fPara[9][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[10][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[11][iStruct] = fin.GetFloat();
-				theData.m_pStory[iStory].fPara[12][iStruct] = fin.GetFloat();
-				break;
-			case STRUCT_PLATE:
-				theData.m_pStory[iStory].fPara[1][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[2][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[3][iStruct] = fin.GetFloat();
-				theData.m_pStory[iStory].fPara[4][iStruct] = fin.GetFloat();
-				break;
-			case STRUCT_WALL:
-			case STRUCT_BEAMWALL:
-				theData.m_pStory[iStory].fPara[9][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[10][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[11][iStruct] = fin.GetFloat();
-				theData.m_pStory[iStory].fPara[12][iStruct] = fin.GetFloat();
-				break;
-			default:
-				theData.m_pStory[iStory].fPara[1][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[2][iStruct] = fin.GetFloat()*100.0f;
-				theData.m_pStory[iStory].fPara[3][iStruct] = fin.GetFloat();
-				theData.m_pStory[iStory].fPara[4][iStruct] = fin.GetFloat();
-				break;
-			}
-		}
-	}
-	fin.Close();
-
-
-	//è¯»å…¥æ¨¡å‹æ•°æ®
-	AppendMsg(L"è¯»å…¥æ„ä»¶æ•°æ® ...\r\n");
-	bSuccess &= theData.m_cFrame.Read(theData.m_sPrjFile, theData.m_cPrjPara);
-
-	if (bSuccess)
-	{
-		//è¯»å…¥ç½‘æ ¼
-		tick1 = GetTickCount();
-		tick0 = tick1;
-		AppendMsg(L"è¯»å…¥å•å…ƒæ•°æ® ...\r\n");
-		theData.m_cMesh.ReadMeshBin(theData.m_nStory, theData.m_pStory);
-
-
-		//ç”Ÿæˆç»“ç‚¹åˆ°å•å…ƒçš„ç´¢å¼•
-		tick1 = GetTickCount();
-		tick0 = tick1;
-
-		theData.m_cMesh.CreateNode2Elm();
-		theData.m_cMesh.CreateShellSubElm();
-	}
-	AppendMsg(L"SSGæ¨¡å‹è¯»å–æˆåŠŸï¼\r\n\r\n");
-
-	//åˆ¤æ–­å·¥å†µç¼–å·
-	if (m_iCaseNum > theData.m_cFrame.m_cLoad.GetCount())
-	{
-		AfxMessageBox(L"å·¥å†µå®šä¹‰é”™è¯¯ï¼\r\n");
-		return;
-	}
-	else
-	{
-		CString str;
-		str.Format(L"è¯»å–*%s*å·¥å†µç»“æœ\r\n", theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName);
-		AppendMsg(str);
-	}
-
-
-	AppendMsg(L"å¼€å§‹è¯»å–ç»“æœ...\r\n");
-
-	//è¯»å–åŠ¨åŠ›åˆ†æèŠ‚ç‚¹ä½ç§»
-	CNodeFieldSet m_cDis;
-	m_cDis.Clear();
-	AppendMsg(L"åŠ è½½åŠ¨åŠ›åˆ†æç»“ç‚¹ä½ç§»æ–‡ä»¶...\r\n");
-	fname = theData.GetFilePath(FILE_DISP_BIN, theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName); //ç›´æ¥å†™å·¥å†µåç§°ä¹Ÿå¯ä»¥
-	BOOL ret = m_cDis.ReadBinNodeField_AllStep(fname, false);
-	if (!ret || m_cDis.GetStepNumber() < 1)
-	{
-		AppendMsg(L"æ²¡æ‰¾åˆ°ç»“æœæ–‡ä»¶ï¼\r\n");
-		m_cDis.Clear();
-		return;
-	}
-
-	//è¯»å–DEFæ–‡ä»¶
-	AppendMsg(L"å¼€å§‹è¯»å–DEFæ–‡ä»¶...\r\n");
-	//CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + sGroup + CString(".") + FILE_OUTPUT_DEF;
-	CString defname = theData.GetPrjPath() + theData.GetPrjName() + CString("_") + CString("All") + CString(".") + FILE_OUTPUT_DEF;
-	int *story_pillar_node = NULL;
-	int nstory1 = theData.m_nStory + 1;
-
-	int npillar = 0;
-	int nstory = 0;
-	if (fin.Open(defname, CFile::modeRead | CFile::shareDenyWrite))
-	{
-		nstory = fin.GetInt();//å±‚æ•°
-		//ASSERT(nstory == theData.m_nStory);
-		npillar = fin.GetInt();
-		for (int i = 0; i < npillar; i++)
-		{
-			fin.GetInt();
-		}
-
-		story_pillar_node = new int[nstory1 * npillar];
-		for (int i = 0; i < nstory; i++)
-		{
-			int istory = fin.GetInt();
-			for (int j = 0; j < npillar; j++)
-			{
-				story_pillar_node[istory + j * nstory] = fin.GetInt() - 1;
-			}
-		}
-		fin.Close();
-	}
-	AppendMsg(L"è¯»å–æ•°æ®æˆåŠŸ\r\n\r\n");
-
-	float *fDispMaxTH = new float[nstory];	//æ—¶ç¨‹å±‚ä½ç§»æœ€å¤§å€¼
-	float *fDispMinTH = new float[nstory];	//æ—¶ç¨‹å±‚ä½ç§»æœ€å°å€¼
-	memset(fDispMaxTH, 0, sizeof(float)*(nstory));
-	memset(fDispMinTH, 0, sizeof(float)*(nstory));
-
-	float **fDispMax; //å±‚ä½ç§»æœ€å¤§å€¼
-	fDispMax = new float *[nstory];
-
-	int **iDispMax; //å±‚ä½ç§»æœ€å¤§å€¼å¯¹åº”èŠ‚ç‚¹
-	iDispMax = new int *[nstory];
-	
-	float **fDispAve; //å±‚å¹³å‡ä½ç§»
-	fDispAve = new float *[nstory];
-
-	float **fRatio; //å±‚ä½ç§»æ¯”
-	fRatio = new float *[nstory];
-
-	int nStep = m_cDis.nMaxSteps;
-	for (int i = 0; i < nstory; i++)
-	{
-		fDispMax[i] = new float[nStep];
-		iDispMax[i] = new int[nStep];
-		fDispAve[i] = new float[nStep];
-		fRatio[i] = new float[nStep];
-
-		memset(fDispMax[i], 0, sizeof(float)*(nStep));
-		memset(iDispMax[i], 0, sizeof(int)*(nStep));
-		memset(fDispAve[i], 0, sizeof(float)*(nStep));
-		memset(fRatio[i], 0, sizeof(float)*(nStep));
-	}
-
-	AppendMsg(L"æ­£åœ¨è®¡ç®—å±‚ä½ç§»...\r\n");
-
-	CString sPath = theData.GetEarthQuakePath(theData.m_cFrame.m_cLoad[m_iCaseNum - 1]->sCaseName);
-	CString sFileHs = sPath + theData.GetPrjName() + L"_DispHs.csv";
-	string strFileHs = CT2A(sFileHs);
-	FILE* fdHs = fopen(strFileHs.c_str(), "wb");
-	fprintf(fdHs, "åˆ†ææ­¥,å±‚å·,æœ€å¤§ä½ç§»,å¹³å‡ä½ç§»,ä½ç§»æ¯”,èŠ‚ç‚¹å·\n");
-
-	for (int iStep = 0; iStep < nStep; iStep++)
-	{
-		for (int i = 1; i < nstory; i++)
-		{
-			float fRatio1 = 0.f;
-
-			float fDispMax1 = 0.f;
-			int iDispNodeID = 0;
-			float fDispAve1 = 0.f;
-			float fDispSum1 = 0.f;
-			int nNum = 0;
-
-			for (int j = 0; j < npillar; j++)
-			{
-				int iNode0 = story_pillar_node[i - 1 + j * nstory];
-				int iNode1 = story_pillar_node[i + j * nstory];
-
-				//if (iNode0 < 0 || iNode1 < 0) continue;
-				if (iNode1 < 0) continue;
-
-				//float fHeight = theData.m_pStory[i].fHeight;
-
-				Vector4 d0, d1;
-				d0.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode0, 0, m_cDis.nItems);
-				d0.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode0, 1, m_cDis.nItems);
-
-				d1.x = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 0, m_cDis.nItems);
-				d1.y = m_cDis.aFieldsPtr[iStep]->GetItemData(iNode1, 1, m_cDis.nItems);
-
-				if (abs(d1.x) > abs(fDispMax1))
-				{
-					fDispMax1 = d1.x;
-					iDispNodeID = iNode1;
-				}
-
-				//fDispMax1 = max(fDispMax1, abs(d1.x));
-				fDispSum1 += d1.x;
-				nNum++;
-			}
-
-			if (fDispMax1 > fDispMaxTH[i])
-			{
-				fDispMaxTH[i] = fDispMax1;
-			}
-			else if (fDispMax1 < fDispMinTH[i])
-			{
-				fDispMinTH[i] = fDispMax1;
-			}
-
-			fDispAve1 = fDispSum1 / nNum;
-			fRatio1 = fDispMax1 / fDispAve1;
-
-			fDispMax[i][iStep] = fDispMax1;
-			iDispMax[i][iStep] = iDispNodeID;
-			fDispAve[i][iStep] = fDispAve1;
-			fRatio[i][iStep] = fRatio1;
-
-			fprintf(fdHs, "%6d,%4d,%10.8f,%10.8f,%10.8f,%5d\n", iStep, i, fDispMax1, fDispAve1, fRatio1, iDispNodeID);
-
-		}
-
-	}
-
-	fclose(fdHs);
-
-	AppendMsg(L"æ­£åœ¨è¾“å‡ºå±‚ä½ç§»...\r\n");
-
-	//è¾“å‡ºå±‚ä½ç§»æ•°æ®
-	float fError = m_fError;
-	float* fRatio0 = new float[nstory];
-	memset(fRatio0, 0, sizeof(float)*(nstory));
-
-	CString sFileDisp = sPath + theData.GetPrjName() + L"_Disp.csv";
-	string strFileDisp = CT2A(sFileDisp);
-	FILE* fdDisp = fopen(strFileDisp.c_str(), "wb");
-	fprintf(fdDisp, "å±‚å·,ä½ç§»æ¯”\n");
-
-	for (int i = 1; i < nstory; i++)
-	{
-		for (int j = 0; j < nStep; j++)
-		{
-			if (fDispMax[i][j] <= fError*fDispMaxTH[i] && fDispMax[i][j] >= fError*fDispMinTH[i]) continue;
-
-			fRatio0[i] = max(fRatio0[i], fDispMax[i][j] / fDispAve[i][j]);
-		}
-		fprintf(fdDisp, "%d,%10.8f\n", i, fRatio0[i]);
-	}
-
-	fclose(fdDisp);
-
-	CString msgfile = L"notepad.exe \"" + sFileDisp + CString(L"\"");
-	if (m_bOpenTxt) WinExec(CT2A(msgfile), SW_SHOW);
-
-	AppendMsg(L"ç»“æ„å±‚ä½ç§»è¾“å‡ºæˆåŠŸï¼\r\n");
-
-	//delete[] fDispMax;
-	//delete[] fDispAve;
-	//delete[] fRatio;
-
-	delete[] fDispMaxTH;
-	delete[] fDispMinTH;
-	for (int i = 0; i < nstory; i++)
-	{
-		delete[] fDispMax[i];
-		delete[] iDispMax[i];
-		delete[] fDispAve[i];
-		delete[] fRatio[i];
-	}
-	delete[] fDispMax;
-	delete[] iDispMax;
-	delete[] fDispAve;
-	delete[] fRatio;
-
-	delete[] fRatio0;
-	delete[] story_pillar_node;
-
-	theData.Clear();
+	AfxMessageBox(L"ÓÃSSGAPI±àĞ´ÎÒµÄ³ÌĞò¡±£¡\r\n");
 
 	return;
 }

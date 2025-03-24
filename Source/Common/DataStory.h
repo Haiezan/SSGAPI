@@ -1,6 +1,7 @@
 #pragma once
 #include "HeadDefine.h"
 #include "SysPara.h"
+#include "UserDefine.h"
 
 #define NUM_STORY_PROP 13  //楼层属性参数个数
 
@@ -11,8 +12,21 @@ class _SSG_DLLIMPEXP CStory
 {
 public:
 	CStory(void)
+		: fHeight(3.0f)
+		, zTop(0)
+		, fStifCenterX(0.f)
+		, fStifCenterY(0.f)
+		//, fMassCenterX(0.f)
+		//, fMassCenterY(0.f)
+		, iStoryProp(2 | 0x200)
+		, fPara()
+		, sRebar()
+		, sConc()
+		, sStirrup()
+		, sSteel()
 	{
-		Init();
+		memset(fMassCenterX, 0, Sys_Max_Towers * sizeof(float));
+		memset(fMassCenterY, 0, Sys_Max_Towers * sizeof(float));
 	}
 
 	~CStory(void){;}
@@ -28,8 +42,8 @@ public:
 
 	float fStifCenterX;
 	float fStifCenterY;
-	float fMassCenterX;
-	float fMassCenterY;
+	float fMassCenterX[Sys_Max_Towers];
+	float fMassCenterY[Sys_Max_Towers];
 	//边缘构件类型
 	//bit0-2: 按值定义，不按位，0--约束边缘构件，1-底部加强之内的构造边缘构件，2-底部加强之上的构造边缘构件
 	//bit8-15:  按值定义，不按位，抗震构造等级,0-- 特一级，1 -- 一级(9度)，2 -- 一级(8度)，3 -- 二级， 4 -- 三级，5 -- 四级
@@ -92,7 +106,7 @@ public:
 		if(k>2) k=2;
 	}
 
-	void Init(void); //设置默认值
+	void Init(const CProjectPara& para); //设置默认值
 
 	void SetName(CString sname)
 	{
@@ -128,8 +142,10 @@ public:
 		iStoryProp=story.iStoryProp;
 		fStifCenterX		=story.fStifCenterX		;
 		fStifCenterY		=story.fStifCenterY		;
-		fMassCenterX	=story.fMassCenterX	;
-		fMassCenterY	=story.fMassCenterY	;
+		//fMassCenterX	=story.fMassCenterX	;
+		//fMassCenterY	=story.fMassCenterY	;
+		memcpy(fMassCenterX, story.fMassCenterX, Sys_Max_Towers * sizeof(float));
+		memcpy(fMassCenterY, story.fMassCenterY, Sys_Max_Towers * sizeof(float));
 		for(int j=0;j<Sys_StructTypeNum;j++) 
 		{
 			for(int i=0;i<16;i++) 

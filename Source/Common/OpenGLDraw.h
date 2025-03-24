@@ -13,12 +13,13 @@
 #include "..\Common\Mesh.h"
 #include "Shader.h"
 #include "..\Platform\Profile.h"
+#include<unordered_map>
 
 #include "../../Lib/gl/include/GL/glew.h"
 //#include "../../Lib/gl/include/GL/glxew.h"
 #include "../../Lib/gl/include/GL/wglew.h"
 
-const int DISPLAY_PATA1_NUM=11;  //显示开关参数个数
+const int DISPLAY_PATA1_NUM=12;  //显示开关参数个数
 const int DISPLAY_PATA2_NUM=13;  //显示开关参数个数
 const int DISPLAY_PATA3_NUM=8;  //显示开关参数个数	//20156.1.12
 
@@ -42,7 +43,13 @@ enum COLOR_TYPE
 	COLOR_VERTEX,  //按顶点颜色绘制
 };
 
-
+struct hash_vec
+{
+	size_t operator()(const Vector4& vc)const
+	{
+		return hash<float>()(vc.x) ^ hash<float>()(vc.y) ^ hash<float>()(vc.z);
+	}
+};
 
 class _SSG_OPENGLDLL COpenGL//:CProfile
 {
@@ -55,6 +62,7 @@ public:
 
 	//属性
 	BOOL m_bShowFrame; //TRUE--绘制框架，FALSE--绘制网格
+
 
 	float m_fDiameter;  //图形最大尺寸,用于控制显示的坐标轴等尺寸
 	Vector4 m_MinCoor;
@@ -91,6 +99,7 @@ public:
 			BOOL m_bShowHideBeam;     //是否显示虚梁
 			BOOL m_bShowLongiRebar;   //是否显示连梁纵筋
 			BOOL m_bShowLink;     //是否显示阻尼器	//乔保娟 2015.5.21
+			BOOL m_bShowRigid; //是否显示刚性隔板 贾苏 20231214
 		};
 		BOOL m_pbDisplayPara1[DISPLAY_PATA1_NUM];
 	};
@@ -140,6 +149,7 @@ public:
 	BOOL m_bOrtho;            //正交投影模式	
 	BOOL m_bNodeCenterSmooth; //单元中心点是否参与物理场平滑显示
 	BOOL m_bCoorOffset;       //坐标点是否已经考虑构件偏移
+	BOOL m_bShowCrack;
 
 	enum DRAWTYPE m_DrawType; //视图类型
 	enum RENDER_TYPE m_iRenderType; //颜色渲染方式，只在绘制单元时有效，用于处理物理场的映射方式
@@ -183,6 +193,7 @@ public:
 	void UpdateCoorRange(Vector4 &vmin,Vector4 &vmax){m_vMin=vmin;m_vMax=vmax;}  //设置坐标显示范围
 	BOOL SetProfile(const Vector4 *pProfile=NULL,int nProfile=4);  //设置剖面轮廓点,按边界顺序排列，缺省4个轮廓点，数据与之前不同则返回TRUE
 	void ShowSelectZone(const Vector4 &vMin,const Vector4 &vMax,BOOL bShow); //设置选取图元的区域
+	void ClearSelectZone() { m_bShowSelectZone = FALSE; };
 	void ShowDriftPos(BOOL bShow);  //显示层间位移角位置信息
 
 	//以下所有参数都是相对原来的数据
@@ -225,6 +236,7 @@ public:
 	void SetEdgeStruc(const CEdgeStrucCollection *p){m_pEdgeCollection=p;}     //传入边缘构件数据
 	void SetVisible(const CVisibleStruct *pVisible) {m_pVisible=pVisible;} //传入构件可见信息类指针
 	void SetVisibleMesh(const CVisibleMesh *pVisibleMesh) {m_pVisibleElm = pVisibleMesh;} //传入构件可见信息类指针
+	void SetVisibleResult(const CVisibleStruct* pVisibleResult) { m_pVisibleResult = pVisibleResult; } //传入构件结果可见信息类指针 20241225 涂天驰
 	void SetBoundaryFrame(int n,const CBoundary *p){m_nBoundaryFrame=n;m_pBoundaryFrame=p;}//传入节点约束数据
 
 	void SetSubElm(const SUB_ELM_INFO2 *pSubBeamInfo,const SUB_ELM_INFO3 *pSubTriInfo,
@@ -235,6 +247,7 @@ public:
 		m_pSubTriInfo=pSubTriInfo;
 		m_pSubBeamInfo=pSubBeamInfo;
 	};
+	void SetElmPrim(const Vector4* pTri, const Vector4* pQuad) { m_pTriPrim = pTri; m_pQuadPrim = pQuad;};
 
 	//设置橡皮筋显示状态, 传入橡皮筋坐标或矩形顶点坐标
 	//0-不显示
@@ -283,7 +296,7 @@ public:
 	const int *GetPickedObj(void) {return m_pPickedIDG;}
 	int GetPickedNum(void) {return m_nPickedObj;}
 	int PickGroup(const CRect &rect,unsigned int PrimitiveType,int *&pNames, unsigned int SecondaryType=0); //反选一组图元
-	void SetCaptureID(int iCaptureID)	{m_iCaptureID = iCaptureID; Draw();}
+	void SetCaptureID(int iCaptureID,bool bDraw = true) {m_iCaptureID = iCaptureID; if(bDraw) Draw();}
 	int GetCaptureID(){return m_iCaptureID;}
 	CPoint World2Client(const CVertex &p); //由物理坐标获得屏幕坐标(实际为窗口坐标)
 	void World2Client(float *v, int *pt, const int nP); //由物理坐标获得屏幕坐标(实际为窗口坐标)
@@ -336,7 +349,10 @@ public:
 	BOOL IsVisible(const CBeamElm &primitive) const; 
 	BOOL IsVisible(const CTriangleElm &primitive) const; 
 	BOOL IsVisible(const CQuadElm &primitive) const; 
-
+	//20241225 涂天驰
+	BOOL IsResultVisible(const CBeamElm& primitive) const;
+	BOOL IsResultVisible(const CTriangleElm& primitive) const;
+	BOOL IsResultVisible(const CQuadElm& primitive) const;
 
 	BOOL IsInClientRect(const CVertex &p,int iErr); //判断点是否在屏幕内，留出iErr像素的余地
 	BOOL IsDrawBody(void); //是否绘制实体，根据缩放尺寸进行判断
@@ -348,6 +364,8 @@ public:
 	void SetTextType(int type);
 	void InitPlateShowVexIndex();
 	void InitBodyShow();
+	bool bPickUpdate() {return m_bPickUpdate;}
+	void SetBcGroupId(int iBc) { m_iBC = iBc; }
 private:
 	//属性
 
@@ -360,8 +378,7 @@ private:
 	int *m_pPickBuf;  //捕捉用的临时数组
 	int m_nPickedObj;  //同时捕捉到的图元数
 	unsigned int m_iPrimaryType;
-
-	BOOL m_bValid;  //程序的有效性
+	bool m_bPickUpdate;
 
 	//图元属性数据######### 交换数据区 ###########
 	//以下仅保存指针，由外部程序维护内存,未注明的数据均为物理坐标
@@ -386,6 +403,8 @@ private:
 	const SUB_ELM_INFO2 *m_pSubBeamInfo;
 	const SUB_ELM_INFO3 *m_pSubTriInfo;
 	const SUB_ELM_INFO4 *m_pSubQuadInfo;
+	const Vector4* m_pTriPrim;
+	const Vector4* m_pQuadPrim;
 	int m_BoundaryMesh;
 	const CBoundary *m_pBoundaryMesh;   //节点约束数组
 
@@ -408,8 +427,10 @@ private:
 	const CEdgeStrucCollection *m_pEdgeCollection;    //边缘构件数组
 	const CVisibleStruct *m_pVisible;  //构件可见信息类指针,对应活跃集
 	const CVisibleMesh *m_pVisibleElm;
+	const CVisibleStruct * m_pVisibleResult;//20241225 tutianchi
 	int m_nBoundaryFrame;
 	const CBoundary *m_pBoundaryFrame;   //节点约束数组
+	int m_iBC;//当前边界组号
 
 	//橡皮筋线
 	BOOL m_DragLineType;  //橡皮筋显示标志,0-不显示,1-屏幕坐标线段,2-屏幕坐标矩形,3-线段(vex1为世界坐标,vex2为屏幕坐标)
@@ -536,6 +557,8 @@ private:
 	void DrawBackGround(void);
 	void DrawGround(void);	//绘制地面网格
 	void DrawRestraints(const float *coor,const CBoundary &cbind);   //绘制位移约束 邱海 2017年12月18日
+	void DrawRestraints(const float* coor, const int& pin); 
+	void DrawAnticulate(const CBeamStruc& beam, const CVertex& v1, const CVertex& v2);
 
 	BOOL LoadTGA(TextureImage *texture, LPCTSTR filename);
 
@@ -606,8 +629,9 @@ private:
 	bool ShowAuxVariablesInit();
 	bool bInitBodyShow;
 	void SetVertexVisible();
-	void GetPlateBox(std::map<Vector4, unsigned int> VertexIndex, std::vector<Vector4> &vVex, std::vector<std::vector<std::vector<int>>> &vPlateBox);
-	void GetBeamBox(std::map<Vector4, unsigned int> VertexIndex, std::vector<Vector4> &vVex, std::vector<std::vector<std::vector<int>>> &vBeamBox, std::vector<char>& pShape);
+	void GetPlateBox(std::unordered_map<Vector4, unsigned int, hash_vec> VertexIndex, std::vector<Vector4> &vVex, std::vector<std::vector<std::vector<int>>> &vPlateBox);
+	void GetBeamBox(std::unordered_map<Vector4, unsigned int, hash_vec> VertexIndex, std::vector<Vector4>& vVex, std::vector<std::vector<std::vector<int>>>& vBeamBox, std::vector<short>& pShape);
+
 	enum SHOWTYPE
 	{
 		TYPE_OLD,
@@ -619,12 +643,16 @@ private:
 	std::vector<std::vector<int>> m_vPlateId;
 	std::vector<float> m_vPlateCenter;
 	std::vector<Vector4> m_vShowVex;
-	std::vector<char> m_pBeamShape;
+	std::vector<short> m_pBeamShape;
 	std::vector<std::vector<std::vector<int>>> m_vBeamBox;
 	std::vector<std::vector<std::vector<int>>> m_vPlateBox;
+	std::vector<bool> m_vbConcavePolygon;//for ConcavePolygon
+	std::vector<GLdouble> m_vPolygonCoor;//for ConcavePolygon
 
 	void DrawBeamWithBox(const CVertex *pVex, int iBeam,COLORREF color,unsigned int PrimaryType); //绘制长方体柱
 	void DrawPlateWithBox(const CVertex *pVex, int iPlate,COLORREF *pcolor); //绘制三维板
+	void DrawPlateWithBoxTess(GLUtesselator* tobj, const CVertex* pVex, int iPlate, COLORREF* pcolor);
+	bool isConcavePolygon(const CVertex* pVex, int iPlate);
 
 	void UpdateConstVars();
 	GLfloat m_UnitPhysicalLength;
@@ -643,13 +671,14 @@ private:
 	GLvoid KillGlobalAxis(GLvoid);	
 	GLvoid BuildRestraints(GLvoid);
 	GLvoid KillRestraints(GLvoid);	
-	GLclampf m_BackgroundColor;
+	GLclampf m_BackgroundColor[3];
 	HFONT m_Font;
 	GLfloat m_fFontH;
 	float m_fFontPos[3];
 	Vector4 m_vOffSetEye;
 	enum LABEL_TYPE
 	{
+		LABEL_DEFAULT = -1,
 		LABEL_NONE,      //清除标签
 		LABEL_SECTION,   //截面
 		LABEL_THICKNESS, //厚度
@@ -670,6 +699,7 @@ private:
 		LABEL_WALLBEAMCOEF,	//计算结果 邱海 2016年3月8日
 		LABEL_MIDCONSTITUTIVE,	//中震构件性能目标 邱海 2016年8月11日
 		LABEL_RARECONSTITUTIVE,	//大震构件性能目标 邱海 2016年8月11日
+		LABEL_MEMBERPERFORMOBJECT,	//大震构件性能目标 侯晓武 2022年12月23日
 		LABEL_VIPTYPE,			//重要性类型
 		LABEL_DETAILSSEISMICGRADE,//构件抗震构造措施等级 邱海 2017年10月9日
 		LABEL_SEISMICGRADE,		//构件抗震等级 邱海 2017年10月9日
@@ -680,7 +710,13 @@ private:
 		LABEL_REINFORCEMENT,   //构件配筋
 		LABEL_FORCEADJUSTMENT,//内力调整系数
 		LABEL_MEMBERFORCE,//构件内力
-		LABEL_DEFAULT,
+		LABEL_DEFECT,		 //缺陷
+		LABEL_SEMIRIGID,    //半刚性连接标识显示 辛业文 2022年12月21日
+		LABEL_SHEARNONLINEAR,  //剪切非线性信息 周璋鑫 2023年1月15日
+		LABEL_REINFORCEDCOMPONENTS, // 加固构件标识显示 辛业文 2023年4月14日
+		LABEL_BLASTWALL, //抗爆墙体类型 贾苏20230710
+		LABEL_MAT_REINFORCED,		 //加固材料 辛业文 2023年8月16日
+		LABEL_RATIO_JG,
 	};
 	char m_TextType;
 };

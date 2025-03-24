@@ -18,27 +18,31 @@ enum ITEMTYPE
 
 struct InitTreeData
 {
+	InitTreeData()
+		: iRoot(0)
+		, sItemText(L"")
+		, iIndex(-1)
+		, iIcon(-1)//默认没有图标
+		, iType(NOICON)
+		, bCheck(TRUE)
+	{
+	};
+	InitTreeData(int iRt, CString str, int id, ITEMTYPE itype = NOICON, int icon = -1, BOOL check = TRUE)
+		: iRoot(iRt)
+		, sItemText(str)
+		, iIndex(id)
+		, iType(itype)
+		, iIcon(icon)
+		, bCheck(check)
+	{
+	};
+
 	int iRoot;					//节点等级
 	CString sItemText;		//显示字符
 	int iIndex;					//Id Item
 	ITEMTYPE iType;		//图标类型
 	int iIcon;						//文字前图标
-	InitTreeData()
-	{
-		iRoot=0;
-		sItemText.Empty();
-		iIndex=-1;
-		iIcon=-1;//默认没有图标
-		iType=NOICON;
-	};
-	InitTreeData(int iRt,CString str,int id, ITEMTYPE itype=NOICON,int icon=-1)
-	{
-		iRoot=iRt;
-		sItemText=str;
-		iIndex=id;
-		iIcon=icon;
-		iType=itype;
-	};
+	BOOL bCheck;
 };
 
 class CMyTreeCtrl:public CTreeCtrl
@@ -55,7 +59,7 @@ public:
 	CImageList* m_pIconList;                         //存放ICON
 	CImageList* GetIconList(CImageList* pIconList);  //得到Icon
 	HTREEITEM InsertItemEx(CString strText,HTREEITEM lparent=TVI_ROOT,int index=-1,
-		ITEMTYPE=NOICON,int nIconIndex=-1, HTREEITEM lpFont = TVI_LAST);  
+		ITEMTYPE=NOICON,int nIconIndex=-1, BOOL bCheck = TRUE,HTREEITEM lpFont = TVI_LAST);  
 	void DrawBackGround(CDC* pDC);                   //绘制背景
 	int GetItemIndent(HTREEITEM hItem);
 	void DrawExpandButton(CDC * pDC,HTREEITEM hItem,CRect &Rect);
@@ -122,6 +126,8 @@ public:
 	BOOL InitTree(struct InitTreeData[],int iNum,DWORD dStyle=0);
 	vector<struct TreeData> GetTreeCheck();
 	void SetTreeCheck(vector<struct TreeData> treedata);
+	map<int,bool> GetTreeCheckMap();
+	void TravelItem(HTREEITEM hitem, map<int, bool>& aMap);
 private:
 	vector<struct TreeData> m_vTreeData;
 };

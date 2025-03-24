@@ -24,22 +24,19 @@ class CCurveDataStatic
 {
 public:
 	CCurveDataStatic(int npoint,float ftime,const float *px,const float *py)
+		: nPoint(npoint)
+		, fTime(ftime)
 	{
-		nPoint=npoint;
-		fTime=ftime;
 		pX=new float[nPoint];  ASSERT(pX);
 		pY=new float[nPoint];  ASSERT(pY);
-		for(int i=0;i<nPoint;i++)
-		{
-			pX[i]=px[i];
-			pY[i]=py[i];
-		}
+		memcpy(pX, px, sizeof(float) * nPoint);
+		memcpy(pY, py, sizeof(float) * nPoint);
 	}
 
 	~CCurveDataStatic()
 	{
-		nPoint=0;
-		fTime=0;
+		nPoint = 0;
+		fTime = 0;
 		delete[] pX;
 		delete[] pY;
 	}
@@ -84,12 +81,15 @@ public:
 	BOOL m_bEnvelope2;
 	void ClearEnvelope()  //仅初始化包络线数据，不删除数组
 	{
-		if(aDataPtr.GetCount()==0) return;
+		if(aDataPtr.GetCount()==0) 
+			return;
+
 		int nPoint=aDataPtr[0]->nPoint;
-		if(m_pEnvelope1)
-			for(int i=0;i<nPoint;i++) m_pEnvelope1[i]=0;
+		if (m_pEnvelope1)
+			memset(m_pEnvelope1, 0, sizeof(float) * nPoint);
+
 		if(m_pEnvelope2)
-			for(int i=0;i<nPoint;i++) m_pEnvelope2[i]=0;
+			memset(m_pEnvelope2, 0, sizeof(float) * nPoint);
 	}
 	void UpdateEnvelope(int iPoint,float x) //更新包络线数据
 	{
@@ -191,11 +191,14 @@ public:
 	void SetMargins(int iLeftMargin,int iTopMargin,int iRightMargin,int iBottomMargin);
 
 	//设置门槛值显示状态及门槛值
-	void SetThreshold(BOOL bThresholdX, float fThresholdX, BOOL bThresholdY, float fThresholdY);
+	void SetThreshold(BOOL bThresholdX, float fThresholdX, BOOL bThresholdY, float fThresholdY, BOOL bDouble = FALSE);
 
 	COLORREF m_CurveColor[7];  //前六条曲线的颜色
 	int m_PenStype[7];   //前六条曲线的线型, 参考CPen的nPenStyle取值
 	COLORREF m_EnvelopColor;  //包络线颜色
+	CString* m_sSchemeCase; // 多模型方案
+	int m_sSchemeCaseSize; // 多模型方案
+
 
 	void SetTitle(const CString &sTitle) {m_sTitle=sTitle;}  //设置曲线标题
 
@@ -213,6 +216,7 @@ public:
 
 	//根据已有曲线增加包络曲线（iEnv=0 包络 1 平均）只有最后一步结果的包络不能播放动画 邱海 2017年11月27日
 	void AddEnvelopeCurve(int iEnv);
+	void AddEnvelopeCurveJG(int iEnv);
 	//改变Y坐标轴的输出范围 邱海 2018年5月11日
 	void SetAxisRangeY(float fStart,float fEnd);
 
@@ -259,6 +263,7 @@ protected:
 	//门槛值
 	float m_fThresholdX,m_fThresholdY;
 	BOOL m_bThresholdX,m_bThresholdY;
+	BOOL m_bDoubleThresholdX;
 
 	enum
 	{
@@ -345,6 +350,7 @@ private:
 	DECLARE_MESSAGE_MAP()
 public:
 	void Paint(float fTime);
+	void Paint(float fTime, int& iTimeStep);  //传出动画时刻更新有效刚度和阻尼系数 20230208 siya
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	void Clear(void);
 

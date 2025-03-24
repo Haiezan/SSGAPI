@@ -11,6 +11,8 @@
 #include "FastMath.h"
 #include "UserDefine.h"
 
+const float ZEROTOL = 1e-6f;
+
 class Vector4CPU;
 
 extern Vector4CPU g_VectorCPU_Zero;
@@ -41,14 +43,20 @@ public:
 		// do nothing
 	}
 
-	inline Vector4CPU(float x, float y, float z, float w=1.0f)
+	inline Vector4CPU(float xx, float yy, float zz, float ww = 1.0f)
+		: x(xx)
+		, y(yy)
+		, z(zz)
+		, w(ww)
 	{
-		Set(x, y, z, w);
 	}
 
 	inline Vector4CPU(float value)
+		: x(value)
+		, y(value)
+		, z(value)
+		, w(value)
 	{
-		Set(value);
 	}
 
 	inline Vector4CPU(unsigned int x, unsigned int y, unsigned int z, unsigned int w)
@@ -68,8 +76,11 @@ public:
 	}
 
 	inline Vector4CPU(const float *coor)
+		: x(coor[0])
+		, y(coor[1])
+		, z(coor[2])
+		, w(1.0f)
 	{
-		Set(coor[0], coor[1], coor[2], 1.0f);
 	}
 
 	//重新创建内存，复制原来数据，释放原来的内存。若新旧指针不是同一个变量时，调用程序应设置旧指针为NULL
@@ -92,12 +103,12 @@ public:
 
 	void ConsoleOutput(void);
 
-	inline void Set(float x, float y, float z, float w=0.0f)
+	inline void Set(float xx, float yy, float zz, float ww=0.0f)
 	{
-		this->x = x;
-		this->y = y;
-		this->z = z;
-		this->w = w;
+		this->x = xx;
+		this->y = yy;
+		this->z = zz;
+		this->w = ww;
 	}
 
 	inline void Set(float value)
@@ -116,24 +127,24 @@ public:
 		this->w = p[3];
 	}
 
-	inline void SetX(float x)
+	inline void SetX(float xx)
 	{
-		this->x = x;
+		this->x = xx;
 	}
 
-	inline void SetY(float y)
+	inline void SetY(float yy)
 	{
-		this->y = y;
+		this->y = yy;
 	}
 
-	inline void SetZ(float z)
+	inline void SetZ(float zz)
 	{
-		this->z = z;
+		this->z = zz;
 	}
 
-	inline void SetW(float w)
+	inline void SetW(float ww)
 	{
-		this->w = w;
+		this->w = ww;
 	}
 
 	inline void SetXYZ(const float *p)
@@ -236,29 +247,34 @@ public:
 
 	inline float Length(void) const
 	{
-		float vectorlength;
-		
-		float sum = x*x + y*y + z*z;
-		vectorlength = sqrtf(sum);
-
-		return vectorlength;
+		return sqrtf(x * x + y * y + z * z);
 	}
 
 	inline void Normalize(void)
 	{
 		float len = Length();
-		if(len==0) return;
-		x/=len;
-		y/=len;
-		z/=len;
+		if(fabs(len) < ZEROTOL)
+			return;
+
+		float fR = 1.f / len;
+		x*= fR;
+		y*= fR;
+		z*= fR;
 	}
 
 	inline float NormalizeAndGetLength(void)
 	{
 		float len = Length();
-		x/=len;
-		y/=len;
-		z/=len;
+
+		if (fabs(len) < ZEROTOL)
+			return len;
+
+		float fR = 1.f / len;
+
+		x *= fR;
+		y *= fR;
+		z *= fR;
+
 		return len;
 	}
 
@@ -447,17 +463,27 @@ public:
 		return "General_CPU";
 	}
 
-	inline bool operator<(const Vector4CPU that) const
+	//inline bool operator<(const Vector4CPU& that) const
+	//{
+	//	return memcmp((void*)this, (void*)&that, sizeof(Vector4CPU)) > 0;
+	//}
+
+	inline bool operator==(const Vector4CPU& that)const
 	{
-		return memcmp((void*)this, (void*)&that, sizeof(Vector4CPU)) > 0;
+		if (fabs(this->x - that.x) < g_cSysSizePara.Sys_PointError &&
+			fabs(this->y - that.y) < g_cSysSizePara.Sys_PointError &&
+			fabs(this->z - that.z) < g_cSysSizePara.Sys_PointError)
+			return true;
+
+		return false;
 	}
 };
 
-inline bool operator==(const Vector4CPU &a, const Vector4CPU &b)
-{
-	bool result = (fabs(a.x-b.x)<g_cSysSizePara.Sys_PointError && fabs(a.y-b.y)<g_cSysSizePara.Sys_PointError && fabs(a.z-b.z)<g_cSysSizePara.Sys_PointError);
-	return result;
-}
+//inline bool operator==(const Vector4CPU &a, const Vector4CPU &b)
+//{
+//	bool result = (fabs(a.x-b.x)<g_cSysSizePara.Sys_PointError && fabs(a.y-b.y)<g_cSysSizePara.Sys_PointError && fabs(a.z-b.z)<g_cSysSizePara.Sys_PointError);
+//	return result;
+//}
 
 inline bool operator!=(const Vector4CPU &a, const Vector4CPU &b)
 {
@@ -471,16 +497,9 @@ inline bool Equal(const Vector4CPU &a, const Vector4CPU &b)
 	return a.x==b.x && a.y==b.y && a.z==b.z;
 }  
 
-inline Vector4CPU operator+(const Vector4CPU &a, const Vector4CPU &b)
+inline Vector4CPU operator+(const Vector4CPU& a, const Vector4CPU& b)
 {
-	Vector4CPU c;
-
-	c.x = a.x + b.x;
-	c.y = a.y + b.y;
-	c.z = a.z + b.z;
-	c.w = a.w + b.w;
-
-	return c;
+	return Vector4CPU(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
 }
 
 inline Vector4CPU operator-(const Vector4CPU &b)
@@ -497,14 +516,7 @@ inline Vector4CPU operator-(const Vector4CPU &b)
 
 inline Vector4CPU operator-(const Vector4CPU &a, const Vector4CPU &b)
 {
-	Vector4CPU c;
-
-	c.x = a.x - b.x;
-	c.y = a.y - b.y;
-	c.z = a.z - b.z;
-	c.w = a.w - b.w;
-
-	return c;
+	return Vector4CPU(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
 }
 
 inline Vector4CPU operator*(const Vector4CPU &a, const Vector4CPU &b)
@@ -593,8 +605,7 @@ inline float Vector3Dotf(const Vector4CPU &a, const Vector4CPU &b)
 
 inline Vector4CPU Vector3Dot(const Vector4CPU &a, const Vector4CPU &b)
 {
-	Vector4CPU c = Vector3Dotf(a, b);
-	return c;
+	return Vector4CPU(Vector3Dotf(a, b));
 }
 
 //inline Vector4CPU Vector4Dot(const Vector4CPU &a, const Vector4CPU &b)
@@ -605,14 +616,7 @@ inline Vector4CPU Vector3Dot(const Vector4CPU &a, const Vector4CPU &b)
 
 inline Vector4CPU Vector3CrossProduct(const Vector4CPU &a, const Vector4CPU &b)
 {
-	Vector4CPU c;
-
-	c.x = a.y * b.z - a.z * b.y;
-	c.y = a.z * b.x - a.x * b.z;
-	c.z = a.x * b.y - a.y * b.x;
-	c.w = 0.0f;
-
-	return c;
+	return Vector4CPU(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x,0.f);
 }
 
 //(axb).c
@@ -878,6 +882,19 @@ inline BOOL IsCollinear(const Vector4CPU &v1, const Vector4CPU &v2,int err_degre
 	float ff=Vector3Dotf(v1,v2)/dd;
 
 	return (abs(ff)>=cos(err_degree*MATH_PI/180.0f));
+}
+
+//判断两个矢量是否共线，包括方向相同,err_degree角度容限(度) 两点建立预应力筋组 辛业文 2023年3月3日
+inline BOOL IsCollinearSameDirection(const Vector4CPU& v1, const Vector4CPU& v2, int err_degree = 5)
+{
+	float d1 = v1.Length();
+	float d2 = v2.Length();
+	float dd = d1 * d2;
+	if (dd == 0) return TRUE; //矢量为0也算共线
+
+	float ff = Vector3Dotf(v1, v2) / dd;
+
+	return (ff >= cos(err_degree * MATH_PI / 180.0f));
 }
 
 #endif // _VECTOR4_GENERAL_

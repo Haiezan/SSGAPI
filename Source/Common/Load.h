@@ -64,9 +64,15 @@ LTYPE=42:  B=Q,Q1,Q2,Q3,Q4,iType IN GLOBAL COOR. Z 其中iType为面荷载导荷方式
 LTYPE=43:  B=a,b,Qxa,Qxb        !IN GLOBAL COOR.
 LTYPE=44:  B=a,b,Qya,Qyb        !IN GLOBAL COOR.
 LTYPE=45:  B=a,b,Qza,Qzb        !IN GLOBAL COOR.
-			
+
+LTYPE=46:  B=d //一维构件初拉力
+LTYPE=47:  B=dx,dy //二维构件初拉力
+
 LTYPE=201:  B=iLoadType,iDir,iFunc,fArr,fScale//荷载类型,作用方向,时程函数,到达时间,荷载缩放    节点动荷载
 LTYPE=202:  B=iStaticLoad,iFunc,fArr,fScale//静力工况Id 时程函数,到达时间,荷载缩放    时变荷载
+
+LTYPE=301:  B=iLoadType,iDir,iFunc,fArr,fScale,iCOOR //面动荷载 局部坐标系
+LTYPE=302:  B=iLoadType,iDir,iFunc,fArr,fScale,iCOOR //面动荷载 全局坐标系
 */
 
 class _SSG_DLLIMPEXP CLoad
@@ -106,6 +112,9 @@ public:
 	static int GetLoadDataNum(int iType);
 	//是否整体坐标系
 	bool bGlobalLoad();
+
+	static float ErrForce;
+	static float ErrStrain;
 };
 
 class _SSG_DLLIMPEXP CLoadSet

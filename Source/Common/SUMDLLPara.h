@@ -9,7 +9,8 @@ struct SectPara
 		type_column = 0;
 		l0 = 2400;
 		rho_w = 0.003f;
-		typeStrength = 0;
+		typeNormStrength = 0;
+		typeDiagStrength = 0;
 	}
 	SUBSECTION_SHAPE iShape; //截面形状（预定义形状或原始形状）
 	//截面几何参数
@@ -49,7 +50,8 @@ struct SectPara
 	//增加长度， 类型（梁、柱、撑）
 	int type;		//类型
 
-	int typeStrength;
+	int typeNormStrength; // 正截面设计用材料强度 //0=设计值；1=标准值；2=极限值；
+	int typeDiagStrength; // 斜截面设计用材料强度 //0=设计值；1=标准值；2=极限值；
 
 	int type_column;	//柱子类型 //0=普通柱；1=角柱；2=框支柱；3=框支角柱；
 	float l0;			//长度	柱子计算用

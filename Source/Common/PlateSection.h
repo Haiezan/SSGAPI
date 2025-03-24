@@ -8,7 +8,18 @@ class _SSG_DLLIMPEXP CPlateSection
 {
 public:
 	//构造与析构函数
-	CPlateSection(void) {pLayers=NULL; Clear();}
+	CPlateSection(void)
+		: id(0)
+		, sName(L"")
+		, iStructType(1)
+		, iPlateMatType(PALTESECTION_MAT_TYPE_CONC)
+		, nLayers(0)
+		, fThick(0)
+		, dwColor(0)
+		, nUsedCount(0)
+		, pLayers(NULL)
+	{
+	}
 	CPlateSection(const CPlateSection &sec)	{ pLayers=NULL; nUsedCount=0; *this=sec; }
 	~CPlateSection(void) { Clear(); }
 
@@ -16,7 +27,7 @@ public:
 	int id;  //截面ID
 	CString sName;  //截面名称,梁构件采用截面名称属性，一旦截面名称被改动，则根据改动前后的对应关系替换新名称
 	int iStructType;  //构件类型：1-板；2-墙
-	PALTESECTION_MAT_TYPE iPlateMatType;		//截面材料类型代码,1-混凝土；2-单层钢板混凝土；3-双层钢板混凝土；4-纯钢板
+	PALTESECTION_MAT_TYPE iPlateMatType;		//截面材料类型代码,1-混凝土；2-单层钢板混凝土；3-双层钢板混凝土；4-纯钢板；5-中空混凝土；6-中空钢板
 	int nLayers; //层数量
 	struct LAYER_INFO
 	{

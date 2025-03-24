@@ -160,9 +160,16 @@ public:
 
 	static BOOL GetRayliDamp(float T1,float T2,float Ksi1,float Ksi2,float &alpha,float &beta);
 
+	//线性插值
+	static float LinearInter(float x, float x1, float x2, float y1, float y2);
+	static float LinearInter(float x, float* x1, float* y1, int N);
+
 	//static char* _CHS(const char* chs, const char* eng="");
 //	static wchar_t* _CHS(const wchar_t* chs, const wchar_t* eng=L"");
 
+	//判断多边形是否为凹多边形，即内角是大于180（约3°的容差sin3=0.05）
+	//-1 表示为凸多边形 0~n 为最大凹角编号
+	static int IsConcave(Vector4* p, int n);
 };
 
 void LastErrorMessage_Debug(LPTSTR lpszFunction);  //获取并显示最后的错误

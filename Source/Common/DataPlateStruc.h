@@ -7,6 +7,7 @@ class CVertex;
 class CLine;
 class CPlateSectionCollection;
 class CProjectPara;
+class CStraightLine;
 
 //面状构件，由多个线段组成多边形，里面含动态数组，类数组删除时要先调用CPlateStruc::Clear()
 class _SSG_DLLIMPEXP CPlateStruc: public CStrucProp
@@ -38,7 +39,7 @@ public:
 	int iSectionID;  //截面ID
 
 	float fThickness;  //板的总厚度，包括混凝土和钢材
-	int iSubType;  //子类型 0-墙柱，1-墙梁
+	int iSubType;  //子类型 0-墙柱，1-墙梁，3-蒙皮
 	int nRebarLayer; //钢筋网层数(每层网两个方向)，0表示无钢筋
 	int iBottomStory;  //底部点楼层号，只对墙柱有效，暂时不用
 	float fOffset; //偏心距，沿着3方向（法线方向）
@@ -49,6 +50,8 @@ public:
 	SECTION_MAT_TYPE SecType; //截面类型,可选类型定义在 全局数组gPlateSectionTypeTable[] 中,CFeaInterface::GetPlateTypeSpecValue中根据材料类型对钢筋数和钢板数进行修正
 	int nSteelLayer;   //钢板层数，0表示无钢板
 	float fSteelThick;  //钢板总厚度
+
+	float fStiffCoef[2]; //构件刚度调整系数
 
 	//以下参数保存在附加属性字段
 	float fAs; //边缘构件配筋量(单位：m2)计算值，只对墙有效
@@ -61,6 +64,8 @@ public:
 
 	//临时数据，不保存文件,u.x>1不合法，初始化u.x=10.0f表示未计算，读入、增加、移动点和线时需要调用PlateLocalCoorVector重新计算
 	Vector4 u,v,w,c0;  //工程局部坐标系基矢量及坐标原点，w为法线方向,
+
+	int iShowBlastType; //用于爆炸荷载墙体类型显示1-前墙 2-侧墙 3-屋面 4-后墙
 
 	//重载赋值运算符
 	CPlateStruc & operator=(const CPlateStruc &plate);
@@ -105,13 +110,28 @@ public:
 	//计算墙的高度和宽度，内包矩形
 	void GetWallSize(float &fWidth,float &fHeight);
 
+	//计算板的高度和宽度，内包矩形
+	void GetPlateSize(float& fWidth, float& fHeight);//Width-X,Height-Y
+
 	//计算墙的规定间距范围内配筋面积
 	void GetWallRebarUnitArea(float &fHorzArea,float &fVertArea);
 
 	//计算板或墙钢筋重量，单位：kN
 	float GetRebarWeight();
 
-	virtual BOOL Read(CASCFile &fin,STRUCT_TYPE iType,int &idf,CPlateSectionCollection &cPlateSection,CProjectPara &cPrjPara);   //自动释放原有pLineIDM内存，并创建新内存,iType支持墙梁
+	//计算板或墙的重量，单位：kN
+	float GetWeight();
+
+	//统计混凝土总厚度
+	float GetConcThick();
+
+	//统计钢材层总厚度
+	float GetSteelThick();
+
+	//计算面构件面积
+	float GetArea();
+
+	virtual BOOL Read(CASCFile &fin,STRUCT_TYPE iType,int &idf,CPlateSectionCollection &cPlateSection,const CProjectPara &cPrjPara);   //自动释放原有pLineIDM内存，并创建新内存,iType支持墙梁
 	virtual BOOL Write(CASCFile &fout,int idf);
 	virtual BOOL Write2020(CASCFile &fout,int idf);
 
@@ -133,6 +153,21 @@ public:
 	void GetWall2BeamFibre(float fUnitWidth, int nDiv, BEAM_FIBRE_GEO* &pConcFibre, int &nConcFibre, BEAM_FIBRE_GEO* &pRebarFibre, 
 		int &nRebarFibre, BEAM_FIBRE_GEO* &pSteelFibre, int &nSteelFibre);
 
+	//将墙截面离散化为纤维,用于剪力墙PMM曲线生成
+	void GetWallFibre(BEAM_FIBRE_GEO*& pConcFibre, int& nConcFibre, BEAM_FIBRE_GEO*& pRebarFibre, int& nRebarFibre, 
+		BEAM_FIBRE_GEO*& pSteelFibre, int& nSteelFibre);
+
 	//板蒙皮判断
 	BOOL IsShin() const;
+
+	//根据边界点数组获得长直边信息
+	int GetLongStraightEdge(vector<CStraightLine*>& pStraightLine);
+
+	int iReinforcedSec;//加固方法截面id
+	BOOL ReinforcedWeight(double& wConc, double& wSt, double& wRebar, double area);
+	BOOL IsReinforced() const;
+	BOOL ReinforcedMaterialLayer(int& m_ConcLayer, int& m_RebarLayer, int& m_StLayer); // 加固的钢筋 混凝土 钢板层数
+	int GetReinforcedRebarLayer(float* pThick); //配筋,返回分层数，pThick--每层厚度
+	float GetPlateSecReinforcedThickness(); // 加固后截面的总高度
+	void GetPlateSecReinforcedSize(float& H1, float& H2) const; // 加固截面尺寸
 };
